@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile.dart';
@@ -66,14 +67,20 @@ class AuthProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final response = await _authService.signUpWithEmail(
+      final responseData = await _authService.signUpWithEmail(
         email: email,
         password: password,
         displayName: displayName,
       );
 
-      _user = response.user;
-      await _loadProfile();
+      final session = responseData['session'];
+      if (session != null) {
+        // This triggers the onAuthStateChange listener which handles the rest
+        await SupabaseService.client.auth.recoverSession(jsonEncode(session));
+      } else {
+        // Handle cases where email confirmation might be needed
+        _errorMessage = "Inscription réussie. Veuillez vérifier vos emails pour confirmer votre compte.";
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -96,13 +103,18 @@ class AuthProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final response = await _authService.signInWithEmail(
+      final responseData = await _authService.signInWithEmail(
         email: email,
         password: password,
       );
 
-      _user = response.user;
-      await _loadProfile();
+      final session = responseData['session'];
+      if (session != null) {
+        // This triggers the onAuthStateChange listener which handles the rest
+        await SupabaseService.client.auth.recoverSession(jsonEncode(session));
+      } else {
+        throw Exception("Les données de session sont manquantes.");
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -114,6 +126,7 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
   }
+
 
   /// Connexion avec Google
   Future<bool> signInWithGoogle() async {

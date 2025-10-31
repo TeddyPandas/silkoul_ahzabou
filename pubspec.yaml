@@ -64,6 +64,7 @@ dependencies:
   # Location (Phase 2)
   geolocator: ^10.1.0
   google_maps_flutter: ^2.5.0
+  flutter_dotenv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -92,6 +93,9 @@ flutter:
   uses-material-design: true
   
   assets:
+    # Fichier d'environnement
+    - .env
+    
     # Logos et icônes d'application
     - assets/images/app_logo_512.png
     - assets/images/app_logo_1024.png

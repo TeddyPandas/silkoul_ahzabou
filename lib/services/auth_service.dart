@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile.dart';
 import '../config/supabase_config.dart';
@@ -5,49 +7,61 @@ import 'supabase_service.dart';
 
 class AuthService {
   final SupabaseClient _supabase = SupabaseService.client;
+  final Dio _dio = Dio();
+  final String? _apiBaseUrl = dotenv.env['API_BASE_URL'];
 
-  /// Inscription par email et mot de passe
-  Future<AuthResponse> signUpWithEmail({
+  AuthService() {
+    if (_apiBaseUrl == null) {
+      // This check is important for debugging.
+      print("CRITICAL: API_BASE_URL not found in .env file. Make sure it's loaded.");
+    }
+  }
+
+  /// Inscription par email et mot de passe via le backend Node.js
+  Future<Map<String, dynamic>> signUpWithEmail({
     required String email,
     required String password,
     required String displayName,
   }) async {
+    if (_apiBaseUrl == null) throw Exception('API_BASE_URL is not configured');
     try {
-      final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
+      final response = await _dio.post(
+        '$_apiBaseUrl/auth/signup',
         data: {
+          'email': email,
+          'password': password,
           'display_name': displayName,
         },
       );
-
-      // Créer le profil utilisateur
-      if (response.user != null) {
-        await _createProfile(
-          userId: response.user!.id,
-          email: email,
-          displayName: displayName,
-        );
-      }
-
-      return response;
+      return response.data;
+    } on DioException catch (e) {
+      final errorMessage = e.response?.data?['message'] ?? e.message;
+      throw Exception('Erreur lors de l\'inscription: $errorMessage');
     } catch (e) {
-      throw Exception('Erreur lors de l\'inscription: $e');
+      throw Exception('Erreur inattendue lors de l\'inscription: $e');
     }
   }
 
-  /// Connexion par email et mot de passe
-  Future<AuthResponse> signInWithEmail({
+  /// Connexion par email et mot de passe via le backend Node.js
+  Future<Map<String, dynamic>> signInWithEmail({
     required String email,
     required String password,
   }) async {
+    if (_apiBaseUrl == null) throw Exception('API_BASE_URL is not configured');
     try {
-      return await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
+      final response = await _dio.post(
+        '$_apiBaseUrl/auth/login',
+        data: {
+          'email': email,
+          'password': password,
+        },
       );
+      return response.data;
+    } on DioException catch (e) {
+      final errorMessage = e.response?.data?['message'] ?? e.message;
+      throw Exception('Erreur lors de la connexion: $errorMessage');
     } catch (e) {
-      throw Exception('Erreur lors de la connexion: $e');
+      throw Exception('Erreur inattendue lors de la connexion: $e');
     }
   }
 

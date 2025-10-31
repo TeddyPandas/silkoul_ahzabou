@@ -395,21 +395,3 @@ class CommunityTab extends StatelessWidget {
   }
 }
 
-// ============================================
-// Tab 4: Profile (Placeholder)
-// ============================================
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: const Center(
-        child: Text('Profil à implémenter'),
-      ),
-    );
-  }
-}

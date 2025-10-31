@@ -1,14 +1,11 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class SupabaseConfig {
-  // À remplacer par vos vraies clés Supabase
-  static const String supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-  );
-  
-  static const String supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-  );
-  
-  // Configuration des tables
+  // Utiliser dotenv pour charger les variables d'environnement
+  static final String supabaseUrl = dotenv.env['SUPABASE_URL']!;
+  static final String supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY']!;
+
+  // Le reste de la configuration reste inchangé
   static const String profilesTable = 'profiles';
   static const String campaignsTable = 'campaigns';
   static const String tasksTable = 'tasks';

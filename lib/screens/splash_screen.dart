@@ -21,19 +21,31 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigate() async {
+    print('[SplashScreen] Starting navigation logic...');
+    // Attendre la durée de l'écran de démarrage ET laisser le temps aux services de s'initialiser.
     await Future.delayed(AppConstants.splashDuration);
 
-    if (!mounted) return;
+    if (!mounted) {
+      print('[SplashScreen] Widget not mounted, aborting navigation.');
+      return;
+    }
 
+    print('[SplashScreen] Getting AuthProvider...');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final isAuthenticated = authProvider.isAuthenticated;
+    print('[SplashScreen] Auth state check: isAuthenticated = $isAuthenticated');
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => authProvider.isAuthenticated
-            ? const HomeScreen()
-            : const LoginScreen(),
-      ),
-    );
+    if (isAuthenticated) {
+      print('[SplashScreen] Navigating to HomeScreen...');
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } else {
+      print('[SplashScreen] Navigating to LoginScreen...');
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
   }
 
   @override
