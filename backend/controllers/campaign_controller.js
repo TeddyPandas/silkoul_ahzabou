@@ -1,0 +1,292 @@
+const { supabase, supabaseAdmin } = require('../config/supabase');
+const { NotFoundError, ValidationError, AuthorizationError } = require('../utils/errors');
+const { successResponse, createdResponse, paginatedResponse } = require('../utils/response');
+
+/**
+ * Créer une nouvelle campagne avec ses tâches
+ */
+const createCampaign = async (req, res) => {
+  const { name, description, start_date, end_date, category, is_public, access_code, tasks } = req.body;
+  const userId = req.userId;
+
+  // Générer une référence unique pour la campagne
+  const reference = `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+
+  // Créer la campagne
+  const { data: campaign, error: campaignError } = await supabase
+    .from('campaigns')
+    .insert({
+      name,
+      reference,
+      description,
+      start_date,
+      end_date,
+      created_by: userId,
+      category,
+      is_public: is_public !== undefined ? is_public : true,
+      access_code: !is_public ? access_code : null
+    })
+    .select()
+    .single();
+
+  if (campaignError) {
+    throw new ValidationError(`Erreur lors de la création de la campagne: ${campaignError.message}`);
+  }
+
+  // Créer les tâches associées
+  const tasksToInsert = tasks.map(task => ({
+    campaign_id: campaign.id,
+    name: task.name,
+    total_number: task.total_number,
+    remaining_number: task.total_number,
+    daily_goal: task.daily_goal || null
+  }));
+
+  const { data: createdTasks, error: tasksError } = await supabase
+    .from('tasks')
+    .insert(tasksToInsert)
+    .select();
+
+  if (tasksError) {
+    // Supprimer la campagne si les tâches échouent
+    await supabase.from('campaigns').delete().eq('id', campaign.id);
+    throw new ValidationError(`Erreur lors de la création des tâches: ${tasksError.message}`);
+  }
+
+  // Retourner la campagne avec ses tâches
+  const response = {
+    ...campaign,
+    tasks: createdTasks
+  };
+
+  return createdResponse(res, 'Campagne créée avec succès', response);
+};
+
+/**
+ * Récupérer toutes les campagnes (publiques ou celles de l'utilisateur)
+ */
+const getCampaigns = async (req, res) => {
+  const { search, category, is_active, page = 1, limit = 20 } = req.query;
+  const userId = req.userId;
+
+  let query = supabase
+    .from('campaigns')
+    .select(`
+      id, name, reference, description, start_date, end_date, created_by, category, is_public, is_weekly, created_at,
+      creator:created_by(id, display_name, avatar_url),
+      tasks(id, name, total_number, remaining_number, daily_goal)
+    `, { count: 'exact' });
+
+  // Filtrer par campagnes publiques ou créées par l'utilisateur
+  if (userId) {
+    query = query.or(`is_public.eq.true,created_by.eq.${userId}`);
+  } else {
+    query = query.eq('is_public', true);
+  }
+
+  // Recherche par nom ou description
+  if (search) {
+    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+  }
+
+  // Filtrer par catégorie
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  // Filtrer par statut actif
+  if (is_active === 'true') {
+    const now = new Date().toISOString();
+    query = query.lte('start_date', now).gte('end_date', now);
+  }
+
+  // Pagination
+  const offset = (page - 1) * limit;
+  query = query.range(offset, offset + limit - 1);
+
+  // Trier par date de création (plus récentes en premier)
+  query = query.order('created_at', { ascending: false });
+
+  const { data: campaigns, error, count } = await query;
+
+  if (error) {
+    throw new ValidationError(`Erreur lors de la récupération des campagnes: ${error.message}`);
+  }
+
+  return paginatedResponse(res, campaigns, {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    total: count
+  });
+};
+
+/**
+ * Récupérer une campagne spécifique par ID
+ */
+const getCampaignById = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.userId;
+
+  const { data: campaign, error } = await supabase
+    .from('campaigns')
+    .select(`
+      *,
+      creator:created_by(id, display_name, avatar_url, email),
+      tasks(id, name, total_number, remaining_number, daily_goal, created_at)
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error || !campaign) {
+    throw new NotFoundError('Campagne non trouvée');
+  }
+
+  // Vérifier l'accès aux campagnes privées
+  if (!campaign.is_public && campaign.created_by !== userId) {
+    // Vérifier si l'utilisateur est déjà abonné
+    const { data: subscription } = await supabase
+      .from('user_campaigns')
+      .select('id')
+      .eq('campaign_id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (!subscription) {
+      throw new AuthorizationError('Accès refusé à cette campagne privée');
+    }
+  }
+
+  return successResponse(res, 200, 'Campagne récupérée', campaign);
+};
+
+/**
+ * Mettre à jour une campagne
+ */
+const updateCampaign = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.userId;
+  const updates = req.body;
+
+  // Vérifier que l'utilisateur est le créateur
+  const { data: campaign } = await supabase
+    .from('campaigns')
+    .select('created_by')
+    .eq('id', id)
+    .single();
+
+  if (!campaign) {
+    throw new NotFoundError('Campagne non trouvée');
+  }
+
+  if (campaign.created_by !== userId) {
+    throw new AuthorizationError('Vous n\'êtes pas autorisé à modifier cette campagne');
+  }
+
+  // Mettre à jour la campagne
+  const { data: updatedCampaign, error } = await supabase
+    .from('campaigns')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new ValidationError(`Erreur lors de la mise à jour: ${error.message}`);
+  }
+
+  return successResponse(res, 200, 'Campagne mise à jour', updatedCampaign);
+};
+
+/**
+ * Supprimer une campagne
+ */
+const deleteCampaign = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.userId;
+
+  // Vérifier que l'utilisateur est le créateur
+  const { data: campaign } = await supabase
+    .from('campaigns')
+    .select('created_by')
+    .eq('id', id)
+    .single();
+
+  if (!campaign) {
+    throw new NotFoundError('Campagne non trouvée');
+  }
+
+  if (campaign.created_by !== userId) {
+    throw new AuthorizationError('Vous n\'êtes pas autorisé à supprimer cette campagne');
+  }
+
+  // Supprimer la campagne (cascade supprimera les tâches et souscriptions)
+  const { error } = await supabase
+    .from('campaigns')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw new ValidationError(`Erreur lors de la suppression: ${error.message}`);
+  }
+
+  return successResponse(res, 200, 'Campagne supprimée avec succès');
+};
+
+/**
+ * Récupérer les campagnes de l'utilisateur (créées et souscrites)
+ */
+const getUserCampaigns = async (req, res) => {
+  const userId = req.userId;
+  const { type = 'all' } = req.query; // all, created, subscribed
+
+  let campaigns = [];
+
+  if (type === 'all' || type === 'created') {
+    // Campagnes créées par l'utilisateur
+    const { data: createdCampaigns, error: createdError } = await supabase
+      .from('campaigns')
+      .select(`
+        *,
+        tasks(id, name, total_number, remaining_number, daily_goal)
+      `)
+      .eq('created_by', userId)
+      .order('created_at', { ascending: false });
+
+    if (!createdError) {
+      campaigns = campaigns.concat(createdCampaigns.map(c => ({ ...c, relation: 'created' })));
+    }
+  }
+
+  if (type === 'all' || type === 'subscribed') {
+    // Campagnes auxquelles l'utilisateur est abonné
+    const { data: subscribedCampaigns, error: subscribedError } = await supabase
+      .from('user_campaigns')
+      .select(`
+        campaign:campaigns(
+          *,
+          creator:created_by(id, display_name, avatar_url),
+          tasks(id, name, total_number, remaining_number, daily_goal)
+        )
+      `)
+      .eq('user_id', userId);
+
+    if (!subscribedError && subscribedCampaigns) {
+      campaigns = campaigns.concat(
+        subscribedCampaigns
+          .filter(uc => uc.campaign)
+          .map(uc => ({ ...uc.campaign, relation: 'subscribed' }))
+      );
+    }
+  }
+
+  return successResponse(res, 200, 'Campagnes de l\'utilisateur récupérées', campaigns);
+};
+
+module.exports = {
+  createCampaign,
+  getCampaigns,
+  getCampaignById,
+  updateCampaign,
+  deleteCampaign,
+  getUserCampaigns
+};

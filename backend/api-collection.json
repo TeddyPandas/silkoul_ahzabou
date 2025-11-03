@@ -1,0 +1,423 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Silkoul Ahzabou Tidiani API",
+  "dateExported": "2025-01-29",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Auth",
+      "requests": [
+        {
+          "name": "Signup",
+          "method": "POST",
+          "url": "{{base_url}}/api/users/auth/signup",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"display_name\": \"Ahmed Hassan\"\n}"
+          }
+        },
+        {
+          "name": "Login",
+          "method": "POST",
+          "url": "{{base_url}}/api/users/auth/login",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+          }
+        },
+        {
+          "name": "Logout",
+          "method": "POST",
+          "url": "{{base_url}}/api/users/auth/logout",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Profiles",
+      "requests": [
+        {
+          "name": "Get My Profile",
+          "method": "GET",
+          "url": "{{base_url}}/api/users/me",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Update My Profile",
+          "method": "PUT",
+          "url": "{{base_url}}/api/users/me",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"display_name\": \"Ahmed Hassan Updated\",\n  \"phone\": \"+221771234567\",\n  \"address\": \"Dakar, Senegal\"\n}"
+          }
+        },
+        {
+          "name": "Create/Update Full Profile",
+          "method": "POST",
+          "url": "{{base_url}}/api/users/profile",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"display_name\": \"Ahmed Hassan\",\n  \"phone\": \"+221771234567\",\n  \"address\": \"Dakar, Senegal\",\n  \"date_of_birth\": \"1990-01-15\"\n}"
+          }
+        },
+        {
+          "name": "Get Profile by ID",
+          "method": "GET",
+          "url": "{{base_url}}/api/users/{{user_id}}"
+        },
+        {
+          "name": "Search Users",
+          "method": "GET",
+          "url": "{{base_url}}/api/users/search?query=ahmed&limit=10"
+        }
+      ]
+    },
+    {
+      "name": "Silsilas",
+      "requests": [
+        {
+          "name": "Get All Silsilas",
+          "method": "GET",
+          "url": "{{base_url}}/api/users/silsilas"
+        },
+        {
+          "name": "Create Silsila",
+          "method": "POST",
+          "url": "{{base_url}}/api/users/silsilas",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"name\": \"Branche Test\",\n  \"description\": \"Description de la branche\",\n  \"parent_id\": null\n}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campaigns",
+      "requests": [
+        {
+          "name": "Create Campaign",
+          "method": "POST",
+          "url": "{{base_url}}/api/campaigns",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"name\": \"Istighfar Ramadan 2025\",\n  \"start_date\": \"2025-03-01T00:00:00Z\",\n  \"end_date\": \"2025-03-10T23:59:59Z\",\n  \"description\": \"Campagne collective d'istighfar pour le mois de Ramadan\",\n  \"category\": \"istighfar\",\n  \"is_public\": true,\n  \"tasks\": [\n    {\n      \"name\": \"Istighfar\",\n      \"total_number\": 124000,\n      \"daily_goal\": 12400\n    },\n    {\n      \"name\": \"Salawat\",\n      \"total_number\": 50000,\n      \"daily_goal\": 5000\n    }\n  ]\n}"
+          }
+        },
+        {
+          "name": "Get All Campaigns",
+          "method": "GET",
+          "url": "{{base_url}}/api/campaigns?page=1&limit=20"
+        },
+        {
+          "name": "Search Campaigns",
+          "method": "GET",
+          "url": "{{base_url}}/api/campaigns?search=ramadan&category=istighfar&is_active=true"
+        },
+        {
+          "name": "Get Campaign by ID",
+          "method": "GET",
+          "url": "{{base_url}}/api/campaigns/{{campaign_id}}"
+        },
+        {
+          "name": "Get My Campaigns",
+          "method": "GET",
+          "url": "{{base_url}}/api/campaigns/my?type=all",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Created Campaigns",
+          "method": "GET",
+          "url": "{{base_url}}/api/campaigns/my?type=created",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Subscribed Campaigns",
+          "method": "GET",
+          "url": "{{base_url}}/api/campaigns/my?type=subscribed",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Update Campaign",
+          "method": "PUT",
+          "url": "{{base_url}}/api/campaigns/{{campaign_id}}",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"name\": \"Istighfar Ramadan 2025 - Mise à jour\",\n  \"description\": \"Description mise à jour\"\n}"
+          }
+        },
+        {
+          "name": "Delete Campaign",
+          "method": "DELETE",
+          "url": "{{base_url}}/api/campaigns/{{campaign_id}}",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "requests": [
+        {
+          "name": "Subscribe to Campaign",
+          "method": "POST",
+          "url": "{{base_url}}/api/tasks/subscribe",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"campaign_id\": \"{{campaign_id}}\",\n  \"task_subscriptions\": [\n    {\n      \"task_id\": \"{{task_id}}\",\n      \"quantity\": 10000\n    }\n  ]\n}"
+          }
+        },
+        {
+          "name": "Subscribe to Private Campaign",
+          "method": "POST",
+          "url": "{{base_url}}/api/tasks/subscribe",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"campaign_id\": \"{{campaign_id}}\",\n  \"access_code\": \"SECRET123\",\n  \"task_subscriptions\": [\n    {\n      \"task_id\": \"{{task_id}}\",\n      \"quantity\": 5000\n    }\n  ]\n}"
+          }
+        },
+        {
+          "name": "Get My Tasks",
+          "method": "GET",
+          "url": "{{base_url}}/api/tasks",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Tasks for Campaign",
+          "method": "GET",
+          "url": "{{base_url}}/api/tasks?campaign_id={{campaign_id}}",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Completed Tasks",
+          "method": "GET",
+          "url": "{{base_url}}/api/tasks?is_completed=true",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Update Task Progress",
+          "method": "PUT",
+          "url": "{{base_url}}/api/tasks/{{user_task_id}}/progress",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"completed_quantity\": 5000\n}"
+          }
+        },
+        {
+          "name": "Mark Task Complete",
+          "method": "PUT",
+          "url": "{{base_url}}/api/tasks/{{user_task_id}}/complete",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Task Stats",
+          "method": "GET",
+          "url": "{{base_url}}/api/tasks/stats",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Unsubscribe from Campaign",
+          "method": "DELETE",
+          "url": "{{base_url}}/api/tasks/unsubscribe/{{campaign_id}}",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "requests": [
+        {
+          "name": "Health Check",
+          "method": "GET",
+          "url": "{{base_url}}/health"
+        },
+        {
+          "name": "API Info",
+          "method": "GET",
+          "url": "{{base_url}}/"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "options": {
+      "baseUrl": "http://localhost:3000"
+    }
+  },
+  "variables": [
+    {
+      "name": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "name": "access_token",
+      "value": "your_jwt_token_here"
+    },
+    {
+      "name": "user_id",
+      "value": "user_uuid_here"
+    },
+    {
+      "name": "campaign_id",
+      "value": "campaign_uuid_here"
+    },
+    {
+      "name": "task_id",
+      "value": "task_uuid_here"
+    },
+    {
+      "name": "user_task_id",
+      "value": "user_task_uuid_here"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+🕌 Silkoul Ahzabou Tidiani - Backend Node.js
+
+## 📦 Contenu de l'Archive
+
+Cette archive contient le backend complet de l'application Silkoul Ahzabou Tidiani.
+
+## 🚀 Installation Rapide
+
+### 1. Extraire l'archive
+
+```bash
+tar -xzf silkoul-ahzabou-backend.tar.gz
+cd backend
+```
+
+### 2. Installer les dépendances
+
+```bash
+npm install
+```
+
+### 3. Configuration
+
+```bash
+# Copier le fichier d'exemple
+cp .env.example .env
+
+# Éditer avec vos valeurs
+nano .env
+```
+
+Variables requises:
+- SUPABASE_URL - URL de votre projet Supabase
+- SUPABASE_ANON_KEY - Clé publique Supabase
+- SUPABASE_SERVICE_ROLE_KEY - Clé admin Supabase (optionnel)
+
+### 4. Configuration de la base de données
+
+1. Créer un compte sur supabase.com
+2. Créer un nouveau projet
+3. Dans SQL Editor, exécuter le contenu de database/schema.sql
+4. Récupérer les clés API depuis Settings > API
+
+### 5. Lancer le serveur
+
+```bash
+# Développement
+npm run dev
+
+# Production
+npm start
+```
+
+Le serveur démarre sur http://localhost:3000
+
+## 📚 Documentation Incluse
+
+✅ README.md - Documentation complète
+✅ DEPLOYMENT.md - Guides de déploiement
+✅ API_EXAMPLES.md - Exemples curl
+✅ CONTRIBUTING.md - Guide de contribution
+✅ api-collection.json - Collection Postman
+
+## ✨ Fonctionnalités
+
+✅ Authentification complète
+✅ Gestion des campagnes
+✅ Système de souscription atomique
+✅ Suivi des progrès
+✅ Profils utilisateurs
+✅ Sécurité RLS
+
+---
+
+Bismillah al-Rahman al-Rahim 🕌
