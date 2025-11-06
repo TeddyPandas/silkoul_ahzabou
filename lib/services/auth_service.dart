@@ -1,84 +1,94 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile.dart';
 import '../config/supabase_config.dart';
 import 'supabase_service.dart';
 
+/// Service d'authentification unifié utilisant UNIQUEMENT Supabase Auth
+///
+/// Tous les types d'authentification (Email, Google, Phone) passent par Supabase.
+/// Le backend Node.js vérifie ensuite les tokens JWT générés par Supabase.
 class AuthService {
   final SupabaseClient _supabase = SupabaseService.client;
-  final Dio _dio = Dio();
-  final String? _apiBaseUrl = dotenv.env['API_BASE_URL'];
 
-  AuthService() {
-    if (_apiBaseUrl == null) {
-      // This check is important for debugging.
-      print("CRITICAL: API_BASE_URL not found in .env file. Make sure it's loaded.");
-    }
-  }
-
-  /// Inscription par email et mot de passe via le backend Node.js
+  /// ════════════════════════════════════════════════════════════════════════
+  /// INSCRIPTION PAR EMAIL
+  /// ════════════════════════════════════════════════════════════════════════
   Future<Map<String, dynamic>> signUpWithEmail({
     required String email,
     required String password,
     required String displayName,
   }) async {
-    if (_apiBaseUrl == null) throw Exception('API_BASE_URL is not configured');
     try {
-      final response = await _dio.post(
-        '$_apiBaseUrl/auth/signup',
+      // 1. Créer l'utilisateur dans Supabase Auth
+      final response = await _supabase.auth.signUp(
+        email: email,
+        password: password,
         data: {
-          'email': email,
-          'password': password,
           'display_name': displayName,
         },
       );
-      return response.data;
-    } on DioException catch (e) {
-      final errorMessage = e.response?.data?['message'] ?? e.message;
-      throw Exception('Erreur lors de l\'inscription: $errorMessage');
+
+      // 2. Créer le profil dans la table profiles
+      if (response.user != null) {
+        await _createProfile(
+          userId: response.user!.id,
+          email: email,
+          displayName: displayName,
+        );
+      }
+
+      return {
+        'user': response.user,
+        'session': response.session,
+      };
     } catch (e) {
-      throw Exception('Erreur inattendue lors de l\'inscription: $e');
+      throw Exception('Erreur lors de l\'inscription: $e');
     }
   }
 
-  /// Connexion par email et mot de passe via le backend Node.js
+  /// ════════════════════════════════════════════════════════════════════════
+  /// CONNEXION PAR EMAIL
+  /// ════════════════════════════════════════════════════════════════════════
   Future<Map<String, dynamic>> signInWithEmail({
     required String email,
     required String password,
   }) async {
-    if (_apiBaseUrl == null) throw Exception('API_BASE_URL is not configured');
     try {
-      final response = await _dio.post(
-        '$_apiBaseUrl/auth/login',
-        data: {
-          'email': email,
-          'password': password,
-        },
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
       );
-      return response.data;
-    } on DioException catch (e) {
-      final errorMessage = e.response?.data?['message'] ?? e.message;
-      throw Exception('Erreur lors de la connexion: $errorMessage');
+
+      return {
+        'user': response.user,
+        'session': response.session,
+      };
     } catch (e) {
-      throw Exception('Erreur inattendue lors de la connexion: $e');
+      throw Exception('Erreur lors de la connexion: $e');
     }
   }
 
-  /// Connexion avec Google
+  /// ════════════════════════════════════════════════════════════════════════
+  /// CONNEXION AVEC GOOGLE (OAuth)
+  /// ════════════════════════════════════════════════════════════════════════
   Future<bool> signInWithGoogle() async {
     try {
       final response = await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: SupabaseConfig.redirectUrl,
       );
+
+      // Note: Le profil sera créé automatiquement lors du callback OAuth
+      // via le trigger Supabase ou dans le AuthProvider
       return response;
     } catch (e) {
       throw Exception('Erreur lors de la connexion Google: $e');
     }
   }
 
-  /// Connexion par numéro de téléphone (OTP)
+  /// ════════════════════════════════════════════════════════════════════════
+  /// CONNEXION PAR TÉLÉPHONE (OTP)
+  /// ════════════════════════════════════════════════════════════════════════
   Future<void> signInWithPhone({
     required String phoneNumber,
   }) async {
@@ -122,7 +132,9 @@ class AuthService {
     }
   }
 
-  /// Réinitialisation du mot de passe
+  /// ════════════════════════════════════════════════════════════════════════
+  /// RÉINITIALISATION DU MOT DE PASSE
+  /// ════════════════════════════════════════════════════════════════════════
   Future<void> resetPassword({required String email}) async {
     try {
       await _supabase.auth.resetPasswordForEmail(email);
@@ -131,7 +143,9 @@ class AuthService {
     }
   }
 
-  /// Déconnexion
+  /// ════════════════════════════════════════════════════════════════════════
+  /// DÉCONNEXION
+  /// ════════════════════════════════════════════════════════════════════════
   Future<void> signOut() async {
     try {
       await _supabase.auth.signOut();
@@ -140,7 +154,11 @@ class AuthService {
     }
   }
 
-  /// Créer un profil utilisateur
+  /// ════════════════════════════════════════════════════════════════════════
+  /// GESTION DU PROFIL
+  /// ════════════════════════════════════════════════════════════════════════
+
+  /// Créer un profil utilisateur dans la table profiles
   Future<void> _createProfile({
     required String userId,
     required String email,
