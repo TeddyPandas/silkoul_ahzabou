@@ -1,37 +1,133 @@
+// lib/providers/campaign_provider.dart
 import 'package:flutter/foundation.dart';
 import '../models/campaign.dart';
-import '../models/task.dart';
 import '../services/campaign_service.dart';
 
 class CampaignProvider with ChangeNotifier {
   final CampaignService _campaignService = CampaignService();
 
-  List<Campaign> _publicCampaigns = [];
+  List<Campaign> _campaigns = [];
   List<Campaign> _myCampaigns = [];
-  List<Campaign> _createdCampaigns = [];
-  List<Task> _currentCampaignTasks = [];
+  Campaign? _selectedCampaign;
 
   bool _isLoading = false;
   String? _errorMessage;
 
-  List<Campaign> get publicCampaigns => _publicCampaigns;
+  // Getters
+  List<Campaign> get campaigns => _campaigns;
   List<Campaign> get myCampaigns => _myCampaigns;
-  List<Campaign> get createdCampaigns => _createdCampaigns;
-  List<Task> get currentCampaignTasks => _currentCampaignTasks;
+  Campaign? get selectedCampaign => _selectedCampaign;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  /// Créer une nouvelle campagne
+  // ============================================
+  // RÉCUPÉRER TOUTES LES CAMPAGNES PUBLIQUES
+  // ============================================
+  Future<void> fetchCampaigns({String? category}) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      _campaigns = await _campaignService.getPublicCampaigns(
+        category: category,
+        onlyPublic: true,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = _parseErrorMessage(e.toString());
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ============================================
+  // RÉCUPÉRER MES CAMPAGNES (créées + souscrites)
+  // ============================================
+  Future<void> fetchMyCampaigns() async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      _myCampaigns = await _campaignService.getMyCampaigns();
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = _parseErrorMessage(e.toString());
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ============================================
+  // RÉCUPÉRER UNE CAMPAGNE PAR ID
+  // ============================================
+  Future<void> fetchCampaignById(String campaignId) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      _selectedCampaign = await _campaignService.getCampaignById(campaignId);
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = _parseErrorMessage(e.toString());
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ============================================
+  // ✅ S'ABONNER À UNE CAMPAGNE (CORRIGÉ)
+  // ============================================
+  Future<bool> subscribeToCampaign({
+    required String userId,
+    required String campaignId,
+    String? accessCode,
+    required List<Map<String, dynamic>> selectedTasks, // ✅ Un seul paramètre
+  }) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      // ✅ CORRECTION : Plus de paramètre dupliqué
+      await _campaignService.subscribeToCampaign(
+        userId: userId,
+        campaignId: campaignId,
+        accessCode: accessCode,
+        selectedTasks: selectedTasks, // ✅ Un seul paramètre utilisé
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      // ✅ AMÉLIORATION : Parser l'erreur pour un message plus clair
+      _errorMessage = _parseErrorMessage(e.toString());
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ============================================
+  // CRÉER UNE CAMPAGNE
+  // ============================================
   Future<String?> createCampaign({
     required String name,
-    String? description,
+    required String description,
     required DateTime startDate,
     required DateTime endDate,
-    required String createdBy,
-    String? category,
-    bool isPublic = true,
+    required String category,
+    required bool isPublic,
     String? accessCode,
-    bool isWeekly = false,
     required List<Map<String, dynamic>> tasks,
   }) async {
     try {
@@ -44,11 +140,9 @@ class CampaignProvider with ChangeNotifier {
         description: description,
         startDate: startDate,
         endDate: endDate,
-        createdBy: createdBy,
         category: category,
         isPublic: isPublic,
         accessCode: accessCode,
-        isWeekly: isWeekly,
         tasks: tasks,
       );
 
@@ -56,159 +150,145 @@ class CampaignProvider with ChangeNotifier {
       notifyListeners();
       return campaignId;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _parseErrorMessage(e.toString());
       _isLoading = false;
       notifyListeners();
       return null;
     }
   }
 
-  /// Charger les campagnes publiques
-  Future<void> loadPublicCampaigns({
-    String? category,
-    String? searchQuery,
-  }) async {
+  // ============================================
+  // METTRE À JOUR UNE CAMPAGNE
+  // ============================================
+  Future<bool> updateCampaign(
+    String campaignId,
+    Map<String, dynamic> updates,
+  ) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      _publicCampaigns = await _campaignService.getPublicCampaigns(
-        category: category,
-        searchQuery: searchQuery,
-      );
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  /// Charger les campagnes de l'utilisateur (souscrites)
-  Future<void> loadMyCampaigns(String userId) async {
-    try {
-      _isLoading = true;
-      _errorMessage = null;
-      notifyListeners();
-
-      _myCampaigns = await _campaignService.getUserCampaigns(
-        userId: userId,
-        onlyCreated: false,
-      );
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  /// Charger les campagnes créées par l'utilisateur
-  Future<void> loadCreatedCampaigns(String userId) async {
-    try {
-      _isLoading = true;
-      _errorMessage = null;
-      notifyListeners();
-
-      _createdCampaigns = await _campaignService.getUserCampaigns(
-        userId: userId,
-        onlyCreated: true,
-      );
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  /// Charger les tâches d'une campagne
-  Future<void> loadCampaignTasks(String campaignId) async {
-    try {
-      _isLoading = true;
-      _errorMessage = null;
-      notifyListeners();
-
-      _currentCampaignTasks = await _campaignService.getCampaignTasks(
-        campaignId,
-      );
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  /// S'abonner à une campagne
-  Future<bool> subscribeToCampaign({
-    required String userId,
-    required String campaignId,
-    String? accessCode,
-    required List<Map<String, dynamic>> selectedTasks,
-  }) async {
-    try {
-      _isLoading = true;
-      _errorMessage = null;
-      notifyListeners();
-
-      await _campaignService.subscribeToCampaign(
-        userId: userId,
-        campaignId: campaignId,
-        accessCode: accessCode,
-        taskSubscriptions: selectedTasks,
-        selectedTasks: selectedTasks,
-      );
+      await _campaignService.updateCampaign(campaignId, updates);
 
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _parseErrorMessage(e.toString());
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  /// Vérifier si l'utilisateur est abonné à une campagne
-  Future<bool> isUserSubscribed({
-    required String userId,
-    required String campaignId,
-  }) async {
+  // ============================================
+  // SUPPRIMER UNE CAMPAGNE
+  // ============================================
+  Future<bool> deleteCampaign(String campaignId) async {
     try {
-      return await _campaignService.isUserSubscribed(
-        userId: userId,
-        campaignId: campaignId,
-      );
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      await _campaignService.deleteCampaign(campaignId);
+
+      // Retirer de la liste locale
+      _campaigns.removeWhere((c) => c.id == campaignId);
+      _myCampaigns.removeWhere((c) => c.id == campaignId);
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
+      _errorMessage = _parseErrorMessage(e.toString());
+      _isLoading = false;
+      notifyListeners();
       return false;
     }
   }
 
-  /// Obtenir une campagne par ID
-  Future<Campaign?> getCampaignById(String campaignId) async {
+  // ============================================
+  // RECHERCHER DES CAMPAGNES
+  // ============================================
+  Future<void> searchCampaigns(String query) async {
     try {
-      return await _campaignService.getCampaignById(campaignId);
-    } catch (e) {
-      _errorMessage = e.toString();
+      _isLoading = true;
+      _errorMessage = null;
       notifyListeners();
-      return null;
+
+      // Si query vide, récupérer toutes les campagnes
+      if (query.isEmpty) {
+        await fetchCampaigns();
+        return;
+      }
+
+      // Filtrer localement (optimisation)
+      _campaigns = _campaigns
+          .where((campaign) =>
+              campaign.name.toLowerCase().contains(query.toLowerCase()) ||
+              campaign.description.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = _parseErrorMessage(e.toString());
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  /// Effacer le message d'erreur
+  // ============================================
+  // RÉINITIALISER L'ERREUR
+  // ============================================
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  // ============================================
+  // ✅ PARSER LES MESSAGES D'ERREUR (NOUVEAU)
+  // ============================================
+  String _parseErrorMessage(String rawError) {
+    // Extraire un message utilisateur clair depuis l'erreur brute
+
+    if (rawError.contains('déjà abonné') ||
+        rawError.contains('already subscribed')) {
+      return 'Vous êtes déjà abonné à cette campagne.';
+    }
+
+    if (rawError.contains('Code d\'accès') ||
+        rawError.contains('access code')) {
+      return 'Le code d\'accès est invalide.';
+    }
+
+    if (rawError.contains('Quantité') || rawError.contains('quantity')) {
+      return 'La quantité demandée n\'est plus disponible.';
+    }
+
+    if (rawError.contains('non authentifié') ||
+        rawError.contains('not authenticated')) {
+      return 'Vous devez être connecté pour effectuer cette action.';
+    }
+
+    if (rawError.contains('400')) {
+      return 'Les données envoyées sont invalides. Veuillez vérifier.';
+    }
+
+    if (rawError.contains('404')) {
+      return 'La campagne demandée n\'existe pas ou a été supprimée.';
+    }
+
+    if (rawError.contains('500') || rawError.contains('503')) {
+      return 'Le serveur rencontre un problème. Veuillez réessayer plus tard.';
+    }
+
+    if (rawError.contains('réseau') || rawError.contains('network')) {
+      return 'Erreur de connexion. Vérifiez votre connexion Internet.';
+    }
+
+    // Si aucun pattern reconnu, retourner un message générique
+    return 'Une erreur est survenue. Veuillez réessayer.';
   }
 }
