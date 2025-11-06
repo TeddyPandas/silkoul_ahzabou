@@ -23,15 +23,16 @@ class CampaignProvider with ChangeNotifier {
   // ============================================
   // RÉCUPÉRER TOUTES LES CAMPAGNES PUBLIQUES
   // ============================================
-  Future<void> fetchCampaigns({String? category}) async {
+  Future<void> fetchCampaigns({String? category, String? searchQuery}) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
+      // ✅ CORRECTION : getPublicCampaigns sans paramètre onlyPublic
       _campaigns = await _campaignService.getPublicCampaigns(
         category: category,
-        onlyPublic: true,
+        searchQuery: searchQuery,
       );
 
       _isLoading = false;
@@ -46,13 +47,20 @@ class CampaignProvider with ChangeNotifier {
   // ============================================
   // RÉCUPÉRER MES CAMPAGNES (créées + souscrites)
   // ============================================
-  Future<void> fetchMyCampaigns() async {
+  Future<void> fetchMyCampaigns({
+    required String userId,
+    bool onlyCreated = false,
+  }) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      _myCampaigns = await _campaignService.getMyCampaigns();
+      // ✅ CORRECTION : getUserCampaigns avec userId requis
+      _myCampaigns = await _campaignService.getUserCampaigns(
+        userId: userId,
+        onlyCreated: onlyCreated,
+      );
 
       _isLoading = false;
       notifyListeners();
@@ -122,12 +130,14 @@ class CampaignProvider with ChangeNotifier {
   // ============================================
   Future<String?> createCampaign({
     required String name,
-    required String description,
+    String? description,
     required DateTime startDate,
     required DateTime endDate,
-    required String category,
+    required String createdBy,
+    String? category,
     required bool isPublic,
     String? accessCode,
+    bool isWeekly = false,
     required List<Map<String, dynamic>> tasks,
   }) async {
     try {
@@ -135,14 +145,17 @@ class CampaignProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
+      // ✅ CORRECTION : Ajout du paramètre createdBy requis
       final campaignId = await _campaignService.createCampaign(
         name: name,
         description: description,
         startDate: startDate,
         endDate: endDate,
+        createdBy: createdBy,
         category: category,
         isPublic: isPublic,
         accessCode: accessCode,
+        isWeekly: isWeekly,
         tasks: tasks,
       );
 
@@ -160,6 +173,9 @@ class CampaignProvider with ChangeNotifier {
   // ============================================
   // METTRE À JOUR UNE CAMPAGNE
   // ============================================
+  // TODO: Implémenter updateCampaign dans CampaignService
+  // Le backend supporte PUT /api/campaigns/:id mais le service ne l'expose pas encore
+  /*
   Future<bool> updateCampaign(
     String campaignId,
     Map<String, dynamic> updates,
@@ -181,10 +197,14 @@ class CampaignProvider with ChangeNotifier {
       return false;
     }
   }
+  */
 
   // ============================================
   // SUPPRIMER UNE CAMPAGNE
   // ============================================
+  // TODO: Implémenter deleteCampaign dans CampaignService
+  // Le backend supporte DELETE /api/campaigns/:id mais le service ne l'expose pas encore
+  /*
   Future<bool> deleteCampaign(String campaignId) async {
     try {
       _isLoading = true;
@@ -207,6 +227,7 @@ class CampaignProvider with ChangeNotifier {
       return false;
     }
   }
+  */
 
   // ============================================
   // RECHERCHER DES CAMPAGNES
@@ -223,11 +244,11 @@ class CampaignProvider with ChangeNotifier {
         return;
       }
 
-      // Filtrer localement (optimisation)
+      // ✅ CORRECTION : Gestion du null sur description
       _campaigns = _campaigns
           .where((campaign) =>
               campaign.name.toLowerCase().contains(query.toLowerCase()) ||
-              campaign.description.toLowerCase().contains(query.toLowerCase()))
+              (campaign.description?.toLowerCase().contains(query.toLowerCase()) ?? false))
           .toList();
 
       _isLoading = false;
