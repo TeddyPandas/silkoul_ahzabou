@@ -71,14 +71,36 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
       }
 
       try {
+        // Validation locale avant l'appel API
+        final validSelections = _selectedTaskQuantities.entries
+            .where((entry) => entry.value > 0)
+            .toList();
+
+        if (validSelections.isEmpty) {
+          setState(() {
+            _errorMessage = 'Veuillez sélectionner au moins une tâche';
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // Vérifier que chaque quantité ne dépasse pas le disponible
+        for (var entry in validSelections) {
+          final task = widget.campaign.tasks!.firstWhere((t) => t.id == entry.key);
+          if (entry.value > task.remainingNumber) {
+            setState(() {
+              _errorMessage = 'Quantité trop élevée pour "${task.name}". Maximum disponible : ${task.remainingNumber}';
+              _isLoading = false;
+            });
+            return;
+          }
+        }
+
         final List<Map<String, dynamic>> taskSubscriptions =
-            _selectedTaskQuantities.entries
-                .where((entry) =>
-                    entry.value >
-                    0) // Only subscribe to tasks with quantity > 0
+            validSelections
                 .map((entry) => {
                       'task_id': entry.key,
-                      'subscribed_quantity': entry.value,
+                      'quantity': entry.value, // ✅ CORRECTION : "quantity" au lieu de "subscribed_quantity"
                     })
                 .toList();
 
@@ -91,8 +113,22 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
         );
 
         if (success) {
-          widget.onSubscriptionSuccess();
+          // Fermer le dialog
           Navigator.of(context).pop();
+
+          // Afficher un message de succès
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Abonnement réussi ! 🎉'),
+                backgroundColor: AppColors.success,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+
+          // Callback pour rafraîchir les données
+          widget.onSubscriptionSuccess();
         } else if (campaignProvider.errorMessage != null) {
           setState(() {
             _errorMessage = campaignProvider.errorMessage;

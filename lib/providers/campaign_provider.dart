@@ -165,15 +165,36 @@ class CampaignProvider with ChangeNotifier {
         userId: userId,
         campaignId: campaignId,
         accessCode: accessCode,
-        taskSubscriptions: selectedTasks,
-        selectedTasks: selectedTasks,
+        selectedTasks: selectedTasks, // ✅ Un seul paramètre, nom clair
       );
 
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      // Parser l'erreur pour extraire un message clair
+      String userMessage = 'Erreur lors de l\'abonnement à la campagne';
+      final errorString = e.toString().toLowerCase();
+
+      if (errorString.contains('déjà abonné') || errorString.contains('already subscribed')) {
+        userMessage = 'Vous êtes déjà abonné à cette campagne';
+      } else if (errorString.contains('code d\'accès') || errorString.contains('access code') || errorString.contains('code invalide')) {
+        userMessage = 'Code d\'accès invalide';
+      } else if (errorString.contains('quantité') || errorString.contains('quantity') || errorString.contains('disponible')) {
+        userMessage = 'La quantité demandée n\'est plus disponible';
+      } else if (errorString.contains('campagne terminée') || errorString.contains('campaign ended')) {
+        userMessage = 'Cette campagne est terminée';
+      } else if (errorString.contains('non authentifié') || errorString.contains('not authenticated')) {
+        userMessage = 'Vous devez être connecté pour vous abonner';
+      } else if (errorString.contains('404')) {
+        userMessage = 'Campagne introuvable';
+      } else if (errorString.contains('400')) {
+        userMessage = 'Données invalides. Veuillez vérifier votre sélection';
+      } else if (errorString.contains('network') || errorString.contains('connection')) {
+        userMessage = 'Erreur de connexion. Vérifiez votre réseau';
+      }
+
+      _errorMessage = userMessage;
       _isLoading = false;
       notifyListeners();
       return false;

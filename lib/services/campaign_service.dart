@@ -196,9 +196,8 @@ class CampaignService {
   Future<void> subscribeToCampaign({
     required String campaignId,
     String? accessCode,
-    required List<Map<String, dynamic>> taskSubscriptions,
-    required String userId,
     required List<Map<String, dynamic>> selectedTasks,
+    required String userId,
   }) async {
     final token = _supabase.auth.currentSession?.accessToken;
     if (token == null) {
@@ -213,7 +212,7 @@ class CampaignService {
     final body = json.encode({
       'campaign_id': campaignId,
       'access_code': accessCode,
-      'task_subscriptions': taskSubscriptions,
+      'task_subscriptions': selectedTasks, // ✅ Utilise selectedTasks
     });
 
     try {
