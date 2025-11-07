@@ -48,8 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
 
       await Future.wait([
-        campaignProvider.loadPublicCampaigns(),
-        campaignProvider.loadMyCampaigns(userId),
+        campaignProvider.fetchCampaigns(),
+        campaignProvider.fetchMyCampaigns(userId: userId, onlyCreated: true),
         userProvider.loadAllUserTasks(userId: userId, onlyIncomplete: true),
         userProvider.loadUserStats(userId: userId),
       ]);
@@ -394,4 +394,3 @@ class CommunityTab extends StatelessWidget {
     );
   }
 }
-
