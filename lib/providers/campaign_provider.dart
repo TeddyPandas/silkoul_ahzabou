@@ -92,6 +92,41 @@ class CampaignProvider with ChangeNotifier {
   }
 
   // ============================================
+  // RÉCUPÉRER UNE CAMPAGNE PAR ID (RETOURNE LA CAMPAGNE)
+  // ============================================
+  /// Récupère une campagne par son ID et la retourne
+  /// Contrairement à fetchCampaignById, cette méthode retourne la campagne
+  /// au lieu de la stocker dans _selectedCampaign
+  Future<Campaign?> getCampaignById(String campaignId) async {
+    try {
+      return await _campaignService.getCampaignById(campaignId);
+    } catch (e) {
+      _errorMessage = _parseErrorMessage(e.toString());
+      notifyListeners();
+      return null;
+    }
+  }
+
+  // ============================================
+  // VÉRIFIER SI L'UTILISATEUR EST ABONNÉ
+  // ============================================
+  /// Vérifie si l'utilisateur est déjà abonné à une campagne
+  Future<bool> isUserSubscribed({
+    required String userId,
+    required String campaignId,
+  }) async {
+    try {
+      return await _campaignService.isUserSubscribed(
+        userId: userId,
+        campaignId: campaignId,
+      );
+    } catch (e) {
+      // En cas d'erreur, considérer comme non abonné
+      return false;
+    }
+  }
+
+  // ============================================
   // ✅ S'ABONNER À UNE CAMPAGNE (CORRIGÉ)
   // ============================================
   Future<bool> subscribeToCampaign({
