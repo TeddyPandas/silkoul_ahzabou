@@ -489,6 +489,9 @@ class CampaignService {
   ///
   /// RETOURNE :
   /// - bool : true si abonné, false sinon
+  ///
+  /// ⚠️ DEPRECATED : Utilisez isUserSubscribedOptimized() à la place
+  ///    Cette méthode charge toutes les campagnes souscrites (inefficace)
   /// ══════════════════════════════════════════════════════════════════════════
   Future<bool> isUserSubscribed({
     required String userId,
@@ -502,6 +505,67 @@ class CampaignService {
       return subscribedCampaigns.any((campaign) => campaign.id == campaignId);
     } catch (e) {
       // En cas d'erreur, considérer comme non abonné
+      return false;
+    }
+  }
+
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// VÉRIFIER SI L'UTILISATEUR EST ABONNÉ (VERSION OPTIMISÉE)
+  /// ══════════════════════════════════════════════════════════════════════════
+  ///
+  /// Version optimisée qui utilise le nouvel endpoint backend dédié au lieu de
+  /// charger toutes les campagnes souscrites.
+  ///
+  /// ENDPOINT : GET /api/campaigns/:campaignId/subscription
+  ///
+  /// AVANTAGES :
+  /// - ⚡ Beaucoup plus rapide (1 requête légère vs chargement complet)
+  /// - 📉 Consomme moins de bande passante
+  /// - ✅ Recommandé pour tous les nouveaux usages
+  ///
+  /// PARAMÈTRES :
+  /// - userId : UUID de l'utilisateur (gardé pour compatibilité, NON utilisé)
+  /// - campaignId : UUID de la campagne
+  ///
+  /// RETOURNE :
+  /// - bool : true si abonné, false sinon
+  ///
+  /// AUTHENTIFICATION : REQUISE
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<bool> isUserSubscribedOptimized({
+    required String userId, // Gardé pour compatibilité API
+    required String campaignId,
+  }) async {
+    if (_baseUrl == null) {
+      throw Exception('API_BASE_URL non configurée');
+    }
+
+    final token = _supabase.auth.currentSession?.accessToken;
+    if (token == null) {
+      // Si pas de token, considérer comme non abonné
+      return false;
+    }
+
+    final url = Uri.parse('$_baseUrl/campaigns/$campaignId/subscription');
+    final headers = {
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return responseData['data']['isSubscribed'] as bool;
+      } else if (response.statusCode == 404) {
+        // Campagne non trouvée ou pas abonné
+        return false;
+      } else {
+        // En cas d'erreur, considérer comme non abonné
+        return false;
+      }
+    } catch (e) {
+      // En cas d'erreur réseau, considérer comme non abonné
       return false;
     }
   }

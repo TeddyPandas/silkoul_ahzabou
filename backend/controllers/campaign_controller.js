@@ -282,11 +282,37 @@ const getUserCampaigns = async (req, res) => {
   return successResponse(res, 200, 'Campagnes de l\'utilisateur récupérées', campaigns);
 };
 
+/**
+ * Vérifier si l'utilisateur est abonné à une campagne
+ * Endpoint optimisé pour une vérification rapide sans charger toutes les données
+ */
+const checkSubscription = async (req, res) => {
+  const { campaignId } = req.params;
+  const userId = req.userId;
+
+  // Vérifier l'existence de la souscription
+  const { data, error } = await supabase
+    .from('user_campaigns')
+    .select('id')
+    .eq('campaign_id', campaignId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new ValidationError(`Erreur lors de la vérification de la souscription: ${error.message}`);
+  }
+
+  return successResponse(res, 200, 'Statut de souscription vérifié', {
+    isSubscribed: data !== null
+  });
+};
+
 module.exports = {
   createCampaign,
   getCampaigns,
   getCampaignById,
   updateCampaign,
   deleteCampaign,
-  getUserCampaigns
+  getUserCampaigns,
+  checkSubscription
 };

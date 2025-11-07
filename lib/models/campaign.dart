@@ -35,11 +35,31 @@ class Campaign {
     this.tasks,
   });
 
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// PARSER JSON ROBUSTE AVEC GESTION DES ERREURS
+  /// ══════════════════════════════════════════════════════════════════════════
+  ///
+  /// Parse un objet Campaign depuis JSON avec gestion robuste des erreurs :
+  /// - Gère les champs null ou manquants
+  /// - Protège contre les erreurs de parsing de tâches individuelles
+  /// - Continue le parsing même si certaines tâches sont invalides
+  /// ══════════════════════════════════════════════════════════════════════════
   factory Campaign.fromJson(Map<String, dynamic> json) {
-    var tasksList = json['tasks'] as List?;
-    List<Task>? parsedTasks = tasksList
-        ?.map((i) => Task.fromJson(i as Map<String, dynamic>))
-        .toList();
+    // ✅ Protéger contre null ET champ manquant
+    var tasksList = (json['tasks'] as List?) ?? [];
+
+    // ✅ Gérer les erreurs de parsing de tâches individuelles
+    List<Task> parsedTasks = [];
+    for (var taskJson in tasksList) {
+      try {
+        if (taskJson is Map<String, dynamic>) {
+          parsedTasks.add(Task.fromJson(taskJson));
+        }
+      } catch (e) {
+        // Continuer avec les autres tâches en cas d'erreur
+        print('Erreur lors du parsing d\'une tâche: $e');
+      }
+    }
 
     return Campaign(
       id: json['id'] as String,
@@ -56,7 +76,8 @@ class Campaign {
       isWeekly: json['is_weekly'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      tasks: parsedTasks,
+      // ✅ Retourner null si aucune tâche valide, sinon la liste
+      tasks: parsedTasks.isEmpty ? null : parsedTasks,
     );
   }
 

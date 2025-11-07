@@ -72,51 +72,94 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
     });
   }
 
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// CRÉER UNE CAMPAGNE (AVEC GESTION COMPLÈTE DES ERREURS)
+  /// ══════════════════════════════════════════════════════════════════════════
   Future<void> _createCampaign() async {
-    if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final campaignProvider =
-          Provider.of<CampaignProvider>(context, listen: false);
-      final userId = authProvider.user?.id;
+    // ═══════════════════════════════════════════════════════════════════════
+    // VALIDATION DU FORMULAIRE
+    // ═══════════════════════════════════════════════════════════════════════
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-      if (userId == null) {
+    // ═══════════════════════════════════════════════════════════════════════
+    // RÉCUPÉRATION DES PROVIDERS
+    // ═══════════════════════════════════════════════════════════════════════
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final campaignProvider =
+        Provider.of<CampaignProvider>(context, listen: false);
+
+    // ✅ Récupérer le userId depuis le AuthProvider
+    final userId = authProvider.user?.id;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // VALIDATION DE L'AUTHENTIFICATION
+    // ═══════════════════════════════════════════════════════════════════════
+    if (userId == null || userId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Erreur: Utilisateur non authentifié. Veuillez vous reconnecter.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // CRÉATION DE LA CAMPAGNE
+    // ═══════════════════════════════════════════════════════════════════════
+    try {
+      final campaignId = await campaignProvider.createCampaign(
+        name: _nameController.text,
+        description: _descriptionController.text.isEmpty
+            ? null
+            : _descriptionController.text,
+        startDate: _startDate,
+        endDate: _endDate,
+        category: _selectedCategory,
+        isPublic: _isPublic,
+        accessCode: _isPublic ? null : _accessCodeController.text,
+        isWeekly: _isWeekly,
+        tasks: _tasks,
+        createdBy: userId, // ✅ CORRECTIF ICI - Utiliser le vrai userId
+      );
+
+      // ═══════════════════════════════════════════════════════════════════
+      // GESTION DU RÉSULTAT
+      // ═══════════════════════════════════════════════════════════════════
+      if (!mounted) return;
+
+      if (campaignId != null) {
+        // ✅ Succès
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User not authenticated.')),
+          const SnackBar(
+            content: Text('Campagne créée avec succès !'),
+            backgroundColor: Colors.green,
+          ),
         );
-        return;
-      }
-
-      try {
-        final campaignId = await campaignProvider.createCampaign(
-          name: _nameController.text,
-          description: _descriptionController.text.isEmpty
-              ? null
-              : _descriptionController.text,
-          startDate: _startDate,
-          endDate: _endDate,
-          category: _selectedCategory,
-          isPublic: _isPublic,
-          accessCode: _isPublic ? null : _accessCodeController.text,
-          isWeekly: _isWeekly,
-          tasks: _tasks,
-          createdBy: '',
-        );
-
-        if (campaignId != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Campaign created successfully!')),
-          );
-          Navigator.of(context).pop();
-        } else if (campaignProvider.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${campaignProvider.errorMessage}')),
-          );
-        }
-      } catch (e) {
+        Navigator.of(context).pop(); // Retour à l'écran précédent
+      } else {
+        // ❌ Échec (errorMessage est dans le provider)
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create campaign: $e')),
+          SnackBar(
+            content: Text(
+              campaignProvider.errorMessage ?? 'Erreur lors de la création',
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
+    } catch (e) {
+      // ❌ Exception non capturée
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur inattendue: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
