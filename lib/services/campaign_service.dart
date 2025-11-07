@@ -505,4 +505,132 @@ class CampaignService {
       return false;
     }
   }
+
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// METTRE À JOUR UNE CAMPAGNE
+  /// ══════════════════════════════════════════════════════════════════════════
+  ///
+  /// Met à jour les informations d'une campagne existante.
+  ///
+  /// PARAMÈTRES :
+  /// - campaignId : UUID de la campagne à modifier
+  /// - updates : Map contenant les champs à mettre à jour
+  ///   Champs possibles : name, description, start_date, end_date,
+  ///                      category, is_public, access_code
+  ///
+  /// RETOURNE :
+  /// - void
+  ///
+  /// ERREURS :
+  /// - Exception si utilisateur non authentifié
+  /// - Exception si campagne non trouvée (404)
+  /// - Exception si utilisateur non autorisé (403)
+  ///
+  /// AUTHENTIFICATION : REQUISE (doit être le créateur)
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<void> updateCampaign(
+    String campaignId,
+    Map<String, dynamic> updates,
+  ) async {
+    if (_baseUrl == null) {
+      throw Exception('API_BASE_URL non configurée');
+    }
+
+    final token = _supabase.auth.currentSession?.accessToken;
+    if (token == null) {
+      throw Exception('Utilisateur non authentifié');
+    }
+
+    final url = Uri.parse('$_baseUrl/campaigns/$campaignId');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = json.encode(updates);
+
+    try {
+      final response = await http.put(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        // ✅ Mise à jour réussie
+        return;
+      } else {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Une erreur est survenue';
+
+        if (response.statusCode == 404) {
+          throw Exception('Campagne non trouvée');
+        } else if (response.statusCode == 403) {
+          throw Exception(
+              'Vous n\'êtes pas autorisé à modifier cette campagne');
+        } else {
+          throw Exception('Erreur ${response.statusCode}: $errorMessage');
+        }
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la mise à jour de la campagne: $e');
+    }
+  }
+
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// SUPPRIMER UNE CAMPAGNE
+  /// ══════════════════════════════════════════════════════════════════════════
+  ///
+  /// Supprime une campagne et toutes ses tâches associées.
+  ///
+  /// PARAMÈTRES :
+  /// - campaignId : UUID de la campagne à supprimer
+  ///
+  /// RETOURNE :
+  /// - void
+  ///
+  /// ERREURS :
+  /// - Exception si utilisateur non authentifié
+  /// - Exception si campagne non trouvée (404)
+  /// - Exception si utilisateur non autorisé (403)
+  ///
+  /// AUTHENTIFICATION : REQUISE (doit être le créateur)
+  ///
+  /// NOTE : La suppression en cascade des tâches et abonnements
+  ///        est gérée automatiquement par le backend
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<void> deleteCampaign(String campaignId) async {
+    if (_baseUrl == null) {
+      throw Exception('API_BASE_URL non configurée');
+    }
+
+    final token = _supabase.auth.currentSession?.accessToken;
+    if (token == null) {
+      throw Exception('Utilisateur non authentifié');
+    }
+
+    final url = Uri.parse('$_baseUrl/campaigns/$campaignId');
+    final headers = {
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await http.delete(url, headers: headers);
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // ✅ Suppression réussie
+        return;
+      } else {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Une erreur est survenue';
+
+        if (response.statusCode == 404) {
+          throw Exception('Campagne non trouvée');
+        } else if (response.statusCode == 403) {
+          throw Exception(
+              'Vous n\'êtes pas autorisé à supprimer cette campagne');
+        } else {
+          throw Exception('Erreur ${response.statusCode}: $errorMessage');
+        }
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la suppression de la campagne: $e');
+    }
+  }
 }

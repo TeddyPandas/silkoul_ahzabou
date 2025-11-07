@@ -208,9 +208,8 @@ class CampaignProvider with ChangeNotifier {
   // ============================================
   // METTRE À JOUR UNE CAMPAGNE
   // ============================================
-  // TODO: Implémenter updateCampaign dans CampaignService
-  // Le backend supporte PUT /api/campaigns/:id mais le service ne l'expose pas encore
-  /*
+  /// Met à jour une campagne existante
+  /// Retourne true si la mise à jour réussit, false sinon
   Future<bool> updateCampaign(
     String campaignId,
     Map<String, dynamic> updates,
@@ -232,14 +231,12 @@ class CampaignProvider with ChangeNotifier {
       return false;
     }
   }
-  */
 
   // ============================================
   // SUPPRIMER UNE CAMPAGNE
   // ============================================
-  // TODO: Implémenter deleteCampaign dans CampaignService
-  // Le backend supporte DELETE /api/campaigns/:id mais le service ne l'expose pas encore
-  /*
+  /// Supprime une campagne et la retire des listes locales
+  /// Retourne true si la suppression réussit, false sinon
   Future<bool> deleteCampaign(String campaignId) async {
     try {
       _isLoading = true;
@@ -262,7 +259,6 @@ class CampaignProvider with ChangeNotifier {
       return false;
     }
   }
-  */
 
   // ============================================
   // RECHERCHER DES CAMPAGNES
