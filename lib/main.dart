@@ -64,7 +64,11 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CampaignProvider()),
 
         // ✅ Provider utilisateur
-        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
+          create: (context) =>
+              UserProvider(Provider.of<AuthProvider>(context, listen: false)),
+          update: (context, auth, previousUserProvider) => UserProvider(auth),
+        ),
       ],
       child: MaterialApp(
         title: 'Silkoul Ahzabou Tidiani',
