@@ -9,7 +9,8 @@ const {
   getCampaignById,
   updateCampaign,
   deleteCampaign,
-  getUserCampaigns
+  getUserCampaigns,
+  checkSubscription
 } = require('../controllers/campaign_controller');
 
 /**
@@ -44,6 +45,17 @@ router.get(
   '/my',
   authenticate,
   catchAsync(getUserCampaigns)
+);
+
+/**
+ * @route   GET /api/campaigns/:campaignId/subscription
+ * @desc    Vérifier si l'utilisateur est abonné à une campagne
+ * @access  Private
+ */
+router.get(
+  '/:campaignId/subscription',
+  authenticate,
+  catchAsync(checkSubscription)
 );
 
 /**
