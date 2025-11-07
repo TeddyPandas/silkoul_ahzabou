@@ -51,16 +51,16 @@ class _CampaignsTabState extends State<CampaignsTab> {
               ),
             );
           }
-          if (campaignProvider.publicCampaigns.isEmpty) {
+          if (campaignProvider.campaigns.isEmpty) {
             return const Center(
               child: Text('No public campaigns available.'),
             );
           }
 
           return ListView.builder(
-            itemCount: campaignProvider.publicCampaigns.length,
+            itemCount: campaignProvider.campaigns.length,
             itemBuilder: (context, index) {
-              final campaign = campaignProvider.publicCampaigns[index];
+              final campaign = campaignProvider.campaigns[index];
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
