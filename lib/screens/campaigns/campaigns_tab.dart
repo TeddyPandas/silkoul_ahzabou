@@ -18,7 +18,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
     super.initState();
     // Load public campaigns when the tab is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CampaignProvider>(context, listen: false).loadPublicCampaigns();
+      Provider.of<CampaignProvider>(context, listen: false).fetchCampaigns();
     });
   }
 
@@ -70,7 +70,8 @@ class _CampaignsTabState extends State<CampaignsTab> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => CampaignDetailsScreen(campaignId: campaign.id),
+                        builder: (_) =>
+                            CampaignDetailsScreen(campaignId: campaign.id),
                       ),
                     );
                   },

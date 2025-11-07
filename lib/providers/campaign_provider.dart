@@ -283,7 +283,10 @@ class CampaignProvider with ChangeNotifier {
       _campaigns = _campaigns
           .where((campaign) =>
               campaign.name.toLowerCase().contains(query.toLowerCase()) ||
-              (campaign.description?.toLowerCase().contains(query.toLowerCase()) ?? false))
+              (campaign.description
+                      ?.toLowerCase()
+                      .contains(query.toLowerCase()) ??
+                  false))
           .toList();
 
       _isLoading = false;
