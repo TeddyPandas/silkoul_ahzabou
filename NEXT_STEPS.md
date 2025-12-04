@@ -7,11 +7,17 @@
 - [x] Schéma de base de données complet
 - [x] Politiques RLS (sécurité)
 - [x] Fonction RPC `register_and_subscribe` (atomicité)
+- [x] Fonction RPC `unsubscribe_campaign` (atomicité désabonnement)
+- [x] Trigger création profil automatique
 - [x] Modèles de données (Profile, Campaign, Task, UserTask, etc.)
 - [x] Services (Auth, Campaign, Task)
 - [x] Providers (State Management)
 - [x] Configuration thème (couleurs vert/blanc/mauve)
 - [x] Écran de splash
+
+### Fonctionnalités Critiques
+- [x] Dialogue de Souscription (`lib/widgets/subscribe_dialog.dart`)
+- [x] Désabonnement sécurisé (`CampaignService`)
 
 ## 🚀 Prochaines Étapes Prioritaires
 
@@ -33,7 +39,7 @@ Fonctionnalités :
 Fonctionnalités :
 - Formulaire : nom, email, mot de passe, confirmation
 - Validation (email valide, mot de passe fort)
-- Création automatique du profil
+- Création automatique du profil (Géré par Trigger DB ✅)
 - Redirection après inscription
 ```
 
@@ -80,7 +86,7 @@ Fonctionnalités :
 Fonctionnalités :
 - Informations complètes de la campagne
 - Liste des tâches avec progression
-- Bouton "S'abonner" (si pas encore abonné)
+- Bouton "S'abonner" (si pas encore abonné) -> Utiliser SubscribeDialog ✅
 - Participants (nombre)
 - Statistiques de la campagne
 ```
@@ -97,25 +103,8 @@ Fonctionnalités :
 - Bouton "Créer"
 ```
 
-### 3. Dialogue de Souscription (1 jour)
+### 3. Écran de Suivi des Tâches (2 jours)
 
-#### Widget de Souscription (`lib/widgets/subscribe_dialog.dart`)
-```dart
-Fonctionnalités critiques :
-- Afficher TOUTES les tâches de la campagne sélectionnée
-- Pour chaque tâche :
-  * Nom
-  * Nombre restant disponible
-  * Champ de saisie pour la quantité souhaitée
-  * Checkbox de sélection
-- Validation :
-  * Au moins une tâche sélectionnée
-  * Quantités valides (> 0 et <= restant)
-- Bouton "Confirmer"
-- Appel de la fonction RPC avec transaction atomique
-```
-
-### 4. Écran de Suivi des Tâches (2 jours)
 
 #### a. Mes Tâches (`lib/screens/tasks/my_tasks_screen.dart`)
 ```dart

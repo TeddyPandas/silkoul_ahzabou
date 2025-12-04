@@ -693,8 +693,39 @@ class CampaignService {
           throw Exception('Erreur ${response.statusCode}: $errorMessage');
         }
       }
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// SE DÉSABONNER D'UNE CAMPAGNE (ATOMIQUE)
+  /// ══════════════════════════════════════════════════════════════════════════
+  ///
+  /// Utilise la RPC 'unsubscribe_campaign' pour :
+  /// 1. Restituer les quantités non complétées aux tâches
+  /// 2. Supprimer l'abonnement et les tâches utilisateur
+  ///
+  /// PARAMÈTRES :
+  /// - campaignId : UUID de la campagne
+  ///
+  /// AUTHENTIFICATION : REQUISE
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<void> unsubscribeFromCampaign(String campaignId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        throw Exception('Utilisateur non authentifié');
+      }
+
+      await _supabase.rpc('unsubscribe_campaign', params: {
+        'p_campaign_id': campaignId,
+      });
     } catch (e) {
-      throw Exception('Erreur lors de la suppression de la campagne: $e');
+      throw Exception('Erreur lors du désabonnement: $e');
     }
+  }
+
+  /// Helper pour obtenir l'URL de base avec fallback
+  String get _apiBaseUrl {
+    final url = dotenv.env['API_BASE_URL'];
+    if (url != null && url.isNotEmpty) return url;
+    // Fallback pour émulateur Android ou localhost
+    return 'http://10.0.2.2:3000/api'; 
   }
 }
