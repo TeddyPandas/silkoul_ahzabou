@@ -21,15 +21,50 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
   bool _waitingForGoogleAuth = false;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // Listen to auth changes to handle OAuth callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupAuthListener();
+    });
+  }
+
+  void _setupAuthListener() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.addListener(_onAuthChanged);
+    debugPrint('🔐 [LoginScreen] Auth listener set up');
+  }
+
+  void _onAuthChanged() {
+    if (!mounted || _hasNavigated) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    debugPrint(
+        '🔐 [LoginScreen] Auth state changed! User: ${authProvider.user?.id}');
+
+    if (authProvider.user != null && _waitingForGoogleAuth) {
+      debugPrint(
+          '🔐 [LoginScreen] ✅ User authenticated via OAuth! Navigating...');
+      _hasNavigated = true;
+      _waitingForGoogleAuth = false;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    }
   }
 
   @override
   void dispose() {
+    // Remove auth listener
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.removeListener(_onAuthChanged);
+
     WidgetsBinding.instance.removeObserver(this);
     _emailController.dispose();
     _passwordController.dispose();
@@ -48,10 +83,12 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   Future<void> _checkAuthAfterGoogleSignIn() async {
     debugPrint('🔐 [LoginScreen] Checking auth after Google Sign-In resume...');
 
+    if (_hasNavigated) return;
+
     // Wait for Supabase to process the deep link and token exchange
     await Future.delayed(const Duration(milliseconds: 2000));
 
-    if (!mounted) return;
+    if (!mounted || _hasNavigated) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     debugPrint('🔐 [LoginScreen] After delay, user: ${authProvider.user?.id}');
@@ -59,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     if (authProvider.user != null) {
       debugPrint(
           '🔐 [LoginScreen] ✅ Auth successful! Navigating to HomeScreen...');
+      _hasNavigated = true;
       _waitingForGoogleAuth = false;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),

@@ -55,17 +55,23 @@ void main() async {
     }
 
     // Add auth state change listener for debugging OAuth callbacks
-    supabase.auth.onAuthStateChange.listen((data) {
-      print('🔐 [main] ========== AUTH STATE CHANGED ==========');
-      print('🔐 [main] Event: ${data.event}');
-      print('🔐 [main] Session: ${data.session != null ? "EXISTS" : "null"}');
-      if (data.session != null) {
-        print('🔐 [main] User ID: ${data.session!.user.id}');
-        print(
-            '🔐 [main] Access Token: ${data.session!.accessToken.substring(0, 20)}...');
-      }
-      print('🔐 [main] ============================================');
-    });
+    supabase.auth.onAuthStateChange.listen(
+      (data) {
+        print('🔐 [main] ========== AUTH STATE CHANGED ==========');
+        print('🔐 [main] Event: ${data.event}');
+        print('🔐 [main] Session: ${data.session != null ? "EXISTS" : "null"}');
+        if (data.session != null) {
+          print('🔐 [main] User ID: ${data.session!.user.id}');
+          print(
+              '🔐 [main] Access Token: ${data.session!.accessToken.substring(0, 20)}...');
+        }
+        print('🔐 [main] ============================================');
+      },
+      onError: (error, stackTrace) {
+        print('❌ [main] AUTH STATE CHANGE ERROR: $error');
+        print('❌ [main] Stack trace: $stackTrace');
+      },
+    );
   } catch (e) {
     print('❌ ERREUR lors de l\'initialisation de Supabase : $e');
   }

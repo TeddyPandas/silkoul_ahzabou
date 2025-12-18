@@ -25,16 +25,41 @@ class AuthProvider with ChangeNotifier {
 
   /// Initialiser le listener d'état d'authentification
   void _initAuthListener() {
+    debugPrint('🔐 [AuthProvider] Initializing auth listener...');
+
     SupabaseService.client.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       final Session? session = data.session;
 
+      debugPrint('🔐 [AuthProvider] ======= AUTH EVENT RECEIVED =======');
+      debugPrint('🔐 [AuthProvider] Event: $event');
+      debugPrint('🔐 [AuthProvider] Session exists: ${session != null}');
+      if (session != null) {
+        debugPrint('🔐 [AuthProvider] User ID: ${session.user.id}');
+        debugPrint('🔐 [AuthProvider] User email: ${session.user.email}');
+      }
+      debugPrint('🔐 [AuthProvider] ===================================');
+
       if (event == AuthChangeEvent.signedIn) {
+        debugPrint('🔐 [AuthProvider] ✅ User signed in! Updating state...');
         _user = session?.user;
+        debugPrint('🔐 [AuthProvider] _user set to: ${_user?.id}');
         _loadProfile();
       } else if (event == AuthChangeEvent.signedOut) {
+        debugPrint('🔐 [AuthProvider] User signed out');
         _user = null;
         _profile = null;
+        notifyListeners();
+      } else if (event == AuthChangeEvent.tokenRefreshed) {
+        debugPrint('🔐 [AuthProvider] Token refreshed');
+        _user = session?.user;
+        notifyListeners();
+      } else if (event == AuthChangeEvent.initialSession) {
+        debugPrint('🔐 [AuthProvider] Initial session event');
+        _user = session?.user;
+        if (_user != null) {
+          _loadProfile();
+        }
         notifyListeners();
       }
     });
