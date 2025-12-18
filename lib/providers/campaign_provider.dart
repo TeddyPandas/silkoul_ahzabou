@@ -29,15 +29,18 @@ class CampaignProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      // ✅ CORRECTION : getPublicCampaigns sans paramètre onlyPublic
+      debugPrint('🔄 [CampaignProvider] Fetching public campaigns...');
       _campaigns = await _campaignService.getPublicCampaigns(
         category: category,
         searchQuery: searchQuery,
       );
+      debugPrint(
+          '✅ [CampaignProvider] Fetched ${_campaigns.length} public campaigns');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
+      debugPrint('❌ [CampaignProvider] Error fetching campaigns: $e');
       _errorMessage = _parseErrorMessage(e.toString());
       _isLoading = false;
       notifyListeners();
@@ -56,15 +59,19 @@ class CampaignProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      // ✅ CORRECTION : getUserCampaigns avec userId requis
+      debugPrint(
+          '🔄 [CampaignProvider] Fetching my campaigns for userId: $userId (onlyCreated: $onlyCreated)...');
       _myCampaigns = await _campaignService.getUserCampaigns(
         userId: userId,
         onlyCreated: onlyCreated,
       );
+      debugPrint(
+          '✅ [CampaignProvider] Fetched ${_myCampaigns.length} user campaigns');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
+      debugPrint('❌ [CampaignProvider] Error fetching my campaigns: $e');
       _errorMessage = _parseErrorMessage(e.toString());
       _isLoading = false;
       notifyListeners();
@@ -139,6 +146,26 @@ class CampaignProvider with ChangeNotifier {
       // En cas d'erreur, considérer comme non abonné
       debugPrint('Erreur lors de la vérification de souscription: $e');
       return false;
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // RÉCUPÉRER LES TÂCHES DÉJÀ SOUSCRITES POUR UNE CAMPAGNE
+  // ══════════════════════════════════════════════════════════════════════════
+  /// Récupère la liste des tâches auxquelles l'utilisateur est déjà abonné
+  /// pour une campagne donnée. Utilisé pour désactiver ces tâches dans le
+  /// dialog de souscription.
+  ///
+  /// RETOURNE :
+  /// - List<Map<String, dynamic>> avec task_id, subscribed_quantity, etc.
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<List<Map<String, dynamic>>> getUserTaskSubscriptions(
+      String campaignId) async {
+    try {
+      return await _campaignService.getUserTaskSubscriptions(campaignId);
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des tâches souscrites: $e');
+      return [];
     }
   }
 
@@ -235,8 +262,7 @@ class CampaignProvider with ChangeNotifier {
 
     // ✅ Validation 6: Code d'accès pour campagnes privées
     if (!isPublic && (accessCode == null || accessCode.trim().isEmpty)) {
-      _errorMessage =
-          'Un code d\'accès est requis pour les campagnes privées.';
+      _errorMessage = 'Un code d\'accès est requis pour les campagnes privées.';
       notifyListeners();
       return null;
     }
@@ -375,8 +401,7 @@ class CampaignProvider with ChangeNotifier {
       }
 
       if (campaign.createdBy != userId) {
-        _errorMessage =
-            'Vous n\'êtes pas autorisé à supprimer cette campagne.';
+        _errorMessage = 'Vous n\'êtes pas autorisé à supprimer cette campagne.';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -471,6 +496,11 @@ class CampaignProvider with ChangeNotifier {
     }
 
     if (rawError.contains('400')) {
+      // Tentative d'extraction du message d'erreur spécifique du backend
+      // Format attendu: "Exception: Erreur 400: Le message du backend"
+      if (rawError.contains('Erreur 400:')) {
+        return rawError.split('Erreur 400:').last.trim();
+      }
       return 'Les données envoyées sont invalides. Veuillez vérifier.';
     }
 

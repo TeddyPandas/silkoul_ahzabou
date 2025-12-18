@@ -7,7 +7,7 @@ import '../services/supabase_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
-  
+
   User? _user;
   Profile? _profile;
   bool _isLoading = false;
@@ -79,7 +79,8 @@ class AuthProvider with ChangeNotifier {
         await SupabaseService.client.auth.recoverSession(jsonEncode(session));
       } else {
         // Handle cases where email confirmation might be needed
-        _errorMessage = "Inscription réussie. Veuillez vérifier vos emails pour confirmer votre compte.";
+        _errorMessage =
+            "Inscription réussie. Veuillez vérifier vos emails pour confirmer votre compte.";
       }
 
       _isLoading = false;
@@ -126,7 +127,6 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
   }
-
 
   /// Connexion avec Google
   Future<bool> signInWithGoogle() async {

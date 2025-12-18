@@ -33,7 +33,8 @@ class _SplashScreenState extends State<SplashScreen> {
     print('[SplashScreen] Getting AuthProvider...');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isAuthenticated = authProvider.isAuthenticated;
-    print('[SplashScreen] Auth state check: isAuthenticated = $isAuthenticated');
+    print(
+        '[SplashScreen] Auth state check: isAuthenticated = $isAuthenticated');
 
     if (isAuthenticated) {
       print('[SplashScreen] Navigating to HomeScreen...');

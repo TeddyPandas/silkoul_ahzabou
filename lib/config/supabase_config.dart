@@ -12,10 +12,10 @@ class SupabaseConfig {
   static const String userCampaignsTable = 'user_campaigns';
   static const String userTasksTable = 'user_tasks';
   static const String silsilasTable = 'silsilas';
-  
+
   // Configuration auth
   static const String redirectUrl = 'io.supabase.silkoul://login-callback/';
-  
+
   // Configuration storage
   static const String avatarsBucket = 'avatars';
   static const String campaignImagesBucket = 'campaign_images';

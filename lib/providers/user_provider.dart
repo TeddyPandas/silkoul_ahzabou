@@ -7,9 +7,14 @@ import 'auth_provider.dart'; // Import AuthProvider to update profile
 class UserProvider with ChangeNotifier {
   final TaskService _taskService = TaskService();
   final UserService _userService = UserService(); // Instantiate UserService
-  final AuthProvider _authProvider; // To access and update AuthProvider's profile
+  AuthProvider _authProvider; // To access and update AuthProvider's profile
 
   UserProvider(this._authProvider); // Constructor to receive AuthProvider
+
+  void update(AuthProvider authProvider) {
+    _authProvider = authProvider;
+    notifyListeners();
+  }
 
   List<UserTask> _userTasks = [];
   Map<String, dynamic>? _stats;
@@ -136,10 +141,10 @@ class UserProvider with ChangeNotifier {
         // Handle case where task is not found, maybe refresh the list
         throw Exception('Task not found in local list');
       }
-      
+
       final task = _userTasks[index];
-      final newCompletedQuantity = 
-          (task.completedQuantity + incrementBy).clamp(0, task.subscribedQuantity);
+      final newCompletedQuantity = (task.completedQuantity + incrementBy)
+          .clamp(0, task.subscribedQuantity);
 
       await _taskService.updateTaskProgress(
         userTaskId: userTaskId,

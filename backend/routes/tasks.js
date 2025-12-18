@@ -9,7 +9,8 @@ const {
   updateTaskProgress,
   markTaskComplete,
   getUserTaskStats,
-  unsubscribeFromCampaign
+  unsubscribeFromCampaign,
+  getUserTasksForCampaign
 } = require('../controllers/task_controller');
 
 /**
@@ -81,4 +82,16 @@ router.delete(
   catchAsync(unsubscribeFromCampaign)
 );
 
+/**
+ * @route   GET /api/tasks/campaign/:campaignId/my-subscriptions
+ * @desc    Récupérer les tâches souscrites par l'utilisateur pour une campagne
+ * @access  Private
+ */
+router.get(
+  '/campaign/:campaignId/my-subscriptions',
+  authenticate,
+  catchAsync(getUserTasksForCampaign)
+);
+
 module.exports = router;
+

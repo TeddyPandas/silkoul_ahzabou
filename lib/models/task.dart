@@ -1,6 +1,7 @@
 class Task {
   final String id;
-  final String campaignId;
+  final String
+      campaignId; // Required - but may be empty if parsed from nested response
   final String name;
   final int totalNumber;
   final int remainingNumber;
@@ -19,16 +20,23 @@ class Task {
     required this.updatedAt,
   });
 
+  /// Parse from JSON with robust null handling
+  /// Note: When tasks are nested in campaign responses, campaign_id may be omitted
   factory Task.fromJson(Map<String, dynamic> json) {
     return Task(
-      id: json['id'] as String,
-      campaignId: json['campaign_id'] as String,
-      name: json['name'] as String,
-      totalNumber: json['total_number'] as int,
-      remainingNumber: json['remaining_number'] as int,
-      dailyGoal: json['daily_goal'] as int?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      id: json['id'] as String? ?? '',
+      // Backend omits campaign_id when tasks are nested inside campaigns
+      campaignId: json['campaign_id'] as String? ?? '',
+      name: json['name'] as String? ?? 'Tâche sans nom',
+      totalNumber: (json['total_number'] as num?)?.toInt() ?? 0,
+      remainingNumber: (json['remaining_number'] as num?)?.toInt() ?? 0,
+      dailyGoal: (json['daily_goal'] as num?)?.toInt(),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : DateTime.now(),
     );
   }
 

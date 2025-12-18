@@ -110,7 +110,8 @@ const updateTaskProgress = async (req, res) => {
   const userId = req.userId;
 
   // Récupérer la tâche utilisateur
-  const { data: userTask, error: fetchError } = await supabase
+  // const { data: userTask, error: fetchError } = await supabase
+  const { data: userTask, error: fetchError } = await supabaseAdmin
     .from('user_tasks')
     .select('*')
     .eq('id', id)
@@ -138,7 +139,8 @@ const updateTaskProgress = async (req, res) => {
     updates.completed_at = new Date().toISOString();
   }
 
-  const { data: updatedTask, error: updateError } = await supabase
+  // const { data: updatedTask, error: updateError } = await supabase
+  const { data: updatedTask, error: updateError } = await supabaseAdmin
     .from('user_tasks')
     .update(updates)
     .eq('id', id)
@@ -161,7 +163,8 @@ const markTaskComplete = async (req, res) => {
   const userId = req.userId;
 
   // Récupérer la tâche utilisateur
-  const { data: userTask, error: fetchError } = await supabase
+  // const { data: userTask, error: fetchError } = await supabase
+  const { data: userTask, error: fetchError } = await supabaseAdmin
     .from('user_tasks')
     .select('*')
     .eq('id', id)
@@ -177,7 +180,8 @@ const markTaskComplete = async (req, res) => {
   }
 
   // Marquer comme complète
-  const { data: updatedTask, error: updateError } = await supabase
+  // const { data: updatedTask, error: updateError } = await supabase
+  const { data: updatedTask, error: updateError } = await supabaseAdmin
     .from('user_tasks')
     .update({
       is_completed: true,
@@ -203,7 +207,8 @@ const getUserTaskStats = async (req, res) => {
   const userId = req.userId;
 
   // Statistiques globales
-  const { data: stats, error } = await supabase
+  // const { data: stats, error } = await supabase
+  const { data: stats, error } = await supabaseAdmin
     .from('user_tasks')
     .select('subscribed_quantity, completed_quantity, is_completed')
     .eq('user_id', userId);
@@ -235,7 +240,8 @@ const unsubscribeFromCampaign = async (req, res) => {
   const userId = req.userId;
 
   // Vérifier que l'utilisateur est abonné
-  const { data: subscription, error: fetchError } = await supabase
+  // const { data: subscription, error: fetchError } = await supabase
+  const { data: subscription, error: fetchError } = await supabaseAdmin
     .from('user_campaigns')
     .select('id')
     .eq('user_id', userId)
@@ -247,7 +253,8 @@ const unsubscribeFromCampaign = async (req, res) => {
   }
 
   // Récupérer les user_tasks pour remettre les quantités dans les tâches
-  const { data: userTasks } = await supabase
+  // const { data: userTasks } = await supabase
+  const { data: userTasks } = await supabaseAdmin
     .from('user_tasks')
     .select('*, task:tasks(*)')
     .eq('user_id', userId)
@@ -257,9 +264,10 @@ const unsubscribeFromCampaign = async (req, res) => {
   if (userTasks) {
     for (const userTask of userTasks) {
       const remainingQuantity = userTask.subscribed_quantity - userTask.completed_quantity;
-      
+
       if (remainingQuantity > 0) {
-        await supabase
+        // await supabase
+        await supabaseAdmin
           .from('tasks')
           .update({
             remaining_number: userTask.task.remaining_number + remainingQuantity
@@ -270,7 +278,8 @@ const unsubscribeFromCampaign = async (req, res) => {
   }
 
   // Supprimer l'abonnement (cascade supprimera les user_tasks)
-  const { error: deleteError } = await supabase
+  // const { error: deleteError } = await supabase
+  const { error: deleteError } = await supabaseAdmin
     .from('user_campaigns')
     .delete()
     .eq('id', subscription.id);
@@ -282,11 +291,50 @@ const unsubscribeFromCampaign = async (req, res) => {
   return successResponse(res, 200, 'Désabonnement réussi');
 };
 
+/**
+ * Récupérer les tâches souscrites par l'utilisateur pour une campagne spécifique
+ * Utilisé pour désactiver les tâches déjà souscrites dans le dialog de souscription
+ */
+const getUserTasksForCampaign = async (req, res) => {
+  const { campaignId } = req.params;
+  const userId = req.userId;
+
+  // Récupérer les user_tasks pour cette campagne
+  // const { data: userTasks, error } = await supabase
+  const { data: userTasks, error } = await supabaseAdmin
+    .from('user_tasks')
+    .select(`
+      id,
+      task_id,
+      subscribed_quantity,
+      completed_quantity,
+      is_completed,
+      task:tasks!inner(campaign_id)
+    `)
+    .eq('user_id', userId)
+    .eq('task.campaign_id', campaignId);
+
+  if (error) {
+    throw new ValidationError(`Erreur lors de la récupération des tâches: ${error.message}`);
+  }
+
+  // Transformer pour retourner uniquement les infos nécessaires
+  const subscribedTasks = (userTasks || []).map(ut => ({
+    task_id: ut.task_id,
+    subscribed_quantity: ut.subscribed_quantity,
+    completed_quantity: ut.completed_quantity,
+    is_completed: ut.is_completed
+  }));
+
+  return successResponse(res, 200, 'Tâches souscrites récupérées', subscribedTasks);
+};
+
 module.exports = {
   subscribeToCampaign,
   getUserTasks,
   updateTaskProgress,
   markTaskComplete,
   getUserTaskStats,
-  unsubscribeFromCampaign
+  unsubscribeFromCampaign,
+  getUserTasksForCampaign
 };

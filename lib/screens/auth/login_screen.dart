@@ -13,19 +13,68 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  bool _waitingForGoogleAuth = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('📱 [LoginScreen] App lifecycle state: $state');
+    if (state == AppLifecycleState.resumed && _waitingForGoogleAuth) {
+      // App resumed after Google auth - check if we have a valid user
+      _checkAuthAfterGoogleSignIn();
+    }
+  }
+
+  Future<void> _checkAuthAfterGoogleSignIn() async {
+    debugPrint('🔐 [LoginScreen] Checking auth after Google Sign-In resume...');
+
+    // Wait for Supabase to process the deep link and token exchange
+    await Future.delayed(const Duration(milliseconds: 2000));
+
+    if (!mounted) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    debugPrint('🔐 [LoginScreen] After delay, user: ${authProvider.user?.id}');
+
+    if (authProvider.user != null) {
+      debugPrint(
+          '🔐 [LoginScreen] ✅ Auth successful! Navigating to HomeScreen...');
+      _waitingForGoogleAuth = false;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } else {
+      debugPrint('🔐 [LoginScreen] ❌ No user yet, waiting for auth...');
+      // User is still null, might still be processing
+      // Don't do anything, user can retry
+      _waitingForGoogleAuth = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Authentification échouée. Veuillez réessayer.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   Future<void> _handleEmailLogin() async {
@@ -64,15 +113,39 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    debugPrint('🔐 [LoginScreen] Starting Google Sign-In...');
+
     final success = await authProvider.signInWithGoogle();
 
     if (!mounted) return;
 
     setState(() => _isLoading = false);
 
+    debugPrint('🔐 [LoginScreen] signInWithGoogle returned: $success');
+
     if (success) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      // Set flag so lifecycle observer knows to check auth on resume
+      _waitingForGoogleAuth = true;
+
+      // IMPORTANT: For OAuth flows, signInWithGoogle() returns true when the
+      // browser opens, NOT when authentication completes!
+      //
+      // The actual auth completion happens via deep link callback, which:
+      // 1. Fires a signedIn event to AuthProvider
+      // 2. App resumes and HomeScreen's lifecycle handler checks auth
+      // 3. If user is valid, data is refreshed; if not, redirects to SplashScreen
+      //
+      // So we do NOT navigate here - just show a message and let the flow happen.
+      debugPrint(
+          '🔐 [LoginScreen] Browser opened for Google auth. Waiting for callback...');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Authentification en cours... Vous serez redirigé(e) automatiquement.'),
+          duration: Duration(seconds: 3),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -61,6 +61,14 @@ class Campaign {
       }
     }
 
+    // ✅ Extract creator display_name from nested object
+    String? createdByName;
+    if (json['creator'] != null && json['creator'] is Map) {
+      createdByName = json['creator']['display_name'] as String?;
+    } else {
+      createdByName = json['created_by_name'] as String?;
+    }
+
     return Campaign(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -69,13 +77,17 @@ class Campaign {
       startDate: DateTime.parse(json['start_date'] as String),
       endDate: DateTime.parse(json['end_date'] as String),
       createdBy: json['created_by'] as String,
-      createdByName: json['created_by_name'] as String?,
+      createdByName: createdByName,
       category: json['category'] as String?,
       isPublic: json['is_public'] as bool? ?? true,
       accessCode: json['access_code'] as String?,
       isWeekly: json['is_weekly'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : DateTime.now(),
       // ✅ Retourner null si aucune tâche valide, sinon la liste
       tasks: parsedTasks.isEmpty ? null : parsedTasks,
     );

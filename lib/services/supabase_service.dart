@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 
@@ -14,9 +15,15 @@ class SupabaseService {
 
   static SupabaseClient get client {
     if (_client == null) {
-      throw Exception('Supabase client not initialized. Call initialize() first.');
+      throw Exception(
+          'Supabase client not initialized. Call initialize() first.');
     }
     return _client!;
+  }
+
+  @visibleForTesting
+  static set client(SupabaseClient client) {
+    _client = client;
   }
 
   /// Initialiser Supabase
@@ -27,6 +34,7 @@ class SupabaseService {
       authOptions: const FlutterAuthClientOptions(
         authFlowType: AuthFlowType.pkce,
       ),
+      debug: true, // Enable debug logging for OAuth troubleshooting
     );
     _client = Supabase.instance.client;
   }
@@ -35,8 +43,7 @@ class SupabaseService {
   User? get currentUser => _client?.auth.currentUser;
 
   /// Obtenir le stream d'état d'authentification
-  Stream<AuthState> get authStateChanges =>
-      _client!.auth.onAuthStateChange;
+  Stream<AuthState> get authStateChanges => _client!.auth.onAuthStateChange;
 
   /// Vérifier si l'utilisateur est connecté
   bool get isAuthenticated => currentUser != null;

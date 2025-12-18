@@ -81,6 +81,16 @@ class _CampaignsTabState extends State<CampaignsTab> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CreateCampaignScreen()),
+          );
+        },
+        label: const Text('Create Campaign'),
+        icon: const Icon(Icons.add),
+        backgroundColor: AppColors.primary,
+      ),
     );
   }
 }

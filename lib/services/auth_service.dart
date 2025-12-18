@@ -76,6 +76,7 @@ class AuthService {
       final response = await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: SupabaseConfig.redirectUrl,
+        authScreenLaunchMode: LaunchMode.externalApplication,
       );
 
       // Note: Le profil sera créé automatiquement lors du callback OAuth

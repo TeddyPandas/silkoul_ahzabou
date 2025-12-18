@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,11 +30,17 @@ import 'supabase_service.dart';
 /// ════════════════════════════════════════════════════════════════════════════
 
 class CampaignService {
-  final SupabaseClient _supabase = SupabaseService.client;
+  final SupabaseClient _supabase;
+  final http.Client _client;
+  final String? _baseUrl;
 
-  /// URL de base du backend récupérée depuis .env
-  /// CRITIQUE : Cette URL doit pointer vers votre backend Node.js
-  final String? _baseUrl = dotenv.env['API_BASE_URL'];
+  CampaignService({
+    SupabaseClient? supabase,
+    http.Client? client,
+    String? baseUrl,
+  })  : _supabase = supabase ?? SupabaseService.client,
+        _client = client ?? http.Client(),
+        _baseUrl = baseUrl ?? dotenv.env['API_BASE_URL'];
 
   /// ══════════════════════════════════════════════════════════════════════════
   /// CRÉER UNE NOUVELLE CAMPAGNE AVEC SES TÂCHES
@@ -113,7 +120,10 @@ class CampaignService {
         .map((task) => {
               'name': task['name'],
               'total_number': task['number'], // ✅ Backend attend 'total_number'
-              'daily_goal': task['daily_goal'],
+              'daily_goal':
+                  (task['daily_goal'] != null && task['daily_goal'] > 0)
+                      ? task['daily_goal']
+                      : null,
             })
         .toList();
 
@@ -122,7 +132,7 @@ class CampaignService {
     // ─────────────────────────────────────────────────────────────────────────
     // IMPORTANT : Ne PAS envoyer 'created_by' dans le body !
     // Le backend l'extrait automatiquement depuis req.userId (du token JWT)
-    final body = json.encode({
+    final Map<String, dynamic> payload = {
       'name': name,
       'description': description,
       'start_date': startDate.toIso8601String(),
@@ -131,13 +141,18 @@ class CampaignService {
       'is_public': isPublic,
       'access_code': accessCode,
       'tasks': tasksPayload,
-    });
+    };
+
+    // Supprimer les clés nulles (comme access_code si public) pour éviter les erreurs de validation
+    payload.removeWhere((key, value) => value == null);
+
+    final body = json.encode(payload);
 
     // ─────────────────────────────────────────────────────────────────────────
     // ENVOI DE LA REQUÊTE AU BACKEND
     // ─────────────────────────────────────────────────────────────────────────
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final response = await _client.post(url, headers: headers, body: body);
 
       // ───────────────────────────────────────────────────────────────────────
       // GESTION DES RÉPONSES
@@ -200,6 +215,8 @@ class CampaignService {
     final uri =
         Uri.parse('$_baseUrl/campaigns').replace(queryParameters: queryParams);
 
+    debugPrint('🌐 [CampaignService] Requesting: $uri');
+
     // ─────────────────────────────────────────────────────────────────────────
     // HEADERS (optionnel : ajouter token si utilisateur connecté)
     // ─────────────────────────────────────────────────────────────────────────
@@ -213,18 +230,46 @@ class CampaignService {
     // ENVOI DE LA REQUÊTE
     // ─────────────────────────────────────────────────────────────────────────
     try {
-      final response = await http.get(uri, headers: headers);
+      final response = await _client.get(uri, headers: headers);
+
+      debugPrint(
+          '📡 [CampaignService] Response status: ${response.statusCode}');
+      debugPrint(
+          '📦 [CampaignService] Response body length: ${response.body.length} chars');
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
+        debugPrint(
+            '🔍 [CampaignService] Response data type: ${responseData.runtimeType}');
+        debugPrint(
+            '🔍 [CampaignService] Has "data" key: ${responseData.containsKey('data')}');
+
         final List<dynamic> campaignList = responseData['data'];
-        return campaignList.map((json) => Campaign.fromJson(json)).toList();
+        debugPrint(
+            '📋 [CampaignService] Campaign list length: ${campaignList.length}');
+
+        // Parse each campaign with error handling
+        List<Campaign> campaigns = [];
+        for (int i = 0; i < campaignList.length; i++) {
+          try {
+            campaigns.add(Campaign.fromJson(campaignList[i]));
+          } catch (e) {
+            debugPrint(
+                '❌ [CampaignService] Error parsing campaign at index $i: $e');
+            debugPrint('   Raw JSON: ${campaignList[i]}');
+          }
+        }
+
+        debugPrint(
+            '✅ [CampaignService] Successfully parsed ${campaigns.length} campaigns');
+        return campaigns;
       } else {
         final errorData = json.decode(response.body);
         final errorMessage = errorData['message'] ?? 'Une erreur est survenue';
         throw Exception('Erreur ${response.statusCode}: $errorMessage');
       }
     } catch (e) {
+      debugPrint('❌ [CampaignService] Exception in getPublicCampaigns: $e');
       throw Exception(
           'Erreur lors de la récupération des campagnes publiques: $e');
     }
@@ -279,7 +324,7 @@ class CampaignService {
     // ENVOI DE LA REQUÊTE
     // ─────────────────────────────────────────────────────────────────────────
     try {
-      final response = await http.get(uri, headers: headers);
+      final response = await _client.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -326,7 +371,7 @@ class CampaignService {
     final uri = Uri.parse('$_baseUrl/campaigns/$campaignId');
 
     try {
-      final response = await http.get(uri, headers: headers);
+      final response = await _client.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -450,7 +495,7 @@ class CampaignService {
     // ENVOI DE LA REQUÊTE
     // ─────────────────────────────────────────────────────────────────────────
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final response = await _client.post(url, headers: headers, body: body);
 
       if (response.statusCode != 201) {
         final errorData = json.decode(response.body);
@@ -552,7 +597,7 @@ class CampaignService {
     };
 
     try {
-      final response = await http.get(url, headers: headers);
+      final response = await _client.get(url, headers: headers);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -614,7 +659,7 @@ class CampaignService {
     final body = json.encode(updates);
 
     try {
-      final response = await http.put(url, headers: headers, body: body);
+      final response = await _client.put(url, headers: headers, body: body);
 
       if (response.statusCode == 200) {
         // ✅ Mise à jour réussie
@@ -675,7 +720,7 @@ class CampaignService {
     };
 
     try {
-      final response = await http.delete(url, headers: headers);
+      final response = await _client.delete(url, headers: headers);
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         // ✅ Suppression réussie
@@ -693,6 +738,69 @@ class CampaignService {
           throw Exception('Erreur ${response.statusCode}: $errorMessage');
         }
       }
+    } catch (e) {
+      throw Exception('Erreur lors de la suppression de la campagne: $e');
+    }
+  }
+
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// RÉCUPÉRER LES TÂCHES SOUSCRITES PAR L'UTILISATEUR POUR UNE CAMPAGNE
+  /// ══════════════════════════════════════════════════════════════════════════
+  ///
+  /// Récupère la liste des tâches auxquelles l'utilisateur est déjà abonné
+  /// pour une campagne donnée. Utilisé pour désactiver ces tâches dans
+  /// le dialog de souscription.
+  ///
+  /// ENDPOINT : GET /api/tasks/campaign/:campaignId/my-subscriptions
+  ///
+  /// PARAMÈTRES :
+  /// - campaignId : UUID de la campagne
+  ///
+  /// RETOURNE :
+  /// - List<Map<String, dynamic>> : Liste des tâches souscrites avec :
+  ///   - task_id : UUID de la tâche
+  ///   - subscribed_quantity : Quantité souscrite
+  ///   - completed_quantity : Quantité complétée
+  ///   - is_completed : Si la tâche est terminée
+  ///
+  /// AUTHENTIFICATION : REQUISE
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<List<Map<String, dynamic>>> getUserTaskSubscriptions(
+      String campaignId) async {
+    if (_baseUrl == null) {
+      throw Exception('API_BASE_URL non configurée');
+    }
+
+    final token = _supabase.auth.currentSession?.accessToken;
+    if (token == null) {
+      // Si pas de token, retourner liste vide
+      return [];
+    }
+
+    final url =
+        Uri.parse('$_baseUrl/tasks/campaign/$campaignId/my-subscriptions');
+    final headers = {
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await _client.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final List<dynamic> taskList = responseData['data'] ?? [];
+        return taskList.map((item) => Map<String, dynamic>.from(item)).toList();
+      } else {
+        // En cas d'erreur, retourner liste vide pour ne pas bloquer l'UI
+        debugPrint('Erreur getUserTaskSubscriptions: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Exception getUserTaskSubscriptions: $e');
+      return [];
+    }
+  }
+
   /// ══════════════════════════════════════════════════════════════════════════
   /// SE DÉSABONNER D'UNE CAMPAGNE (ATOMIQUE)
   /// ══════════════════════════════════════════════════════════════════════════
@@ -726,6 +834,6 @@ class CampaignService {
     final url = dotenv.env['API_BASE_URL'];
     if (url != null && url.isNotEmpty) return url;
     // Fallback pour émulateur Android ou localhost
-    return 'http://10.0.2.2:3000/api'; 
+    return 'http://10.0.2.2:3000/api';
   }
 }

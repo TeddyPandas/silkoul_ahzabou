@@ -13,7 +13,8 @@ const createCampaign = async (req, res) => {
   const reference = `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
 
   // Créer la campagne
-  const { data: campaign, error: campaignError } = await supabase
+  //const { data: campaign, error: campaignError } = await supabase
+  const { data: campaign, error: campaignError } = await supabaseAdmin
     .from('campaigns')
     .insert({
       name,
@@ -42,14 +43,14 @@ const createCampaign = async (req, res) => {
     daily_goal: task.daily_goal || null
   }));
 
-  const { data: createdTasks, error: tasksError } = await supabase
+  const { data: createdTasks, error: tasksError } = await supabaseAdmin
     .from('tasks')
     .insert(tasksToInsert)
     .select();
 
   if (tasksError) {
     // Supprimer la campagne si les tâches échouent
-    await supabase.from('campaigns').delete().eq('id', campaign.id);
+    await supabaseAdmin.from('campaigns').delete().eq('id', campaign.id);
     throw new ValidationError(`Erreur lors de la création des tâches: ${tasksError.message}`);
   }
 
@@ -183,7 +184,7 @@ const updateCampaign = async (req, res) => {
   }
 
   // Mettre à jour la campagne
-  const { data: updatedCampaign, error } = await supabase
+  const { data: updatedCampaign, error } = await supabaseAdmin
     .from('campaigns')
     .update(updates)
     .eq('id', id)
@@ -220,7 +221,7 @@ const deleteCampaign = async (req, res) => {
   }
 
   // Supprimer la campagne (cascade supprimera les tâches et souscriptions)
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('campaigns')
     .delete()
     .eq('id', id);
@@ -243,7 +244,8 @@ const getUserCampaigns = async (req, res) => {
 
   if (type === 'all' || type === 'created') {
     // Campagnes créées par l'utilisateur
-    const { data: createdCampaigns, error: createdError } = await supabase
+    // const { data: createdCampaigns, error: createdError } = await supabase
+    const { data: createdCampaigns, error: createdError } = await supabaseAdmin
       .from('campaigns')
       .select(`
         *,
@@ -259,7 +261,8 @@ const getUserCampaigns = async (req, res) => {
 
   if (type === 'all' || type === 'subscribed') {
     // Campagnes auxquelles l'utilisateur est abonné
-    const { data: subscribedCampaigns, error: subscribedError } = await supabase
+    // const { data: subscribedCampaigns, error: subscribedError } = await supabase
+    const { data: subscribedCampaigns, error: subscribedError } = await supabaseAdmin
       .from('user_campaigns')
       .select(`
         campaign:campaigns(
@@ -291,7 +294,8 @@ const checkSubscription = async (req, res) => {
   const userId = req.userId;
 
   // Vérifier l'existence de la souscription
-  const { data, error } = await supabase
+  // const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('user_campaigns')
     .select('id')
     .eq('campaign_id', campaignId)

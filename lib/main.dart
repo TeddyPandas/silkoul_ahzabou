@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'config/supabase_config.dart';
+import 'services/supabase_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/campaign_provider.dart';
 import 'providers/user_provider.dart';
@@ -14,6 +14,9 @@ import 'config/app_theme.dart';
 void main() async {
   // ✅ Initialisation Flutter
   WidgetsFlutterBinding.ensureInitialized();
+
+  print('🚀 [main] ======== APP STARTING ========');
+  print('🚀 [main] Time: ${DateTime.now()}');
 
   // ✅ CRITIQUE : Charger les variables d'environnement depuis .env
   try {
@@ -37,14 +40,37 @@ void main() async {
 
   // ✅ Initialiser Supabase
   try {
-    await Supabase.initialize(
-      url: SupabaseConfig.supabaseUrl,
-      anonKey: SupabaseConfig.supabaseAnonKey,
-    );
+    await SupabaseService.initialize();
     print('✅ Supabase initialisé avec succès');
+
+    // Log initial auth state to help diagnose OAuth issues
+    final supabase = Supabase.instance.client;
+    final currentSession = supabase.auth.currentSession;
+    final currentUser = supabase.auth.currentUser;
+    print(
+        '🔐 [main] Initial session: ${currentSession != null ? "EXISTS" : "null"}');
+    print('🔐 [main] Initial user: ${currentUser?.id ?? "null"}');
+    if (currentSession != null) {
+      print('🔐 [main] Session expired: ${currentSession.isExpired}');
+    }
+
+    // Add auth state change listener for debugging OAuth callbacks
+    supabase.auth.onAuthStateChange.listen((data) {
+      print('🔐 [main] ========== AUTH STATE CHANGED ==========');
+      print('🔐 [main] Event: ${data.event}');
+      print('🔐 [main] Session: ${data.session != null ? "EXISTS" : "null"}');
+      if (data.session != null) {
+        print('🔐 [main] User ID: ${data.session!.user.id}');
+        print(
+            '🔐 [main] Access Token: ${data.session!.accessToken.substring(0, 20)}...');
+      }
+      print('🔐 [main] ============================================');
+    });
   } catch (e) {
     print('❌ ERREUR lors de l\'initialisation de Supabase : $e');
   }
+
+  print('🚀 [main] ======== STARTING APP ========');
 
   // ✅ Lancer l'application
   runApp(const MyApp());
@@ -67,7 +93,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (context) =>
               UserProvider(Provider.of<AuthProvider>(context, listen: false)),
-          update: (context, auth, previousUserProvider) => UserProvider(auth),
+          update: (context, auth, previousUserProvider) =>
+              previousUserProvider!..update(auth),
         ),
       ],
       child: MaterialApp(
