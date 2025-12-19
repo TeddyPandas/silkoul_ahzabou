@@ -59,7 +59,19 @@ const subscribeToCampaign = async (req, res) => {
   // Étape 3: Retourner une réponse de succès
   // Les données détaillées ne sont pas retournées par la RPC, 
   // mais on confirme que l'opération a réussi.
-  return createdResponse(res, 'Abonnement à la campagne réussi.');
+  // FIX: Reset 'is_completed' to false for subscribed tasks
+  // This allows users who re-subscribe (to add more quantity) to mark the task as finished again.
+  // We keep the existing 'completed_quantity'.
+  if (task_subscriptions && task_subscriptions.length > 0) {
+    const taskIds = task_subscriptions.map(t => t.task_id);
+    await supabaseAdmin
+      .from('user_tasks')
+      .update({ is_completed: false })
+      .eq('user_id', userId)
+      .in('task_id', taskIds);
+  }
+
+  return createdResponse(res, 'Abonnement réussi', { success: true });
 };
 
 /**
