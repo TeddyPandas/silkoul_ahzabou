@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../models/campaign.dart';
 import '../../models/task.dart';
 import '../../providers/campaign_provider.dart';
@@ -8,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../config/app_theme.dart';
 import '../../services/task_service.dart';
 import '../../widgets/finish_task_dialog.dart';
+import 'package:silkoul_ahzabou/widgets/task_card.dart';
 import 'subscribe_dialog.dart';
 
 class CampaignDetailsScreen extends StatefulWidget {
@@ -132,10 +132,6 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       default:
         return tasks;
     }
-  }
-
-  String _formatNumber(int number) {
-    return NumberFormat('#,###', 'fr_FR').format(number);
   }
 
   /// Handle finishing a task - opens dialog and processes the result
@@ -360,41 +356,46 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           _buildTopBar(isDark),
 
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadCampaignDetails,
-              color: AppColors.primary,
-              backgroundColor:
-                  isDark ? const Color(0xFF1c2536) : AppColors.white,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(
-                    16, 8, 16, 100), // Bottom padding for FAB
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Header (Name + Creator)
-                    _buildHeaderInfo(isDark),
+            child: Scrollbar(
+              thumbVisibility: true,
+              thickness: 6,
+              radius: const Radius.circular(10),
+              child: RefreshIndicator(
+                onRefresh: _loadCampaignDetails,
+                color: AppColors.primary,
+                backgroundColor:
+                    isDark ? const Color(0xFF1c2536) : AppColors.white,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(
+                      16, 8, 16, 100), // Bottom padding for FAB
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 1. Header (Name + Creator)
+                      _buildHeaderInfo(isDark),
 
-                    // 2. Members & Category
-                    const SizedBox(height: 16),
-                    _buildMembersAndCategory(isDark),
+                      // 2. Members & Category
+                      const SizedBox(height: 16),
+                      _buildMembersAndCategory(isDark),
 
-                    // 3. Description
-                    const SizedBox(height: 16),
-                    _buildDescription(isDark),
+                      // 3. Description
+                      const SizedBox(height: 16),
+                      _buildDescription(isDark),
 
-                    // 4. Global Progress
-                    const SizedBox(height: 20),
-                    _buildGlobalProgressBar(isDark),
+                      // 4. Global Progress
+                      const SizedBox(height: 20),
+                      _buildGlobalProgressBar(isDark),
 
-                    // 5. Filters
-                    const SizedBox(height: 24),
-                    _buildFilterChips(isDark),
+                      // 5. Filters
+                      const SizedBox(height: 24),
+                      _buildFilterChips(isDark),
 
-                    // 6. Task List
-                    const SizedBox(height: 16),
-                    _buildTaskListView(isDark),
-                  ],
+                      // 6. Task List
+                      const SizedBox(height: 16),
+                      _buildTaskListView(isDark),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -763,234 +764,45 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final task = tasks[index];
-        return _buildTaskCard(task, isDark);
-      },
-    );
-  }
 
-  Widget _buildTaskCard(Task task, bool isDark) {
-    final total = task.totalNumber;
-    final remaining = task.remainingNumber;
-    final completed = total - remaining;
-    final progress = total > 0 ? (completed / total) : 0.0;
-    final isComplete = remaining <= 0;
+        // Check if user has subscribed to this task
+        final isUserTask = _mySubscribedTaskIds.contains(task.id);
 
-    // Check if user has subscribed to this task
-    final isUserTask = _mySubscribedTaskIds.contains(task.id);
+        // Get user task data if subscribed
+        Map<String, dynamic>? userTaskData;
+        if (isUserTask) {
+          userTaskData = _myUserTasks.firstWhere(
+            (ut) => ut['task_id'] == task.id,
+            orElse: () => <String, dynamic>{},
+          );
+        }
 
-    // Get user task data if subscribed
-    Map<String, dynamic>? userTaskData;
-    if (isUserTask) {
-      userTaskData = _myUserTasks.firstWhere(
-        (ut) => ut['task_id'] == task.id,
-        orElse: () => <String, dynamic>{},
-      );
-    }
-
-    // Check if user's task is already completed
-    final isUserTaskCompleted = userTaskData?['is_completed'] == true;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1c2536) : AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: isDark ? Colors.white10 : AppColors.divider, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Icon Box
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isComplete
-                      ? AppColors.success.withOpacity(0.1)
-                      : AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  isComplete ? Icons.check_circle : Icons.star,
-                  color: isComplete ? AppColors.success : AppColors.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Title & Badge
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            task.name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              decoration: isComplete
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              color:
-                                  isDark ? Colors.white : AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (isUserTask)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 6),
-                            child: Icon(
-                              isUserTaskCompleted
-                                  ? Icons.check_circle
-                                  : Icons.person,
-                              size: 14,
-                              color: isUserTaskCompleted
-                                  ? AppColors.success
-                                  : AppColors.primary,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      isComplete
-                          ? "Terminée"
-                          : (task.remainingNumber > 0
-                              ? "En cours"
-                              : "Inactive"),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isComplete
-                            ? AppColors.success
-                            : (isDark
-                                ? Colors.grey[400]
-                                : AppColors.textSecondary),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TaskCard(
+            task: task,
+            isDark: isDark,
+            userTaskData: userTaskData,
+            onFinish: (userTaskData != null && _isSubscribed)
+                ? () => _handleFinishTask(task, userTaskData!)
+                : null,
+            onSubscribe: !_isSubscribed
+                ? () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => SubscribeDialog(
+                        campaign: _campaign!,
+                        initialAccessCode: _accessCode,
+                        onSubscriptionSuccess: () {
+                          _loadCampaignDetails();
+                        },
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              // Menu Icon (Placeholder)
-              const Icon(Icons.more_horiz, color: Colors.grey, size: 20),
-            ],
+                    );
+                  }
+                : null,
           ),
-
-          const SizedBox(height: 16),
-
-          // Stats Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "${_formatNumber(task.completedNumber)} faits",
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-              Text(
-                "Cible: ${_formatNumber(total)}",
-                style: TextStyle(
-                  color: isDark ? Colors.grey[500] : AppColors.textSecondary,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor:
-                  isDark ? const Color(0xFF324467) : AppColors.offWhite,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                  isComplete ? AppColors.success : AppColors.primary),
-            ),
-          ),
-
-          // Show Finish Task button only for user's subscribed tasks that are not completed
-          if (isUserTask && !isUserTaskCompleted && userTaskData != null) ...[
-            const SizedBox(height: 16),
-
-            // User's subscription info
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF232f48) : AppColors.offWhite,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Votre objectif:",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color:
-                          isDark ? Colors.grey[400] : AppColors.textSecondary,
-                    ),
-                  ),
-                  Text(
-                    "${_formatNumber(userTaskData['subscribed_quantity'] ?? 0)} unités",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Finish Task Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _handleFinishTask(task, userTaskData!),
-                icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text(
-                  "Terminer la tâche",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-          ]
-        ],
-      ),
+        );
+      },
     );
   }
 
