@@ -8,11 +8,13 @@ import '../../providers/campaign_provider.dart';
 class SubscribeDialog extends StatefulWidget {
   final Campaign campaign;
   final VoidCallback onSubscriptionSuccess;
+  final String? initialAccessCode;
 
   const SubscribeDialog({
     Key? key,
     required this.campaign,
     required this.onSubscriptionSuccess,
+    this.initialAccessCode,
   }) : super(key: key);
 
   @override
@@ -21,7 +23,7 @@ class SubscribeDialog extends StatefulWidget {
 
 class _SubscribeDialogState extends State<SubscribeDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _accessCodeController = TextEditingController();
+  late final TextEditingController _accessCodeController;
 
   // ✅ Structure correcte : Map<taskId, quantity>
   final Map<String, int> _selectedTaskQuantities = {};
@@ -32,6 +34,9 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
   @override
   void initState() {
     super.initState();
+    _accessCodeController =
+        TextEditingController(text: widget.initialAccessCode);
+
     // ✅ Initialiser toutes les tâches à quantité 0
     if (widget.campaign.tasks != null) {
       for (var task in widget.campaign.tasks!) {

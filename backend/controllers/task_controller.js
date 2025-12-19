@@ -11,7 +11,7 @@ const subscribeToCampaign = async (req, res) => {
   const userId = req.userId;
 
   // Étape 1: Vérifications préliminaires rapides
-  const { data: campaign, error: campaignError } = await supabase
+  const { data: campaign, error: campaignError } = await supabaseAdmin
     .from('campaigns')
     .select('is_public, access_code')
     .eq('id', campaign_id)
@@ -320,6 +320,7 @@ const getUserTasksForCampaign = async (req, res) => {
 
   // Transformer pour retourner uniquement les infos nécessaires
   const subscribedTasks = (userTasks || []).map(ut => ({
+    id: ut.id, // ID de la user_task (requis pour finishTask)
     task_id: ut.task_id,
     subscribed_quantity: ut.subscribed_quantity,
     completed_quantity: ut.completed_quantity,
@@ -329,6 +330,99 @@ const getUserTasksForCampaign = async (req, res) => {
   return successResponse(res, 200, 'Tâches souscrites récupérées', subscribedTasks);
 };
 
+/**
+ * Terminer une tâche avec retour du reste au pool global
+ * 
+ * Permet à l'utilisateur de marquer sa tâche comme terminée en indiquant
+ * combien il a réellement accompli. La différence entre la quantité souscrite
+ * et la quantité réellement accomplie est retournée au pool global (remaining_number).
+ * 
+ * Exemple:
+ * - User souscrit à 5 unités, accomplit 2
+ * - 3 unités sont retournées au remaining_number de la tâche globale
+ * - La user_task est marquée complète avec completed_quantity = 2
+ */
+const finishTask = async (req, res) => {
+  const { id } = req.params;
+  const { actual_completed_quantity } = req.body;
+  const userId = req.userId;
+
+  // Validation de base
+  if (actual_completed_quantity === undefined || actual_completed_quantity === null) {
+    throw new ValidationError('La quantité accomplie est requise');
+  }
+
+  if (actual_completed_quantity < 0) {
+    throw new ValidationError('La quantité accomplie ne peut pas être négative');
+  }
+
+  // Récupérer la user_task avec les infos de la tâche globale
+  const { data: userTask, error: fetchError } = await supabaseAdmin
+    .from('user_tasks')
+    .select(`
+      *,
+      task:tasks(id, remaining_number, campaign_id)
+    `)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .single();
+
+  if (fetchError || !userTask) {
+    throw new NotFoundError('Tâche non trouvée');
+  }
+
+  if (userTask.is_completed) {
+    throw new ValidationError('Cette tâche est déjà terminée');
+  }
+
+  // Vérifier que la quantité accomplie ne dépasse pas la quantité souscrite
+  if (actual_completed_quantity > userTask.subscribed_quantity) {
+    throw new ValidationError(
+      `La quantité accomplie (${actual_completed_quantity}) ne peut pas dépasser la quantité souscrite (${userTask.subscribed_quantity})`
+    );
+  }
+
+  // Calculer la quantité à retourner au pool global
+  const returnedQuantity = userTask.subscribed_quantity - actual_completed_quantity;
+
+  // Début de la transaction atomique
+  // 1. Si il y a une quantité à retourner, mettre à jour la tâche globale
+  if (returnedQuantity > 0) {
+    const newRemaining = userTask.task.remaining_number + returnedQuantity;
+
+    const { error: taskUpdateError } = await supabaseAdmin
+      .from('tasks')
+      .update({ remaining_number: newRemaining })
+      .eq('id', userTask.task_id);
+
+    if (taskUpdateError) {
+      throw new ValidationError(`Erreur lors de la mise à jour du pool: ${taskUpdateError.message}`);
+    }
+  }
+
+  // 2. Marquer la user_task comme complète
+  const { data: updatedUserTask, error: updateError } = await supabaseAdmin
+    .from('user_tasks')
+    .update({
+      completed_quantity: actual_completed_quantity,
+      is_completed: true,
+      completed_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new ValidationError(`Erreur lors de la mise à jour de la tâche: ${updateError.message}`);
+  }
+
+  return successResponse(res, 200, 'Tâche terminée avec succès', {
+    user_task: updatedUserTask,
+    returned_to_pool: returnedQuantity
+  });
+};
+
 module.exports = {
   subscribeToCampaign,
   getUserTasks,
@@ -336,5 +430,7 @@ module.exports = {
   markTaskComplete,
   getUserTaskStats,
   unsubscribeFromCampaign,
-  getUserTasksForCampaign
+  getUserTasksForCampaign,
+  finishTask
 };
+

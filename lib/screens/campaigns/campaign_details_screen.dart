@@ -6,6 +6,8 @@ import '../../models/task.dart';
 import '../../providers/campaign_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/app_theme.dart';
+import '../../services/task_service.dart';
+import '../../widgets/finish_task_dialog.dart';
 import 'subscribe_dialog.dart';
 
 class CampaignDetailsScreen extends StatefulWidget {
@@ -28,13 +30,20 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       'Tout'; // Options: 'Tout', 'En cours', 'Terminées', 'Mes tâches'
   List<String> _mySubscribedTaskIds = [];
 
+  // Store full user task subscriptions for finish task feature
+  List<Map<String, dynamic>> _myUserTasks = [];
+  String? _accessCode;
+
   @override
   void initState() {
     super.initState();
     _loadCampaignDetails();
   }
 
-  Future<void> _loadCampaignDetails() async {
+  Future<void> _loadCampaignDetails([String? code]) async {
+    if (code != null) {
+      _accessCode = code;
+    }
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -45,9 +54,19 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.user?.id;
 
-      // Fetch Campaign
-      final campaign =
-          await campaignProvider.getCampaignById(widget.campaignId);
+      // Fetch Campaign - Pass access code if available
+      final campaign = await campaignProvider.getCampaignById(widget.campaignId,
+          accessCode: _accessCode);
+
+      if (mounted) {
+        if (campaignProvider.errorMessage != null) {
+          setState(() {
+            _errorMessage = campaignProvider.errorMessage;
+            _isLoading = false;
+          });
+          return;
+        }
+      }
 
       if (campaign != null) {
         _campaign = campaign;
@@ -64,6 +83,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                 .getUserTaskSubscriptions(widget.campaignId);
             _mySubscribedTaskIds =
                 userTasks.map((e) => e['task_id'] as String).toList();
+            _myUserTasks = userTasks;
           }
         }
       } else {
@@ -118,6 +138,94 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     return NumberFormat('#,###', 'fr_FR').format(number);
   }
 
+  /// Handle finishing a task - opens dialog and processes the result
+  Future<void> _handleFinishTask(
+      Task task, Map<String, dynamic> userTaskData) async {
+    final subscribedQuantity = userTaskData['subscribed_quantity'] as int? ?? 0;
+    final userTaskId = userTaskData['id'] as String?;
+
+    if (userTaskId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erreur: ID de tâche utilisateur non trouvé'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Show the finish task dialog
+    final result = await showDialog<int>(
+      context: context,
+      builder: (context) => FinishTaskDialog(
+        taskName: task.name,
+        subscribedQuantity: subscribedQuantity,
+        currentCompletedQuantity:
+            userTaskData['completed_quantity'] as int? ?? 0,
+      ),
+    );
+
+    // If user cancelled or didn't enter a value, return
+    if (result == null) return;
+
+    // Show loading indicator
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
+    );
+
+    try {
+      final taskService = TaskService();
+      final response = await taskService.finishTask(
+        userTaskId: userTaskId,
+        actualCompletedQuantity: result,
+      );
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      final returnedToPool = response['returned_to_pool'] as int? ?? 0;
+
+      // Show success message
+      if (mounted) {
+        final message = returnedToPool > 0
+            ? 'Tâche terminée ! $returnedToPool unité(s) retournée(s) au pool.'
+            : 'Tâche terminée avec succès !';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        // Refresh campaign details
+        await _loadCampaignDetails();
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Erreur: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Basic Dark mode check (though AppColors defines specific palette, we can adapt backgrounds)
@@ -132,27 +240,112 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
               : _campaign == null
                   ? const Center(child: Text('Campagne introuvable.'))
                   : _buildContent(isDark),
-      floatingActionButton:
-          _campaign != null ? _buildFloatingActionButton() : null,
+      bottomNavigationBar:
+          (_campaign != null && (_campaign!.tasks?.isNotEmpty ?? false))
+              ? _buildBottomBar(context, isDark)
+              : null,
     );
   }
 
   Widget _buildErrorView() {
+    final bool isAccessError =
+        _errorMessage?.contains('code d\'accès') ?? false;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 64, color: AppColors.textLight),
+          Icon(isAccessError ? Icons.lock_outline : Icons.error_outline,
+              size: 64,
+              color: isAccessError ? AppColors.primary : AppColors.textLight),
           const SizedBox(height: 16),
-          Text(
-            'Erreur: $_errorMessage',
-            style: TextStyle(color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              isAccessError
+                  ? 'Cette campagne est privée.'
+                  : 'Erreur: $_errorMessage',
+              style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: isAccessError ? 18 : 14),
+              textAlign: TextAlign.center,
+            ),
           ),
+          if (isAccessError) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Un code d\'accès est requis pour voir les détails.',
+              style: TextStyle(color: AppColors.textLight),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _showAccessCodeDialog,
+              icon: const Icon(Icons.key),
+              label: const Text('Saisir le code d\'accès'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _loadCampaignDetails(),
+              child: const Text('Réessayer'),
+            ),
+          ],
           const SizedBox(height: 16),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Retour',
+                style: TextStyle(color: AppColors.textLight)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAccessCodeDialog() {
+    final TextEditingController _codeController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Code d\'accès'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Veuillez saisir le code d\'accès de la campagne :'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _codeController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Code secret',
+                prefixIcon: Icon(Icons.lock),
+              ),
+              obscureText:
+                  false, // Codes are usually visible or obscure? User choice. Let's keep visible for ease.
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
           ElevatedButton(
-            onPressed: _loadCampaignDetails,
-            child: const Text('Réessayer'),
+            onPressed: () {
+              final code = _codeController.text.trim();
+              if (code.isNotEmpty) {
+                Navigator.pop(context);
+                _loadCampaignDetails(code);
+              }
+            },
+            child: const Text('Valider'),
           ),
         ],
       ),
@@ -582,6 +775,21 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     final progress = total > 0 ? (completed / total) : 0.0;
     final isComplete = remaining <= 0;
 
+    // Check if user has subscribed to this task
+    final isUserTask = _mySubscribedTaskIds.contains(task.id);
+
+    // Get user task data if subscribed
+    Map<String, dynamic>? userTaskData;
+    if (isUserTask) {
+      userTaskData = _myUserTasks.firstWhere(
+        (ut) => ut['task_id'] == task.id,
+        orElse: () => <String, dynamic>{},
+      );
+    }
+
+    // Check if user's task is already completed
+    final isUserTaskCompleted = userTaskData?['is_completed'] == true;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -645,11 +853,18 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (_mySubscribedTaskIds.contains(task.id))
-                          const Padding(
-                            padding: EdgeInsets.only(left: 6),
-                            child: Icon(Icons.person,
-                                size: 14, color: AppColors.primary),
+                        if (isUserTask)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Icon(
+                              isUserTaskCompleted
+                                  ? Icons.check_circle
+                                  : Icons.person,
+                              size: 14,
+                              color: isUserTaskCompleted
+                                  ? AppColors.success
+                                  : AppColors.primary,
+                            ),
                           ),
                       ],
                     ),
@@ -716,34 +931,62 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             ),
           ),
 
-          if (!isComplete && _isSubscribed) ...[
+          // Show Finish Task button only for user's subscribed tasks that are not completed
+          if (isUserTask && !isUserTaskCompleted && userTaskData != null) ...[
             const SizedBox(height: 16),
-            // Action Buttons
-            Row(
-              children: [
-                _buildActionButton(Icons.remove, isDark, onTap: () {}),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement Log Count Logic
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary.withOpacity(0.1),
-                      elevation: 0,
-                      foregroundColor: AppColors.primary,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+
+            // User's subscription info
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF232f48) : AppColors.offWhite,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Votre objectif:",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                          isDark ? Colors.grey[400] : AppColors.textSecondary,
                     ),
-                    child: const Text("Journal",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
+                  Text(
+                    "${_formatNumber(userTaskData['subscribed_quantity'] ?? 0)} unités",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Finish Task Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _handleFinishTask(task, userTaskData!),
+                icon: const Icon(Icons.check_circle_outline, size: 18),
+                label: const Text(
+                  "Terminer la tâche",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(width: 8),
-                _buildActionButton(Icons.add, isDark, onTap: () {}),
-              ],
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
             ),
           ]
         ],
@@ -751,51 +994,68 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, bool isDark,
-      {required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2a3649) : AppColors.offWhite,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon,
-            color: isDark ? Colors.white : AppColors.textSecondary, size: 20),
+  Widget _buildBottomBar(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1c2536) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildFloatingActionButton() {
-    return FloatingActionButton(
-      onPressed: () {
-        if (!_isSubscribed) {
-          showDialog(
-            context: context,
-            builder: (context) => SubscribeDialog(
-              campaign: _campaign!,
-              onSubscriptionSuccess: () {
-                _loadCampaignDetails();
-              },
+      child: SafeArea(
+        child: ElevatedButton(
+          onPressed: () {
+            if (!_isSubscribed) {
+              showDialog(
+                context: context,
+                builder: (context) => SubscribeDialog(
+                  campaign: _campaign!,
+                  initialAccessCode: _accessCode,
+                  onSubscriptionSuccess: () {
+                    _loadCampaignDetails();
+                  },
+                ),
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (context) => SubscribeDialog(
+                  campaign: _campaign!,
+                  initialAccessCode: _accessCode,
+                  onSubscriptionSuccess: () {
+                    _loadCampaignDetails();
+                  },
+                ),
+              );
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            shadowColor: AppColors.primary.withOpacity(0.4),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-          );
-        } else {
-          showDialog(
-            context: context,
-            builder: (context) => SubscribeDialog(
-              campaign: _campaign!,
-              onSubscriptionSuccess: () {
-                _loadCampaignDetails();
-              },
+          ),
+          child: Text(
+            _isSubscribed
+                ? "Modifier ma souscription"
+                : "Rejoindre la campagne",
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
             ),
-          );
-        }
-      },
-      backgroundColor: AppColors.primary,
-      child: Icon(_isSubscribed ? Icons.edit : Icons.add, color: Colors.white),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -9,8 +9,11 @@ import '../config/app_theme.dart';
 
 class SubscribeDialog extends StatefulWidget {
   final Campaign campaign;
+  final String? initialAccessCode;
 
-  const SubscribeDialog({Key? key, required this.campaign}) : super(key: key);
+  const SubscribeDialog(
+      {Key? key, required this.campaign, this.initialAccessCode})
+      : super(key: key);
 
   @override
   _SubscribeDialogState createState() => _SubscribeDialogState();
@@ -23,7 +26,7 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
   bool _isLoading = false;
   bool _isLoadingSubscriptions = true;
   String? _errorMessage;
-  final TextEditingController _accessCodeController = TextEditingController();
+  late final TextEditingController _accessCodeController;
 
   // Map des tâches déjà souscrites : task_id -> subscribed_quantity
   Map<String, int> _alreadySubscribedTasks = {};
@@ -31,6 +34,8 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
   @override
   void initState() {
     super.initState();
+    _accessCodeController =
+        TextEditingController(text: widget.initialAccessCode);
     _loadExistingSubscriptions();
   }
 

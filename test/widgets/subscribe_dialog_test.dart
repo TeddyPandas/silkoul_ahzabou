@@ -4,7 +4,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:silkoul_ahzabou/widgets/subscribe_dialog.dart';
+import 'package:silkoul_ahzabou/widgets/subscribe_dialog_to_delete.dart';
 import 'package:silkoul_ahzabou/models/campaign.dart';
 import 'package:silkoul_ahzabou/models/task.dart';
 import 'package:silkoul_ahzabou/providers/campaign_provider.dart';
@@ -35,7 +35,8 @@ void main() {
     SupabaseService.client = mockSupabaseClient;
   });
 
-  testWidgets('SubscribeDialog renders correctly with tasks', (WidgetTester tester) async {
+  testWidgets('SubscribeDialog renders correctly with tasks',
+      (WidgetTester tester) async {
     // Arrange
     final campaign = Campaign(
       id: 'c1',
@@ -45,8 +46,22 @@ void main() {
       createdBy: 'user_1',
       isPublic: true,
       tasks: [
-        Task(id: 't1', campaignId: 'c1', name: 'Task 1', totalNumber: 1000, remainingNumber: 500, createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Task(id: 't2', campaignId: 'c1', name: 'Task 2', totalNumber: 2000, remainingNumber: 2000, createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Task(
+            id: 't1',
+            campaignId: 'c1',
+            name: 'Task 1',
+            totalNumber: 1000,
+            remainingNumber: 500,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now()),
+        Task(
+            id: 't2',
+            campaignId: 'c1',
+            name: 'Task 2',
+            totalNumber: 2000,
+            remainingNumber: 2000,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now()),
       ],
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -69,7 +84,8 @@ void main() {
     expect(find.text('Restant: 500'), findsOneWidget);
   });
 
-  testWidgets('Subscribe button triggers provider call', (WidgetTester tester) async {
+  testWidgets('Subscribe button triggers provider call',
+      (WidgetTester tester) async {
     // Arrange
     final campaign = Campaign(
       id: 'c1',
@@ -79,7 +95,14 @@ void main() {
       createdBy: 'user_1',
       isPublic: true,
       tasks: [
-        Task(id: 't1', campaignId: 'c1', name: 'Task 1', totalNumber: 1000, remainingNumber: 500, createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Task(
+            id: 't1',
+            campaignId: 'c1',
+            name: 'Task 1',
+            totalNumber: 1000,
+            remainingNumber: 500,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now()),
       ],
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -116,7 +139,10 @@ void main() {
       userId: 'user_123',
       campaignId: 'c1',
       accessCode: null,
-      selectedTasks: argThat(contains(predicate((Map m) => m['task_id'] == 't1' && m['quantity'] == 100)), named: 'selectedTasks'),
+      selectedTasks: argThat(
+          contains(predicate(
+              (Map m) => m['task_id'] == 't1' && m['quantity'] == 100)),
+          named: 'selectedTasks'),
     )).called(1);
   });
 }

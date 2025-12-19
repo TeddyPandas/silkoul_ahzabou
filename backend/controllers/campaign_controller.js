@@ -70,7 +70,10 @@ const getCampaigns = async (req, res) => {
   const { search, category, is_active, page = 1, limit = 20 } = req.query;
   const userId = req.userId;
 
-  let query = supabase
+  console.log(`[getCampaigns] User ID: ${userId || 'Anonymous'}`);
+
+  // Utiliser supabaseAdmin pour contourner RLS car nous gérons les permissions manuellement ici
+  let query = supabaseAdmin
     .from('campaigns')
     .select(`
       id, name, reference, description, start_date, end_date, created_by, category, is_public, is_weekly, created_at,
@@ -79,11 +82,16 @@ const getCampaigns = async (req, res) => {
     `, { count: 'exact' });
 
   // Filtrer par campagnes publiques ou créées par l'utilisateur
-  if (userId) {
-    query = query.or(`is_public.eq.true,created_by.eq.${userId}`);
-  } else {
-    query = query.eq('is_public', true);
-  }
+  // MODIFICATION: On affiche toutes les campagnes (même privées) car elles sont "verrouillées" par code
+  // et non cachées.
+  // if (userId) {
+  //   query = query.or(`is_public.eq.true,created_by.eq.${userId}`);
+  // } else {
+  //   query = query.eq('is_public', true);
+  // }
+
+  // On ne filtre plus sur is_public pour les rendre visibles dans la liste. 
+  // La sécurité se fait au moment de l'accès aux détails (getCampaignById).
 
   // Recherche par nom ou description
   if (search) {
@@ -126,9 +134,12 @@ const getCampaigns = async (req, res) => {
  */
 const getCampaignById = async (req, res) => {
   const { id } = req.params;
+  const { code } = req.query; // Code d'accès optionnel
   const userId = req.userId;
 
-  const { data: campaign, error } = await supabase
+  // Utiliser supabaseAdmin pour pouvoir récupérer la campagne même si privée (RLS)
+  // afin de vérifier ensuite les permissions applicatives
+  const { data: campaign, error } = await supabaseAdmin
     .from('campaigns')
     .select(`
       *,
@@ -144,17 +155,27 @@ const getCampaignById = async (req, res) => {
 
   // Vérifier l'accès aux campagnes privées
   if (!campaign.is_public && campaign.created_by !== userId) {
-    // Vérifier si l'utilisateur est déjà abonné
-    const { data: subscription } = await supabase
+    // 1. Vérifier si l'utilisateur est déjà abonné
+    const { data: subscription } = await supabaseAdmin
       .from('user_campaigns')
       .select('id')
       .eq('campaign_id', id)
       .eq('user_id', userId)
       .single();
 
-    if (!subscription) {
-      throw new AuthorizationError('Accès refusé à cette campagne privée');
+    if (subscription) {
+      // Accès autorisé car abonné
+      return successResponse(res, 200, 'Campagne récupérée', campaign);
     }
+
+    // 2. Vérifier si un code d'accès correct est fourni
+    if (code && code === campaign.access_code) {
+      // Accès autorisé temporairement pour voir les détails (avant souscription)
+      return successResponse(res, 200, 'Campagne récupérée (code valide)', campaign);
+    }
+
+    // 3. Sinon, accès refusé
+    throw new AuthorizationError('Campagne privée : Code d\'accès requis');
   }
 
   return successResponse(res, 200, 'Campagne récupérée', campaign);

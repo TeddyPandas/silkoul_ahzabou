@@ -524,4 +524,87 @@ class TaskService {
       throw Exception('Erreur lors du désabonnement de la campagne: $e');
     }
   }
+
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// TERMINER UNE TÂCHE AVEC RETOUR DU RESTE AU POOL GLOBAL
+  /// ══════════════════════════════════════════════════════════════════════════
+  ///
+  /// Permet à l'utilisateur de marquer sa tâche comme terminée en indiquant
+  /// combien il a réellement accompli. La différence entre la quantité souscrite
+  /// et la quantité réellement accomplie est automatiquement retournée au pool
+  /// global (remaining_number de la tâche).
+  ///
+  /// EXEMPLE DE FLUX :
+  /// 1. User s'abonne à 5 unités d'une tâche
+  /// 2. User termine et indique avoir fait 2 unités
+  /// 3. Les 3 unités restantes sont retournées au pool global
+  /// 4. La user_task est marquée complète avec completed_quantity = 2
+  ///
+  /// PARAMÈTRES :
+  /// - userTaskId : UUID de la user_task (pas le task_id !)
+  /// - actualCompletedQuantity : Quantité réellement accomplie
+  ///
+  /// VALIDATION BACKEND :
+  /// - actualCompletedQuantity <= subscribed_quantity
+  /// - actualCompletedQuantity >= 0
+  /// - La tâche ne doit pas déjà être complète
+  ///
+  /// RETOUR :
+  /// - Map contenant user_task mis à jour et returned_to_pool (quantité retournée)
+  ///
+  /// AUTHENTIFICATION : REQUISE
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<Map<String, dynamic>> finishTask({
+    required String userTaskId,
+    required int actualCompletedQuantity,
+  }) async {
+    if (_baseUrl == null) {
+      throw Exception('API_BASE_URL non configurée');
+    }
+
+    final token = _supabase.auth.currentSession?.accessToken;
+    if (token == null) {
+      throw Exception('Utilisateur non authentifié');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CONSTRUCTION DE LA REQUÊTE
+    // ─────────────────────────────────────────────────────────────────────────
+    final url = Uri.parse('$_baseUrl/tasks/$userTaskId/finish');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = json.encode({
+      'actual_completed_quantity': actualCompletedQuantity,
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ENVOI DE LA REQUÊTE
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      final response = await http.put(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return Map<String, dynamic>.from(responseData['data']);
+      } else {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Une erreur est survenue';
+
+        if (errorMessage.contains('déjà terminée')) {
+          throw Exception('Cette tâche est déjà terminée');
+        }
+        if (errorMessage.contains('dépasser')) {
+          throw Exception(
+              'La quantité accomplie dépasse la quantité souscrite');
+        }
+
+        throw Exception('Erreur ${response.statusCode}: $errorMessage');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la finalisation de la tâche: $e');
+    }
+  }
 }

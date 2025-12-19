@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
+const { authenticate, optionalAuthenticate } = require('../middleware/auth');
 const { campaignValidation, searchValidation } = require('../middleware/validation');
 const { catchAsync } = require('../utils/response');
 const {
@@ -32,6 +32,7 @@ router.post(
  */
 router.get(
   '/',
+  optionalAuthenticate,
   searchValidation.campaigns,
   catchAsync(getCampaigns)
 );
@@ -65,6 +66,7 @@ router.get(
  */
 router.get(
   '/:id',
+  optionalAuthenticate,
   catchAsync(getCampaignById)
 );
 

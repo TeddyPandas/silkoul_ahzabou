@@ -358,7 +358,8 @@ class CampaignService {
   ///
   /// AUTHENTIFICATION : Optionnelle (obligatoire pour campagnes privées)
   /// ══════════════════════════════════════════════════════════════════════════
-  Future<Campaign?> getCampaignById(String campaignId) async {
+  Future<Campaign?> getCampaignById(String campaignId,
+      {String? accessCode}) async {
     if (_baseUrl == null) {
       throw Exception('API_BASE_URL non configurée');
     }
@@ -368,7 +369,10 @@ class CampaignService {
       if (token != null) 'Authorization': 'Bearer $token',
     };
 
-    final uri = Uri.parse('$_baseUrl/campaigns/$campaignId');
+    var uri = Uri.parse('$_baseUrl/campaigns/$campaignId');
+    if (accessCode != null) {
+      uri = uri.replace(queryParameters: {'code': accessCode});
+    }
 
     try {
       final response = await _client.get(uri, headers: headers);
@@ -758,6 +762,7 @@ class CampaignService {
   ///
   /// RETOURNE :
   /// - List<Map<String, dynamic>> : Liste des tâches souscrites avec :
+  ///   - id : UUID de la souscription (user_task)
   ///   - task_id : UUID de la tâche
   ///   - subscribed_quantity : Quantité souscrite
   ///   - completed_quantity : Quantité complétée

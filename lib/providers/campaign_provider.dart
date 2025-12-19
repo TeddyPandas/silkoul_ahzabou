@@ -81,13 +81,15 @@ class CampaignProvider with ChangeNotifier {
   // ============================================
   // RÉCUPÉRER UNE CAMPAGNE PAR ID
   // ============================================
-  Future<void> fetchCampaignById(String campaignId) async {
+  Future<void> fetchCampaignById(String campaignId,
+      {String? accessCode}) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      _selectedCampaign = await _campaignService.getCampaignById(campaignId);
+      _selectedCampaign = await _campaignService.getCampaignById(campaignId,
+          accessCode: accessCode);
 
       _isLoading = false;
       notifyListeners();
@@ -104,9 +106,15 @@ class CampaignProvider with ChangeNotifier {
   /// Récupère une campagne par son ID et la retourne
   /// Contrairement à fetchCampaignById, cette méthode retourne la campagne
   /// au lieu de la stocker dans _selectedCampaign
-  Future<Campaign?> getCampaignById(String campaignId) async {
+  Future<Campaign?> getCampaignById(String campaignId,
+      {String? accessCode}) async {
+    _errorMessage = null;
+    // Notify listeners implies rebuild, maybe we don't want to flash?
+    // But we should clear the state.
+
     try {
-      return await _campaignService.getCampaignById(campaignId);
+      return await _campaignService.getCampaignById(campaignId,
+          accessCode: accessCode);
     } catch (e) {
       _errorMessage = _parseErrorMessage(e.toString());
       notifyListeners();
@@ -481,7 +489,13 @@ class CampaignProvider with ChangeNotifier {
       return 'Vous êtes déjà abonné à cette campagne.';
     }
 
-    if (rawError.contains('Code d\'accès') ||
+    if (rawError.contains('Code d\'accès requis') ||
+        rawError.contains('Access code required')) {
+      return 'Un code d\'accès est requis pour accéder à cette campagne.';
+    }
+
+    if (rawError.contains('Code d\'accès invalide') ||
+        rawError.contains('Invalid access code') ||
         rawError.contains('access code')) {
       return 'Le code d\'accès est invalide.';
     }

@@ -152,6 +152,17 @@ const taskValidation = {
       .isUUID().withMessage('ID de tâche utilisateur invalide'),
 
     handleValidationErrors
+  ],
+
+  finishTask: [
+    param('id')
+      .isUUID().withMessage('ID de tâche utilisateur invalide'),
+
+    body('actual_completed_quantity')
+      .notEmpty().withMessage('La quantité accomplie est requise')
+      .isInt({ min: 0 }).withMessage('La quantité doit être un nombre positif ou zéro'),
+
+    handleValidationErrors
   ]
 };
 

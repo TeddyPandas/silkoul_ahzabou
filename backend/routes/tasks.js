@@ -10,7 +10,8 @@ const {
   markTaskComplete,
   getUserTaskStats,
   unsubscribeFromCampaign,
-  getUserTasksForCampaign
+  getUserTasksForCampaign,
+  finishTask
 } = require('../controllers/task_controller');
 
 /**
@@ -72,6 +73,18 @@ router.put(
 );
 
 /**
+ * @route   PUT /api/tasks/:id/finish
+ * @desc    Terminer une tâche et retourner le reste au pool global
+ * @access  Private
+ */
+router.put(
+  '/:id/finish',
+  authenticate,
+  taskValidation.finishTask,
+  catchAsync(finishTask)
+);
+
+/**
  * @route   DELETE /api/tasks/unsubscribe/:campaign_id
  * @desc    Se désabonner d'une campagne
  * @access  Private
@@ -94,4 +107,5 @@ router.get(
 );
 
 module.exports = router;
+
 
