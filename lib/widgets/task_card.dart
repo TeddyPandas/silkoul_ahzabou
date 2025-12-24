@@ -80,12 +80,6 @@ class _TaskCardState extends State<TaskCard> with TickerProviderStateMixin {
   }
 
   String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    }
-    if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}k';
-    }
     return NumberFormat.decimalPattern('fr').format(number);
   }
 
@@ -94,8 +88,11 @@ class _TaskCardState extends State<TaskCard> with TickerProviderStateMixin {
     final bool isUserTask = widget.userTaskData != null;
     final bool isCompleted =
         isUserTask && (widget.userTaskData!['is_completed'] == true);
-    final int userGoal =
-        isUserTask ? (widget.userTaskData!['subscribed_quantity'] ?? 0) : 0;
+    final int userGoal = isUserTask
+        ? (isCompleted
+            ? (widget.userTaskData!['completed_quantity'] ?? 0)
+            : (widget.userTaskData!['subscribed_quantity'] ?? 0))
+        : 0;
 
     // Calculate progress
     final int total = widget.task.totalNumber;

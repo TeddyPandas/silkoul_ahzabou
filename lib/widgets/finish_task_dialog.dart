@@ -38,9 +38,9 @@ class _FinishTaskDialogState extends State<FinishTaskDialog> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill with the subscribed quantity as default
+    // Default to the FULL current session pledge
     _quantityController = TextEditingController(
-      text: widget.subscribedQuantity.toString(),
+      text: _currentSessionSubscribed.toString(),
     );
   }
 
@@ -54,33 +54,80 @@ class _FinishTaskDialogState extends State<FinishTaskDialog> {
     return int.tryParse(_quantityController.text) ?? 0;
   }
 
+  // Quantité souscrite "fraîche" pour cette session
+  // (Total souscrit - ce qu'on avait déjà validé avant)
+  int get _currentSessionSubscribed {
+    return widget.subscribedQuantity - widget.currentCompletedQuantity;
+  }
+
+  // Combien sera retourné au pool ?
+  // (Total Souscrit) - (Ce qu'on avait fait avant + Ce qu'on vient de faire)
   int get _returnedToPool {
     final entered = _enteredQuantity;
-    if (entered > widget.subscribedQuantity || entered < 0) return 0;
-    return widget.subscribedQuantity - entered;
+    final totalDone = widget.currentCompletedQuantity + entered;
+
+    if (totalDone > widget.subscribedQuantity) return 0; // Should not happen
+    return widget.subscribedQuantity - totalDone;
   }
 
   void _handleConfirm() {
     if (!_formKey.currentState!.validate()) return;
 
-    final quantity = _enteredQuantity;
+    final quantityNow = _enteredQuantity;
+    final totalCompleted = widget.currentCompletedQuantity + quantityNow;
 
-    if (quantity > widget.subscribedQuantity) {
+    if (quantityNow > _currentSessionSubscribed) {
       setState(() {
         _errorMessage =
-            'La quantité ne peut pas dépasser ${widget.subscribedQuantity}';
+            'La quantité ne peut pas dépasser $_currentSessionSubscribed';
       });
       return;
     }
 
-    if (quantity < 0) {
+    if (quantityNow < 0) {
       setState(() {
         _errorMessage = 'La quantité ne peut pas être négative';
       });
       return;
     }
 
-    Navigator.of(context).pop(quantity);
+    // Return the TOTAL completed (History + Now)
+    Navigator.of(context).pop(totalCompleted);
+  }
+
+  Widget _buildInfoRow({
+    required String label,
+    required String value,
+    required bool isDark,
+    IconData? icon,
+    bool isBold = false,
+  }) {
+    return Row(
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 16, color: Colors.grey[500]),
+          const SizedBox(width: 8),
+        ],
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? Colors.grey[400] : AppColors.textSecondary,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: isBold
+                ? AppColors.primary
+                : (isDark ? Colors.white : AppColors.textPrimary),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -159,20 +206,30 @@ class _FinishTaskDialogState extends State<FinishTaskDialog> {
 
               const SizedBox(height: 16),
 
-              // Info about subscribed quantity
-              Text(
-                'Quantité souscrite : ${widget.subscribedQuantity}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isDark ? Colors.grey[400] : AppColors.textSecondary,
+              // Info Block: History + Current Pledge
+              if (widget.currentCompletedQuantity > 0) ...[
+                _buildInfoRow(
+                  label: "Déjà terminé :",
+                  value: "${widget.currentCompletedQuantity}",
+                  isDark: isDark,
+                  icon: Icons.history,
                 ),
+                const SizedBox(height: 8),
+              ],
+
+              _buildInfoRow(
+                label: "Nouvel engagement :",
+                value: "$_currentSessionSubscribed",
+                isDark: isDark,
+                icon: Icons.new_releases_outlined,
+                isBold: true,
               ),
 
               const SizedBox(height: 16),
 
               // Question
               Text(
-                'Combien avez-vous réellement accompli ?',
+                'Sur ces $_currentSessionSubscribed, combien avez-vous fait ?',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -238,8 +295,8 @@ class _FinishTaskDialogState extends State<FinishTaskDialog> {
                   if (qty < 0) {
                     return 'La quantité ne peut pas être négative';
                   }
-                  if (qty > widget.subscribedQuantity) {
-                    return 'Maximum : ${widget.subscribedQuantity}';
+                  if (qty > _currentSessionSubscribed) {
+                    return 'Max : $_currentSessionSubscribed';
                   }
                   return null;
                 },

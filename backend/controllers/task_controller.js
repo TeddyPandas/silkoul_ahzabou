@@ -27,6 +27,38 @@ const subscribeToCampaign = async (req, res) => {
     }
   }
 
+  // Étape 1.5: Nettoyage pré-abonnement (Sanitization)
+  // Si l'utilisateur a des tâches marquées "complètes" mais avec subscribed > completed
+  // (cas où ils ont retourné au pool par le passé), on doit réinitialiser le subscribed
+  // au niveau du completed pour éviter le double comptage lors de l'ajout.
+  if (task_subscriptions && task_subscriptions.length > 0) {
+    const taskIds = task_subscriptions.map(t => t.task_id);
+
+    // On ne peut pas faire une update conditionnelle complexe (col1 = col2) facilement avec l'API JS simple
+    // sans appel raw ou RPC.
+    // Cependant, pour le cas "is_completed = true", on peut assumer que completed_quantity est la "vraie" valeur de référence.
+    // Mais on ne connait pas la valeur completed pour chacun sans lire. 
+
+    // Approche alternative : On récupère les tâches concernées
+    const { data: existingTasks } = await supabaseAdmin
+      .from('user_tasks')
+      .select('id, task_id, subscribed_quantity, completed_quantity')
+      .eq('user_id', userId)
+      .in('task_id', taskIds)
+      .eq('is_completed', true);
+
+    if (existingTasks && existingTasks.length > 0) {
+      for (const task of existingTasks) {
+        if (task.subscribed_quantity > task.completed_quantity) {
+          await supabaseAdmin
+            .from('user_tasks')
+            .update({ subscribed_quantity: task.completed_quantity })
+            .eq('id', task.id);
+        }
+      }
+    }
+  }
+
   // Étape 2: Appeler la fonction RPC pour une transaction atomique
   // La RPC gère la logique complexe:
   // - Vérifie si l'utilisateur est déjà abonné
@@ -81,7 +113,7 @@ const getUserTasks = async (req, res) => {
   const userId = req.userId;
   const { campaign_id, is_completed } = req.query;
 
-  let query = supabase
+  let query = supabaseAdmin
     .from('user_tasks')
     .select(`
       *,
@@ -417,6 +449,7 @@ const finishTask = async (req, res) => {
     .from('user_tasks')
     .update({
       completed_quantity: actual_completed_quantity,
+      subscribed_quantity: actual_completed_quantity,
       is_completed: true,
       completed_at: new Date().toISOString()
     })

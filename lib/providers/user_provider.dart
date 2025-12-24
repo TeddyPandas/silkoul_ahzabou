@@ -113,10 +113,14 @@ class UserProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
+      debugPrint(
+          '🔄 [UserProvider] loadAllUserTasks called for userId: $userId, onlyIncomplete: $onlyIncomplete');
       _userTasks = await _taskService.getAllUserTasks(
         userId: userId,
         onlyIncomplete: onlyIncomplete,
       );
+      debugPrint(
+          '✅ [UserProvider] loadAllUserTasks success. Found ${_userTasks.length} tasks.');
 
       _isLoading = false;
       notifyListeners();

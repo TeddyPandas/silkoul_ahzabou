@@ -3,6 +3,8 @@ class UserTask {
   final String userId;
   final String taskId;
   final String taskName; // Pour affichage
+  final String? campaignName; // Pour affichage de la campagne
+  final String? campaignId; // Pour navigation
   final int subscribedQuantity;
   final int completedQuantity;
   final bool isCompleted;
@@ -15,6 +17,8 @@ class UserTask {
     required this.userId,
     required this.taskId,
     required this.taskName,
+    this.campaignName,
+    this.campaignId,
     required this.subscribedQuantity,
     this.completedQuantity = 0,
     this.isCompleted = false,
@@ -24,11 +28,28 @@ class UserTask {
   });
 
   factory UserTask.fromJson(Map<String, dynamic> json) {
+    String tName = json['task_name'] as String? ?? '';
+    String? cName;
+    String? cId;
+
+    // Handle nested structure from Supabase join
+    if (json['task'] != null && json['task'] is Map) {
+      final taskData = json['task'];
+      tName = taskData['name'] as String? ?? tName;
+
+      if (taskData['campaign'] != null && taskData['campaign'] is Map) {
+        cName = taskData['campaign']['name'] as String?;
+        cId = taskData['campaign']['id'] as String?;
+      }
+    }
+
     return UserTask(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       taskId: json['task_id'] as String,
-      taskName: json['task_name'] as String? ?? '',
+      taskName: tName,
+      campaignName: cName,
+      campaignId: cId,
       subscribedQuantity: json['subscribed_quantity'] as int,
       completedQuantity: json['completed_quantity'] as int? ?? 0,
       isCompleted: json['is_completed'] as bool? ?? false,
@@ -45,6 +66,9 @@ class UserTask {
       'id': id,
       'user_id': userId,
       'task_id': taskId,
+      'task_name': taskName,
+      'campaign_name': campaignName,
+      'campaign_id': campaignId,
       'subscribed_quantity': subscribedQuantity,
       'completed_quantity': completedQuantity,
       'is_completed': isCompleted,
@@ -62,7 +86,8 @@ class UserTask {
 
   // Quantité restante
   int get remainingQuantity {
-    return (subscribedQuantity - completedQuantity).clamp(0, subscribedQuantity);
+    return (subscribedQuantity - completedQuantity)
+        .clamp(0, subscribedQuantity);
   }
 
   // Vérifier si l'utilisateur peut marquer comme complet
@@ -72,6 +97,8 @@ class UserTask {
 
   UserTask copyWith({
     String? taskName,
+    String? campaignName,
+    String? campaignId,
     int? subscribedQuantity,
     int? completedQuantity,
     bool? isCompleted,
@@ -83,6 +110,8 @@ class UserTask {
       userId: userId,
       taskId: taskId,
       taskName: taskName ?? this.taskName,
+      campaignName: campaignName ?? this.campaignName,
+      campaignId: campaignId ?? this.campaignId,
       subscribedQuantity: subscribedQuantity ?? this.subscribedQuantity,
       completedQuantity: completedQuantity ?? this.completedQuantity,
       isCompleted: isCompleted ?? this.isCompleted,

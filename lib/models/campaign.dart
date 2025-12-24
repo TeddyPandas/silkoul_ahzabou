@@ -16,6 +16,7 @@ class Campaign {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<Task>? tasks;
+  final int subscribersCount;
 
   Campaign({
     required this.id,
@@ -33,6 +34,7 @@ class Campaign {
     required this.createdAt,
     required this.updatedAt,
     this.tasks,
+    this.subscribersCount = 0,
   });
 
   /// ══════════════════════════════════════════════════════════════════════════
@@ -69,6 +71,24 @@ class Campaign {
       createdByName = json['created_by_name'] as String?;
     }
 
+    // ✅ Extract subscribers count if available (from backend aggregation)
+    // Often comes as user_campaigns_count or similar depending on query
+    // For now we look for 'subscribers_count' or nested aggregate
+    int subCount = 0;
+    if (json['subscribers_count'] != null) {
+      subCount = json['subscribers_count'] is int
+          ? json['subscribers_count']
+          : int.tryParse(json['subscribers_count'].toString()) ?? 0;
+    } else if (json['user_campaigns'] != null &&
+        json['user_campaigns'] is List) {
+      // Loopback/count case if array is returned
+      subCount = (json['user_campaigns'] as List).length;
+    } else if (json['user_campaigns_count'] != null) {
+      subCount = json['user_campaigns_count'] is int
+          ? json['user_campaigns_count']
+          : int.tryParse(json['user_campaigns_count'].toString()) ?? 0;
+    }
+
     return Campaign(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -90,6 +110,7 @@ class Campaign {
           : DateTime.now(),
       // ✅ Retourner null si aucune tâche valide, sinon la liste
       tasks: parsedTasks.isEmpty ? null : parsedTasks,
+      subscribersCount: subCount,
     );
   }
 
@@ -108,6 +129,7 @@ class Campaign {
       'is_weekly': isWeekly,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'subscribers_count': subscribersCount,
     };
   }
 
@@ -158,6 +180,7 @@ class Campaign {
     String? accessCode,
     bool? isWeekly,
     DateTime? updatedAt,
+    int? subscribersCount,
   }) {
     return Campaign(
       id: id,
@@ -174,6 +197,7 @@ class Campaign {
       isWeekly: isWeekly ?? this.isWeekly,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      subscribersCount: subscribersCount ?? this.subscribersCount,
     );
   }
 }

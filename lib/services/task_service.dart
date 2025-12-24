@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -92,7 +93,7 @@ class TaskService {
 
     // ─────────────────────────────────────────────────────────────────────────
     // ENVOI DE LA REQUÊTE
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────r
     try {
       final response = await http.get(uri, headers: headers);
 
@@ -147,12 +148,11 @@ class TaskService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // CONSTRUCTION DE L'URL AVEC FILTRE OPTIONNEL
+    // CONSTRUCTION DE L'URL AVEC FILTRES
     // ─────────────────────────────────────────────────────────────────────────
-    final queryParams = <String, String>{};
-    if (onlyIncomplete) {
-      queryParams['is_completed'] = 'false';
-    }
+    final queryParams = {
+      if (onlyIncomplete) 'is_completed': 'false',
+    };
 
     final uri =
         Uri.parse('$_baseUrl/tasks').replace(queryParameters: queryParams);
@@ -165,7 +165,11 @@ class TaskService {
     // ENVOI DE LA REQUÊTE
     // ─────────────────────────────────────────────────────────────────────────
     try {
+      debugPrint('🔄 [TaskService] querying: $uri');
       final response = await http.get(uri, headers: headers);
+      if (kDebugMode) {
+        debugPrint('📥 [TaskService] response status: ${response.statusCode}');
+      }
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -177,8 +181,9 @@ class TaskService {
         throw Exception('Erreur ${response.statusCode}: $errorMessage');
       }
     } catch (e) {
+      debugPrint('❌ [TaskService] Error fetching user tasks: $e');
       throw Exception(
-          'Erreur lors de la récupération de toutes les tâches de l\'utilisateur: $e');
+          'Erreur lors de la récupération des tâches de l\'utilisateur: $e');
     }
   }
 

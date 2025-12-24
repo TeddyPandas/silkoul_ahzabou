@@ -9,6 +9,7 @@ import 'dart:ui' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i7;
 import 'package:silkoul_ahzabou/models/campaign.dart' as _i4;
+import 'package:silkoul_ahzabou/providers/auth_provider.dart' as _i8;
 import 'package:silkoul_ahzabou/providers/campaign_provider.dart' as _i3;
 import 'package:supabase/supabase.dart' as _i2;
 
@@ -276,21 +277,30 @@ class MockCampaignProvider extends _i1.Mock implements _i3.CampaignProvider {
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<void> fetchCampaignById(String? campaignId) => (super.noSuchMethod(
+  _i5.Future<void> fetchCampaignById(
+    String? campaignId, {
+    String? accessCode,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #fetchCampaignById,
           [campaignId],
+          {#accessCode: accessCode},
         ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<_i4.Campaign?> getCampaignById(String? campaignId) =>
+  _i5.Future<_i4.Campaign?> getCampaignById(
+    String? campaignId, {
+    String? accessCode,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getCampaignById,
           [campaignId],
+          {#accessCode: accessCode},
         ),
         returnValue: _i5.Future<_i4.Campaign?>.value(),
       ) as _i5.Future<_i4.Campaign?>);
@@ -311,6 +321,18 @@ class MockCampaignProvider extends _i1.Mock implements _i3.CampaignProvider {
         ),
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
+
+  @override
+  _i5.Future<List<Map<String, dynamic>>> getUserTaskSubscriptions(
+          String? campaignId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getUserTaskSubscriptions,
+          [campaignId],
+        ),
+        returnValue: _i5.Future<List<Map<String, dynamic>>>.value(
+            <Map<String, dynamic>>[]),
+      ) as _i5.Future<List<Map<String, dynamic>>>);
 
   @override
   _i5.Future<bool> subscribeToCampaign({
@@ -1449,4 +1471,156 @@ class MockUser extends _i1.Mock implements _i2.User {
         ),
         returnValue: <String, dynamic>{},
       ) as Map<String, dynamic>);
+}
+
+/// A class which mocks [AuthProvider].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAuthProvider extends _i1.Mock implements _i8.AuthProvider {
+  MockAuthProvider() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  bool get isLoading => (super.noSuchMethod(
+        Invocation.getter(#isLoading),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  bool get isAuthenticated => (super.noSuchMethod(
+        Invocation.getter(#isAuthenticated),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  _i5.Future<bool> signUpWithEmail({
+    required String? email,
+    required String? password,
+    required String? displayName,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #signUpWithEmail,
+          [],
+          {
+            #email: email,
+            #password: password,
+            #displayName: displayName,
+          },
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+
+  @override
+  _i5.Future<bool> signInWithEmail({
+    required String? email,
+    required String? password,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #signInWithEmail,
+          [],
+          {
+            #email: email,
+            #password: password,
+          },
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+
+  @override
+  _i5.Future<bool> signInWithGoogle() => (super.noSuchMethod(
+        Invocation.method(
+          #signInWithGoogle,
+          [],
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+
+  @override
+  _i5.Future<void> signOut() => (super.noSuchMethod(
+        Invocation.method(
+          #signOut,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<bool> updateProfile({
+    String? displayName,
+    String? phone,
+    String? address,
+    DateTime? dateOfBirth,
+    String? silsilaId,
+    String? avatarUrl,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateProfile,
+          [],
+          {
+            #displayName: displayName,
+            #phone: phone,
+            #address: address,
+            #dateOfBirth: dateOfBirth,
+            #silsilaId: silsilaId,
+            #avatarUrl: avatarUrl,
+          },
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+
+  @override
+  void clearError() => super.noSuchMethod(
+        Invocation.method(
+          #clearError,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListener(_i6.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(_i6.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }

@@ -11,6 +11,7 @@ import '../../providers/campaign_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../services/campaign_service.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/custom_drawer.dart'; // Import CustomDrawer
 import '../auth/login_screen.dart';
 import '../campaigns/campaign_details_screen.dart';
 import '../campaigns/create_campaign_screen.dart';
@@ -97,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+      drawer: const CustomDrawer(), // Add CustomDrawer here
       body: screens[_currentIndex],
       floatingActionButton: Container(
         height: 64,
@@ -204,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ... DashboardTab remains mostly same ...
-class DashboardTab extends StatelessWidget {
+class DashboardTab extends StatefulWidget {
   final Function(int, {bool showMyCampaigns}) onTabChange;
   final Future<void> Function() onRefresh;
 
@@ -215,11 +217,18 @@ class DashboardTab extends StatelessWidget {
   });
 
   @override
+  State<DashboardTab> createState() => _DashboardTabState();
+}
+
+class _DashboardTabState extends State<DashboardTab> {
+  int _currentCampaignIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
 
     return RefreshIndicator(
-      onRefresh: onRefresh,
+      onRefresh: widget.onRefresh,
       color: AppColors.tealPrimary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -227,7 +236,8 @@ class DashboardTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
+            _buildHeader(context),
+            _buildInfoBanner(),
             const SizedBox(height: 24),
             // Mes campagnes header with Voir tout button
             Consumer<CampaignProvider>(
@@ -242,9 +252,10 @@ class DashboardTab extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: Colors.black87),
                     ),
-                    if (provider.myCampaigns.isNotEmpty)
+                    if (provider.myCampaigns.length > 5)
                       TextButton(
-                        onPressed: () => onTabChange(1, showMyCampaigns: true),
+                        onPressed: () =>
+                            widget.onTabChange(1, showMyCampaigns: true),
                         child: const Text('Voir tout'),
                       ),
                   ],
@@ -261,18 +272,28 @@ class DashboardTab extends StatelessWidget {
                       context: context,
                       title: 'Bienvenue sur Ahzab',
                       subtitle: 'Rejoignez votre première campagne !',
-                      rating: 5.0,
+                      subscribersCount: 0,
                       imageUrl:
                           'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=200&auto=format&fit=crop',
                       tag: 'Info',
                     ),
                   );
                 }
+
+                final int displayCount = provider.myCampaigns.length > 5
+                    ? 5
+                    : provider.myCampaigns.length;
+
                 return SizedBox(
                   height: 180,
                   child: PageView.builder(
                     controller: PageController(viewportFraction: 0.92),
-                    itemCount: provider.myCampaigns.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentCampaignIndex = index;
+                      });
+                    },
+                    itemCount: displayCount,
                     itemBuilder: (context, index) {
                       final campaign = provider.myCampaigns[index];
                       return _buildHeroCard(
@@ -280,7 +301,7 @@ class DashboardTab extends StatelessWidget {
                         campaignId: campaign.id,
                         title: campaign.name,
                         subtitle: campaign.description ?? 'Campagne Zikr',
-                        rating: 4.8,
+                        subscribersCount: campaign.subscribersCount,
                         imageUrl:
                             'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=800&auto=format&fit=crop',
                         tag: campaign.isWeekly ? 'Hebdomadaire' : 'Ponctuelle',
@@ -304,7 +325,7 @@ class DashboardTab extends StatelessWidget {
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                              color: index == 0
+                              color: _currentCampaignIndex == index
                                   ? AppColors.tealPrimary
                                   : AppColors.tealPrimary.withOpacity(0.3),
                               shape: BoxShape.circle),
@@ -312,23 +333,26 @@ class DashboardTab extends StatelessWidget {
               );
             }),
             const SizedBox(height: 24),
-            _buildInfoBanner(),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Campagnes Recommandées',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87),
-                ),
-                TextButton(
-                  onPressed: () => onTabChange(1),
-                  child: const Text('Voir tout'),
-                ),
-              ],
+            Consumer<CampaignProvider>(
+              builder: (context, provider, _) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Campagnes Recommandées',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87),
+                    ),
+                    if (provider.campaigns.length > 5)
+                      TextButton(
+                        onPressed: () => widget.onTabChange(1),
+                        child: const Text('Voir tout'),
+                      ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 12),
             // Responsive campaign thumbnails using LayoutBuilder
@@ -353,7 +377,9 @@ class DashboardTab extends StatelessWidget {
                       height: containerHeight,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: provider.campaigns.length,
+                        itemCount: provider.campaigns.length > 5
+                            ? 5
+                            : provider.campaigns.length,
                         itemBuilder: (context, index) {
                           final campaign = provider.campaigns[index];
                           return _buildCampaignThumbnail(
@@ -386,13 +412,15 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {},
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
           style: IconButton.styleFrom(
               backgroundColor: Colors.white, padding: EdgeInsets.zero),
         ),
@@ -416,7 +444,7 @@ class DashboardTab extends StatelessWidget {
       String? campaignId,
       required String title,
       required String subtitle,
-      required double rating,
+      required int subscribersCount,
       required String imageUrl,
       required String tag}) {
     return GestureDetector(
@@ -476,9 +504,10 @@ class DashboardTab extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 16),
+                    const Icon(Icons.people_alt,
+                        color: Colors.blueAccent, size: 16),
                     const SizedBox(width: 4),
-                    Text(rating.toString(),
+                    Text('$subscribersCount',
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 12)),
                   ],

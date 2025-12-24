@@ -270,13 +270,18 @@ const getUserCampaigns = async (req, res) => {
       .from('campaigns')
       .select(`
         *,
-        tasks(id, name, total_number, remaining_number, daily_goal)
+        tasks(id, name, total_number, remaining_number, daily_goal),
+        subscribers_count:user_campaigns(count)
       `)
       .eq('created_by', userId)
       .order('created_at', { ascending: false });
 
     if (!createdError) {
-      campaigns = campaigns.concat(createdCampaigns.map(c => ({ ...c, relation: 'created' })));
+      campaigns = campaigns.concat(createdCampaigns.map(c => ({
+        ...c,
+        relation: 'created',
+        subscribers_count: c.subscribers_count?.[0]?.count ?? 0
+      })));
     }
   }
 
@@ -289,7 +294,8 @@ const getUserCampaigns = async (req, res) => {
         campaign:campaigns(
           *,
           creator:created_by(id, display_name, avatar_url),
-          tasks(id, name, total_number, remaining_number, daily_goal)
+          tasks(id, name, total_number, remaining_number, daily_goal),
+          subscribers_count:user_campaigns(count)
         )
       `)
       .eq('user_id', userId);
@@ -298,11 +304,18 @@ const getUserCampaigns = async (req, res) => {
       campaigns = campaigns.concat(
         subscribedCampaigns
           .filter(uc => uc.campaign)
-          .map(uc => ({ ...uc.campaign, relation: 'subscribed' }))
+          .map(uc => ({
+            ...uc.campaign,
+            relation: 'subscribed',
+            subscribers_count: uc.campaign.subscribers_count?.[0]?.count ?? 0
+          }))
       );
     }
   }
 
+  if (campaigns.length > 0) {
+    console.log('[getUserCampaigns] Sample campaign:', JSON.stringify(campaigns[0], null, 2));
+  }
   return successResponse(res, 200, 'Campagnes de l\'utilisateur récupérées', campaigns);
 };
 
