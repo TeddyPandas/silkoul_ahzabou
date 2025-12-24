@@ -15,8 +15,8 @@ import '../../widgets/custom_drawer.dart'; // Import CustomDrawer
 import '../auth/login_screen.dart';
 import '../campaigns/campaign_details_screen.dart';
 import '../campaigns/create_campaign_screen.dart';
+import '../finder/wazifa_finder_screen.dart';
 import '../nafahat/nafahat_screen.dart';
-import '../profile/profile_tab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -93,8 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
       CampaignsTab(
           key: ValueKey('campaigns_$_showMyCampaignsOnTab'),
           showMyCampaigns: _showMyCampaignsOnTab),
-      const NafahatScreen(), // Remplace CommunityTab
-      const ProfileTab(),
+      const WazifaFinderScreen(), // Wazifa Finder
+      const NafahatScreen(), // Nafahat
     ];
 
     return Scaffold(
@@ -138,8 +138,8 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildNavItem(Icons.home_rounded, 'Accueil', 0),
               _buildNavItem(Icons.auto_stories_rounded, 'Campagnes', 1),
               const SizedBox(width: 48), // Spacer for FAB
-              _buildNavItem(Icons.article_rounded, 'Nafahat', 2),
-              _buildNavItem(Icons.person_rounded, 'Profil', 3),
+              _buildNavItem(Icons.search_rounded, 'Wazifa', 2),
+              _buildNavItem(Icons.article_rounded, 'Nafahat', 3),
             ],
           ),
         ),
@@ -686,11 +686,19 @@ class CampaignsTab extends StatefulWidget {
 
 class _CampaignsTabState extends State<CampaignsTab> {
   late bool _showMyCampaigns;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _showMyCampaigns = widget.showMyCampaigns;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -784,6 +792,34 @@ class _CampaignsTabState extends State<CampaignsTab> {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              // Search Bar
+              TextField(
+                controller: _searchController,
+                onChanged: (value) =>
+                    setState(() => _searchQuery = value.toLowerCase()),
+                decoration: InputDecoration(
+                  hintText: 'Rechercher une campagne...',
+                  prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, color: Colors.grey[400]),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -794,8 +830,20 @@ class _CampaignsTabState extends State<CampaignsTab> {
             builder: (context, provider, _) {
               // Note: We move isLoading check inside RefreshIndicator content to allow refresh even if empty
 
-              final campaigns =
+              final allCampaigns =
                   _showMyCampaigns ? provider.myCampaigns : provider.campaigns;
+
+              // Filter campaigns based on search query
+              final campaigns = _searchQuery.isEmpty
+                  ? allCampaigns
+                  : allCampaigns.where((c) {
+                      final name = c.name.toLowerCase();
+                      final description = (c.description ?? '').toLowerCase();
+                      final creatorName = (c.createdByName ?? '').toLowerCase();
+                      return name.contains(_searchQuery) ||
+                          description.contains(_searchQuery) ||
+                          creatorName.contains(_searchQuery);
+                    }).toList();
 
               Widget content;
               if (provider.isLoading && campaigns.isEmpty) {

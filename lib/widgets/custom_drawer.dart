@@ -5,7 +5,7 @@ import '../screens/silsila/silsila_screen.dart';
 import '../screens/badges/badges_screen.dart';
 import '../screens/finder/wazifa_finder_screen.dart';
 import '../screens/calculators/abjad_calculator_screen.dart';
-import '../screens/infos/infos_screen.dart';
+import '../screens/profile/profile_tab.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -75,11 +75,10 @@ class CustomDrawer extends StatelessWidget {
                   _buildDivider(),
                   _buildMenuItem(
                     context,
-                    icon: Icons.info_outline_rounded,
-                    title: 'Infos',
-                    subtitle: 'Coming soon',
+                    icon: Icons.person_rounded,
+                    title: 'Mon Profil',
                     onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const InfosScreen())),
+                        MaterialPageRoute(builder: (_) => const ProfileTab())),
                   ),
                 ],
               ),
