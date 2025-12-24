@@ -15,6 +15,7 @@ import '../../widgets/custom_drawer.dart'; // Import CustomDrawer
 import '../auth/login_screen.dart';
 import '../campaigns/campaign_details_screen.dart';
 import '../campaigns/create_campaign_screen.dart';
+import '../nafahat/nafahat_screen.dart';
 import '../profile/profile_tab.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -92,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
       CampaignsTab(
           key: ValueKey('campaigns_$_showMyCampaignsOnTab'),
           showMyCampaigns: _showMyCampaignsOnTab),
-      const CommunityTab(),
+      const NafahatScreen(), // Remplace CommunityTab
       const ProfileTab(),
     ];
 
@@ -137,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildNavItem(Icons.home_rounded, 'Accueil', 0),
               _buildNavItem(Icons.auto_stories_rounded, 'Campagnes', 1),
               const SizedBox(width: 48), // Spacer for FAB
-              _buildNavItem(Icons.groups_rounded, 'Social', 2),
+              _buildNavItem(Icons.article_rounded, 'Nafahat', 2),
               _buildNavItem(Icons.person_rounded, 'Profil', 3),
             ],
           ),

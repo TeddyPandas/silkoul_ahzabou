@@ -8,6 +8,7 @@ import 'services/supabase_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/campaign_provider.dart';
 import 'providers/user_provider.dart';
+import 'providers/nafahat_provider.dart';
 import 'screens/splash_screen.dart';
 import 'config/app_theme.dart';
 
@@ -94,6 +95,9 @@ class MyApp extends StatelessWidget {
 
         // ✅ Provider des campagnes
         ChangeNotifierProvider(create: (_) => CampaignProvider()),
+
+        // ✅ Provider Nafahat (Articles)
+        ChangeNotifierProvider(create: (_) => NafahatProvider()..initialize()),
 
         // ✅ Provider utilisateur
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
