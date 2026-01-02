@@ -9,6 +9,8 @@ import 'providers/auth_provider.dart';
 import 'providers/campaign_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/nafahat_provider.dart';
+import 'providers/wazifa_provider.dart';
+import 'screens/auth/login_screen.dart';
 import 'screens/splash_screen.dart';
 import 'config/app_theme.dart';
 
@@ -98,6 +100,9 @@ class MyApp extends StatelessWidget {
 
         // ✅ Provider Nafahat (Articles)
         ChangeNotifierProvider(create: (_) => NafahatProvider()..initialize()),
+
+        // ✅ Provider Wazifa (Localisation)
+        ChangeNotifierProvider(create: (_) => WazifaProvider()),
 
         // ✅ Provider utilisateur
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(

@@ -15,7 +15,7 @@ import '../../widgets/custom_drawer.dart'; // Import CustomDrawer
 import '../auth/login_screen.dart';
 import '../campaigns/campaign_details_screen.dart';
 import '../campaigns/create_campaign_screen.dart';
-import '../finder/wazifa_finder_screen.dart';
+import '../wazifa/wazifa_map_screen.dart';
 import '../nafahat/nafahat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
       CampaignsTab(
           key: ValueKey('campaigns_$_showMyCampaignsOnTab'),
           showMyCampaigns: _showMyCampaignsOnTab),
-      const WazifaFinderScreen(), // Wazifa Finder
+      const WazifaMapScreen(), // Wazifa Finder
       const NafahatScreen(), // Nafahat
     ];
 
@@ -403,7 +403,8 @@ class _DashboardTabState extends State<DashboardTab> {
               children: [
                 _buildQuickAction(Icons.link, 'Silsila', AppColors.tealPrimary),
                 _buildQuickAction(
-                    Icons.place, 'Wazifa Finder', AppColors.tealAccent),
+                    Icons.place, 'Wazifa Finder', AppColors.tealAccent,
+                    onTap: () => widget.onTabChange(2)),
                 _buildQuickAction(Icons.emoji_events, 'Badges', Colors.amber),
               ],
             ),
@@ -644,9 +645,11 @@ class _DashboardTabState extends State<DashboardTab> {
   }
 
   // Responsive quick action - uses Expanded in parent Row
-  Widget _buildQuickAction(IconData icon, String label, Color color) {
+  Widget _buildQuickAction(IconData icon, String label, Color color, {VoidCallback? onTap}) {
     return Expanded(
-      child: Container(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
@@ -666,6 +669,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 style:
                     const TextStyle(fontWeight: FontWeight.w500, fontSize: 12)),
           ],
+        ),
         ),
       ),
     );
