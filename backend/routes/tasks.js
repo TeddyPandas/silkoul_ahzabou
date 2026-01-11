@@ -11,8 +11,21 @@ const {
   getUserTaskStats,
   unsubscribeFromCampaign,
   getUserTasksForCampaign,
-  finishTask
+  finishTask,
+  addTasksToSubscription
 } = require('../controllers/task_controller');
+
+/**
+ * @route   POST /api/tasks/add-tasks
+ * @desc    Ajouter des tâches à un abonnement existant
+ * @access  Private
+ */
+router.post(
+  '/add-tasks',
+  authenticate,
+  subscriptionValidation.subscribe,
+  catchAsync(addTasksToSubscription)
+);
 
 /**
  * @route   POST /api/tasks/subscribe

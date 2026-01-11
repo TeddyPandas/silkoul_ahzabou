@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   // Couleurs principales (Vert, Blanc, Mauve)
   static const Color primary = Color(0xFF2D7A6E); // Vert apaisant
+  static const Color tealPrimary = Color(0xFF009688); // Teal standard pour le mode coran
   static const Color primaryLight = Color(0xFF4A9B8E);
   static const Color primaryDark = Color(0xFF1D5A4F);
 

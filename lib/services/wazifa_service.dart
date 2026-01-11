@@ -59,4 +59,31 @@ class WazifaService {
       rethrow;
     }
   }
+  /// Récupérer tous les lieux (Admin)
+  Future<List<WazifaGathering>> getAllGatherings() async {
+    final response = await _client
+        .from('wazifa_gatherings')
+        .select()
+        .order('created_at', ascending: false);
+    return (response as List).map((json) => WazifaGathering.fromJson(json)).toList();
+  }
+
+  /// Mettre à jour un lieu
+  Future<void> updateGathering(String id, Map<String, dynamic> updates) async {
+    await _client.from('wazifa_gatherings').update(updates).eq('id', id);
+  }
+
+  /// Supprimer un lieu
+  Future<void> deleteGathering(String id) async {
+    final response = await _client
+        .from('wazifa_gatherings')
+        .delete()
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+
+    if (response == null) {
+      throw Exception("Impossible de supprimer le lieu. Vérifiez vos permissions ou si le lieu existe encore.");
+    }
+  }
 }

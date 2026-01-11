@@ -24,12 +24,12 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet());
 
 // CORS
-const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+// CORS
+app.use(cors({
+  origin: true, // Allow any origin
   credentials: true,
   optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+}));
 
 // Body parser
 app.use(express.json());
@@ -95,7 +95,7 @@ const server = app.listen(PORT, () => {
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
   `);
-  
+
   console.log('\n📍 Available endpoint examples:');
   console.log(`   - Health Check: GET http://localhost:${PORT}/health`);
   console.log(`   - Auth:         POST http://localhost:${PORT}/api/auth/signup`);

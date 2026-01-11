@@ -178,6 +178,34 @@ class CampaignProvider with ChangeNotifier {
   }
 
   // ============================================
+  // AJOUTER DES TÂCHES À UN ABONNEMENT EXISTANT
+  // ============================================
+  Future<bool> addTasksToSubscription({
+    required String campaignId,
+    required List<Map<String, dynamic>> selectedTasks,
+  }) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      await _campaignService.addTasksToSubscription(
+        campaignId: campaignId,
+        selectedTasks: selectedTasks,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = _parseErrorMessage(e.toString());
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ============================================
   // ✅ S'ABONNER À UNE CAMPAGNE (CORRIGÉ)
   // ============================================
   Future<bool> subscribeToCampaign({

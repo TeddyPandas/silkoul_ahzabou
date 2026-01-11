@@ -12,6 +12,15 @@ import 'providers/nafahat_provider.dart';
 import 'providers/wazifa_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/home/home_screen.dart';
+import 'modules/teachings/providers/teachings_provider.dart';
+import 'modules/admin/screens/admin_dashboard_screen.dart';
+import 'modules/admin/screens/admin_authors_screen.dart';
+import 'modules/admin/screens/admin_shows_screen.dart'; // Shows Admin
+import 'modules/admin/screens/admin_show_episodes_screen.dart'; // Episodes Admin
+import 'modules/admin/screens/admin_wazifa_screen.dart'; // Wazifa Admin
+import 'modules/admin/screens/admin_user_management_screen.dart'; // User Management
+import 'modules/admin/screens/admin_podcast_create_screen.dart'; // Podcast Create
 import 'config/app_theme.dart';
 
 void main() async {
@@ -104,6 +113,9 @@ class MyApp extends StatelessWidget {
         // ✅ Provider Wazifa (Localisation)
         ChangeNotifierProvider(create: (_) => WazifaProvider()),
 
+        // ✅ Provider Teachings (Enseignements)
+        ChangeNotifierProvider(create: (_) => TeachingsProvider()),
+
         // ✅ Provider utilisateur
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (context) =>
@@ -124,13 +136,18 @@ class MyApp extends StatelessWidget {
         // ✅ Écran de démarrage
         home: const SplashScreen(),
 
-        // ✅ Routes nommées (optionnel, à développer selon besoins)
-        // routes: {
-        //   '/login': (context) => const LoginScreen(),
-        //   '/home': (context) => const HomeScreen(),
-        //   '/campaigns': (context) => const CampaignsListScreen(),
-        //   '/profile': (context) => const ProfileScreen(),
-        // },
+        // ✅ Routes nommées
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/admin': (context) => const AdminDashboardScreen(),
+          '/admin/authors': (context) => const AdminAuthorsScreen(),
+          '/admin/shows': (context) => const AdminShowsScreen(),
+          '/admin/shows/episodes': (context) => const AdminShowEpisodesScreen(),
+          '/admin/wazifa': (context) => const AdminWazifaScreen(),
+          '/admin/users': (context) => const AdminUserManagementScreen(),
+          '/admin/podcasts/create': (context) => const AdminPodcastCreateScreen(),
+        },
       ),
     );
   }

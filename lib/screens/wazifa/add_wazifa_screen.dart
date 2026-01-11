@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../../models/wazifa_gathering.dart';
 import '../../providers/wazifa_provider.dart';
+import 'package:latlong2/latlong.dart';
+import 'location_picker_screen.dart';
 
 class AddWazifaScreen extends StatefulWidget {
   const AddWazifaScreen({Key? key}) : super(key: key);
@@ -44,6 +46,43 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
       );
     } finally {
       if (mounted) setState(() => _isLocating = false);
+    }
+  }
+
+  Future<void> _pickOnMap() async {
+    // Utiliser la position actuelle ou Dakar par défaut
+    final initialLat = _pickedPosition?.latitude ?? 14.6928;
+    final initialLng = _pickedPosition?.longitude ?? -17.4467;
+
+    print("Navigating to LocationPickerScreen with lat: $initialLat, lng: $initialLng"); // Debug log
+
+    final result = await Navigator.push<LatLng>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LocationPickerScreen(
+          initialLat: initialLat,
+          initialLng: initialLng,
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      print("LocationPicker returned: ${result.latitude}, ${result.longitude}"); // Debug log
+      setState(() {
+        // On crée un objet Position "artificiel" pour le stocker
+        _pickedPosition = Position(
+          longitude: result.longitude,
+          latitude: result.latitude,
+          timestamp: DateTime.now(),
+          accuracy: 10.0,
+          altitude: 0.0,
+          heading: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+          altitudeAccuracy: 0.0, 
+          headingAccuracy: 0.0
+        );
+      });
     }
   }
 
@@ -202,10 +241,24 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
                       else
                         const Text("Aucune position détectée"),
                       const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: _getCurrentLocation,
-                        icon: const Icon(Icons.my_location),
-                        label: const Text('Actualiser ma position'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _getCurrentLocation,
+                            icon: const Icon(Icons.my_location),
+                            label: const Text('Ma Position'),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: _pickOnMap,
+                            icon: const Icon(Icons.map),
+                            label: const Text('Choisir sur carte'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.secondary,
+                              foregroundColor: theme.colorScheme.onSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

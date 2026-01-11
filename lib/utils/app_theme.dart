@@ -361,4 +361,73 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+
+      // Couleurs principales
+      primaryColor: AppColors.tealPrimary,
+      scaffoldBackgroundColor: AppColors.backgroundDark,
+
+      // Schéma de couleurs
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.tealPrimary,
+        secondary: AppColors.tealAccent,
+        tertiary: AppColors.mauve,
+        surface: Color(0xFF2C2C2E),
+        error: AppColors.error,
+        onPrimary: AppColors.white,
+        onSecondary: AppColors.white,
+        onSurface: AppColors.white,
+        onError: AppColors.white,
+      ),
+
+      // Typographie
+      fontFamily: 'Poppins',
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(fontFamily: 'Poppins', fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.white),
+        displayMedium: TextStyle(fontFamily: 'Poppins', fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.white),
+        displaySmall: TextStyle(fontFamily: 'Poppins', fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.white),
+        headlineLarge: TextStyle(fontFamily: 'Amiri', fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.white),
+        headlineMedium: TextStyle(fontFamily: 'Poppins', fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.white),
+        headlineSmall: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.white),
+        titleLarge: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.white),
+        titleMedium: TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.white),
+        titleSmall: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white70),
+        bodyLarge: TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.white),
+        bodyMedium: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.white),
+        bodySmall: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
+        labelLarge: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.white),
+        labelMedium: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.white),
+        labelSmall: TextStyle(fontFamily: 'Poppins', fontSize: 10, fontWeight: FontWeight.w500, color: Colors.white70),
+      ),
+
+      // AppBar
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.backgroundDark, // Ou Teal si on veut garder la couleur
+        foregroundColor: AppColors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
+
+      // Cartes
+      cardTheme: CardTheme(
+        color: const Color(0xFF2C2C2E),
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.3),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+
+      // Bottom Navigation Bar
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Color(0xFF1C1C1E),
+        selectedItemColor: AppColors.tealAccent,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+      ),
+    );
+  }
 }

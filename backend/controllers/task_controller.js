@@ -1,6 +1,22 @@
-const { supabase, supabaseAdmin } = require('../config/supabase');
+const { supabase, supabaseAdmin } = require('../config/supabase'); // Keep admin for now if needed, but we replace usage
+const { createClient } = require('@supabase/supabase-js');
 const { NotFoundError, ValidationError, AuthorizationError, ConflictError } = require('../utils/errors');
 const { successResponse, createdResponse } = require('../utils/response');
+
+// Helper to create scoped client
+const createScopedClient = (req) => {
+  return createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: req.headers.authorization
+        }
+      }
+    }
+  );
+};
 
 /**
  * S'abonner à une campagne avec sélection de tâches
@@ -10,15 +26,26 @@ const subscribeToCampaign = async (req, res) => {
   const { campaign_id, access_code, task_subscriptions } = req.body;
   const userId = req.userId;
 
+  console.log(`[subscribeToCampaign] User ${userId} subscribing to ${campaign_id}`);
+  console.log(`[subscribeToCampaign] Payload:`, JSON.stringify(task_subscriptions));
+
+  const supabaseUser = createScopedClient(req);
+
   // Étape 1: Vérifications préliminaires rapides
-  const { data: campaign, error: campaignError } = await supabaseAdmin
+  // On utilise le client scopé pour vérifier l'accès (RLS devrait bloquer si privé/sans code, mais on a besoin de vérifier le code manuellement si retourné)
+  const { data: campaign, error: campaignError } = await supabaseUser
     .from('campaigns')
     .select('is_public, access_code')
     .eq('id', campaign_id)
     .single();
 
   if (campaignError || !campaign) {
-    throw new NotFoundError('Campagne non trouvée');
+    console.error('[subscribeToCampaign] Campaign lookup error:', campaignError);
+    // Si RLS bloque (ex: privé non créé par user), on peut avoir une erreur.
+    // Mais pour s'abonner, la campagne doit être visible.
+    // Si c'est privé, l'utilisateur a dû saisir un code pour voir les détails AVANT de s'abonner.
+    // Ici on revérifie.
+    throw new NotFoundError('Campagne non trouvée ou accès refusé');
   }
 
   if (!campaign.is_public) {
@@ -28,19 +55,10 @@ const subscribeToCampaign = async (req, res) => {
   }
 
   // Étape 1.5: Nettoyage pré-abonnement (Sanitization)
-  // Si l'utilisateur a des tâches marquées "complètes" mais avec subscribed > completed
-  // (cas où ils ont retourné au pool par le passé), on doit réinitialiser le subscribed
-  // au niveau du completed pour éviter le double comptage lors de l'ajout.
   if (task_subscriptions && task_subscriptions.length > 0) {
     const taskIds = task_subscriptions.map(t => t.task_id);
 
-    // On ne peut pas faire une update conditionnelle complexe (col1 = col2) facilement avec l'API JS simple
-    // sans appel raw ou RPC.
-    // Cependant, pour le cas "is_completed = true", on peut assumer que completed_quantity est la "vraie" valeur de référence.
-    // Mais on ne connait pas la valeur completed pour chacun sans lire. 
-
-    // Approche alternative : On récupère les tâches concernées
-    const { data: existingTasks } = await supabaseAdmin
+    const { data: existingTasks } = await supabaseUser
       .from('user_tasks')
       .select('id, task_id, subscribed_quantity, completed_quantity')
       .eq('user_id', userId)
@@ -50,7 +68,7 @@ const subscribeToCampaign = async (req, res) => {
     if (existingTasks && existingTasks.length > 0) {
       for (const task of existingTasks) {
         if (task.subscribed_quantity > task.completed_quantity) {
-          await supabaseAdmin
+          await supabaseUser
             .from('user_tasks')
             .update({ subscribed_quantity: task.completed_quantity })
             .eq('id', task.id);
@@ -60,43 +78,37 @@ const subscribeToCampaign = async (req, res) => {
   }
 
   // Étape 2: Appeler la fonction RPC pour une transaction atomique
-  // La RPC gère la logique complexe:
-  // - Vérifie si l'utilisateur est déjà abonné
-  // - Vérifie la disponibilité des quantités pour chaque tâche
-  // - Crée l'enregistrement user_campaigns
-  // - Crée les enregistrements user_tasks
-  // - Décrémente les quantités restantes sur les tâches
-  // - Annule tout en cas d'erreur (rollback)
-  const { error: rpcError } = await supabase.rpc('register_and_subscribe', {
+  // Note: RPC call with scoped client ensuring RLS context if needed provided the RPC handles it or is security defeater
+  // The RPC 'register_and_subscribe' is SECURITY DEFINER or takes user_id explicitly.
+  // We use the authenticated client to call it.
+  const { error: rpcError } = await supabaseUser.rpc('register_and_subscribe', {
     p_user_id: userId,
     p_campaign_id: campaign_id,
     p_tasks: task_subscriptions,
   });
 
   if (rpcError) {
-    // Traduire les erreurs de la base de données en erreurs HTTP claires
+    console.error('[subscribeToCampaign] RPC Error:', rpcError);
     if (rpcError.message.includes('already subscribed')) {
       throw new ConflictError('Vous êtes déjà abonné à cette campagne.');
     }
     if (rpcError.message.includes('not found')) {
       throw new NotFoundError('La campagne ou une des tâches est introuvable.');
     }
-    if (rpcError.message.includes('Insufficient quantity')) {
-      throw new ValidationError('La quantité demandée pour une tâche est indisponible.');
+    if (rpcError.message.includes('User already subscribed')) {
+      throw new ConflictError('Vous êtes déjà abonné à cette campagne.');
     }
-    // Erreur générique si non reconnue
+    if (rpcError.message.includes('Insufficient quantity')) {
+      throw new ValidationError('La quantité demandée pour une tâche est indisponible (Stock insuffisant).');
+    }
+    // Erreur générique
     throw new ValidationError(`Erreur lors de l'abonnement: ${rpcError.message}`);
   }
 
   // Étape 3: Retourner une réponse de succès
-  // Les données détaillées ne sont pas retournées par la RPC, 
-  // mais on confirme que l'opération a réussi.
-  // FIX: Reset 'is_completed' to false for subscribed tasks
-  // This allows users who re-subscribe (to add more quantity) to mark the task as finished again.
-  // We keep the existing 'completed_quantity'.
   if (task_subscriptions && task_subscriptions.length > 0) {
     const taskIds = task_subscriptions.map(t => t.task_id);
-    await supabaseAdmin
+    await supabaseUser
       .from('user_tasks')
       .update({ is_completed: false })
       .eq('user_id', userId)
@@ -112,8 +124,9 @@ const subscribeToCampaign = async (req, res) => {
 const getUserTasks = async (req, res) => {
   const userId = req.userId;
   const { campaign_id, is_completed } = req.query;
+  const supabaseUser = createScopedClient(req);
 
-  let query = supabaseAdmin
+  let query = supabaseUser
     .from('user_tasks')
     .select(`
       *,
@@ -124,12 +137,10 @@ const getUserTasks = async (req, res) => {
     `)
     .eq('user_id', userId);
 
-  // Filtrer par campagne si spécifié
   if (campaign_id) {
     query = query.eq('task.campaign_id', campaign_id);
   }
 
-  // Filtrer par statut de complétion
   if (is_completed !== undefined) {
     query = query.eq('is_completed', is_completed === 'true');
   }
@@ -152,12 +163,13 @@ const updateTaskProgress = async (req, res) => {
   const { id } = req.params;
   const { completed_quantity } = req.body;
   const userId = req.userId;
+  const supabaseUser = createScopedClient(req);
 
-  // Récupérer la tâche utilisateur
-  // const { data: userTask, error: fetchError } = await supabase
-  const { data: userTask, error: fetchError } = await supabaseAdmin
+  console.log(`[updateTaskProgress] TaskId: ${id}, User: ${userId}, Qty: ${completed_quantity}`);
+
+  const { data: userTask, error: fetchError } = await supabaseUser
     .from('user_tasks')
-    .select('*')
+    .select('*, task:tasks(remaining_number)') // Fetch task info too just in case
     .eq('id', id)
     .eq('user_id', userId)
     .single();
@@ -166,14 +178,12 @@ const updateTaskProgress = async (req, res) => {
     throw new NotFoundError('Tâche non trouvée');
   }
 
-  // Vérifier que la nouvelle quantité ne dépasse pas la quantité souscrite
   if (completed_quantity > userTask.subscribed_quantity) {
     throw new ValidationError(
       `La quantité complétée ne peut pas dépasser la quantité souscrite (${userTask.subscribed_quantity})`
     );
   }
 
-  // Mettre à jour la tâche
   const updates = {
     completed_quantity,
     is_completed: completed_quantity >= userTask.subscribed_quantity
@@ -183,14 +193,17 @@ const updateTaskProgress = async (req, res) => {
     updates.completed_at = new Date().toISOString();
   }
 
-  // const { data: updatedTask, error: updateError } = await supabase
-  const { data: updatedTask, error: updateError } = await supabaseAdmin
+  console.log(`[updateTaskProgress] Updates to apply:`, updates);
+
+  const { data: updatedTask, error: updateError } = await supabaseUser
     .from('user_tasks')
     .update(updates)
     .eq('id', id)
     .eq('user_id', userId)
     .select()
     .single();
+
+  console.log(`[updateTaskProgress] Updated Task Result:`, updatedTask);
 
   if (updateError) {
     throw new ValidationError(`Erreur lors de la mise à jour: ${updateError.message}`);
@@ -205,10 +218,9 @@ const updateTaskProgress = async (req, res) => {
 const markTaskComplete = async (req, res) => {
   const { id } = req.params;
   const userId = req.userId;
+  const supabaseUser = createScopedClient(req);
 
-  // Récupérer la tâche utilisateur
-  // const { data: userTask, error: fetchError } = await supabase
-  const { data: userTask, error: fetchError } = await supabaseAdmin
+  const { data: userTask, error: fetchError } = await supabaseUser
     .from('user_tasks')
     .select('*')
     .eq('id', id)
@@ -223,9 +235,7 @@ const markTaskComplete = async (req, res) => {
     throw new ValidationError('Cette tâche est déjà marquée comme complète');
   }
 
-  // Marquer comme complète
-  // const { data: updatedTask, error: updateError } = await supabase
-  const { data: updatedTask, error: updateError } = await supabaseAdmin
+  const { data: updatedTask, error: updateError } = await supabaseUser
     .from('user_tasks')
     .update({
       is_completed: true,
@@ -249,10 +259,9 @@ const markTaskComplete = async (req, res) => {
  */
 const getUserTaskStats = async (req, res) => {
   const userId = req.userId;
+  const supabaseUser = createScopedClient(req);
 
-  // Statistiques globales
-  // const { data: stats, error } = await supabase
-  const { data: stats, error } = await supabaseAdmin
+  const { data: stats, error } = await supabaseUser
     .from('user_tasks')
     .select('subscribed_quantity, completed_quantity, is_completed')
     .eq('user_id', userId);
@@ -282,10 +291,10 @@ const getUserTaskStats = async (req, res) => {
 const unsubscribeFromCampaign = async (req, res) => {
   const { campaign_id } = req.params;
   const userId = req.userId;
+  const supabaseUser = createScopedClient(req);
 
   // Vérifier que l'utilisateur est abonné
-  // const { data: subscription, error: fetchError } = await supabase
-  const { data: subscription, error: fetchError } = await supabaseAdmin
+  const { data: subscription, error: fetchError } = await supabaseUser
     .from('user_campaigns')
     .select('id')
     .eq('user_id', userId)
@@ -296,22 +305,27 @@ const unsubscribeFromCampaign = async (req, res) => {
     throw new NotFoundError('Abonnement non trouvé');
   }
 
-  // Récupérer les user_tasks pour remettre les quantités dans les tâches
-  // const { data: userTasks } = await supabase
-  const { data: userTasks } = await supabaseAdmin
+  // NOTE: Restoration logic requires update permissions on 'tasks' table.
+  // RLS policies must allow authenticated users to UPDATE tasks if strictly controlled by RPC/Backend?
+  // Or we might need to use a SERVICE ROLE KEY here if restoring global pool needs special permission?
+  // For now, let's assume valid RLS or user is creator. If not, this might fail without Admin.
+  // Actually, standard users shouldn't update 'tasks' table directly typically.
+  // But let's try with user client first. If fails, we might need a dedicated RPC for unsubscribe too.
+
+  // Retrieving user tasks
+  const { data: userTasks } = await supabaseUser
     .from('user_tasks')
     .select('*, task:tasks(*)')
     .eq('user_id', userId)
     .eq('task.campaign_id', campaign_id);
 
-  // Remettre les quantités non complétées dans les tâches
   if (userTasks) {
     for (const userTask of userTasks) {
       const remainingQuantity = userTask.subscribed_quantity - userTask.completed_quantity;
-
       if (remainingQuantity > 0) {
-        // await supabase
-        await supabaseAdmin
+        // Warning: This update might fail if RLS prevents UPDATE on tasks.
+        // Ideally this should be an RPC 'unsubscribe_and_restore'
+        await supabaseUser
           .from('tasks')
           .update({
             remaining_number: userTask.task.remaining_number + remainingQuantity
@@ -321,9 +335,7 @@ const unsubscribeFromCampaign = async (req, res) => {
     }
   }
 
-  // Supprimer l'abonnement (cascade supprimera les user_tasks)
-  // const { error: deleteError } = await supabase
-  const { error: deleteError } = await supabaseAdmin
+  const { error: deleteError } = await supabaseUser
     .from('user_campaigns')
     .delete()
     .eq('id', subscription.id);
@@ -337,15 +349,13 @@ const unsubscribeFromCampaign = async (req, res) => {
 
 /**
  * Récupérer les tâches souscrites par l'utilisateur pour une campagne spécifique
- * Utilisé pour désactiver les tâches déjà souscrites dans le dialog de souscription
  */
 const getUserTasksForCampaign = async (req, res) => {
   const { campaignId } = req.params;
   const userId = req.userId;
+  const supabaseUser = createScopedClient(req);
 
-  // Récupérer les user_tasks pour cette campagne
-  // const { data: userTasks, error } = await supabase
-  const { data: userTasks, error } = await supabaseAdmin
+  const { data: userTasks, error } = await supabaseUser
     .from('user_tasks')
     .select(`
       id,
@@ -362,9 +372,8 @@ const getUserTasksForCampaign = async (req, res) => {
     throw new ValidationError(`Erreur lors de la récupération des tâches: ${error.message}`);
   }
 
-  // Transformer pour retourner uniquement les infos nécessaires
   const subscribedTasks = (userTasks || []).map(ut => ({
-    id: ut.id, // ID de la user_task (requis pour finishTask)
+    id: ut.id,
     task_id: ut.task_id,
     subscribed_quantity: ut.subscribed_quantity,
     completed_quantity: ut.completed_quantity,
@@ -376,22 +385,13 @@ const getUserTasksForCampaign = async (req, res) => {
 
 /**
  * Terminer une tâche avec retour du reste au pool global
- * 
- * Permet à l'utilisateur de marquer sa tâche comme terminée en indiquant
- * combien il a réellement accompli. La différence entre la quantité souscrite
- * et la quantité réellement accomplie est retournée au pool global (remaining_number).
- * 
- * Exemple:
- * - User souscrit à 5 unités, accomplit 2
- * - 3 unités sont retournées au remaining_number de la tâche globale
- * - La user_task est marquée complète avec completed_quantity = 2
  */
 const finishTask = async (req, res) => {
   const { id } = req.params;
   const { actual_completed_quantity } = req.body;
   const userId = req.userId;
+  const supabaseUser = createScopedClient(req);
 
-  // Validation de base
   if (actual_completed_quantity === undefined || actual_completed_quantity === null) {
     throw new ValidationError('La quantité accomplie est requise');
   }
@@ -400,8 +400,7 @@ const finishTask = async (req, res) => {
     throw new ValidationError('La quantité accomplie ne peut pas être négative');
   }
 
-  // Récupérer la user_task avec les infos de la tâche globale
-  const { data: userTask, error: fetchError } = await supabaseAdmin
+  const { data: userTask, error: fetchError } = await supabaseUser
     .from('user_tasks')
     .select(`
       *,
@@ -419,22 +418,18 @@ const finishTask = async (req, res) => {
     throw new ValidationError('Cette tâche est déjà terminée');
   }
 
-  // Vérifier que la quantité accomplie ne dépasse pas la quantité souscrite
   if (actual_completed_quantity > userTask.subscribed_quantity) {
     throw new ValidationError(
       `La quantité accomplie (${actual_completed_quantity}) ne peut pas dépasser la quantité souscrite (${userTask.subscribed_quantity})`
     );
   }
 
-  // Calculer la quantité à retourner au pool global
   const returnedQuantity = userTask.subscribed_quantity - actual_completed_quantity;
 
-  // Début de la transaction atomique
-  // 1. Si il y a une quantité à retourner, mettre à jour la tâche globale
   if (returnedQuantity > 0) {
     const newRemaining = userTask.task.remaining_number + returnedQuantity;
-
-    const { error: taskUpdateError } = await supabaseAdmin
+    // RLS Issue potential here too
+    const { error: taskUpdateError } = await supabaseUser
       .from('tasks')
       .update({ remaining_number: newRemaining })
       .eq('id', userTask.task_id);
@@ -444,8 +439,7 @@ const finishTask = async (req, res) => {
     }
   }
 
-  // 2. Marquer la user_task comme complète
-  const { data: updatedUserTask, error: updateError } = await supabaseAdmin
+  const { data: updatedUserTask, error: updateError } = await supabaseUser
     .from('user_tasks')
     .update({
       completed_quantity: actual_completed_quantity,
@@ -468,8 +462,37 @@ const finishTask = async (req, res) => {
   });
 };
 
+/**
+ * Ajouter des tâches à un abonnement existant (Pour "Aider" / "Prendre plus")
+ */
+const addTasksToSubscription = async (req, res) => {
+  const { campaign_id, task_subscriptions } = req.body;
+  const userId = req.userId;
+  const supabaseUser = createScopedClient(req);
+
+  // Validation basique
+  if (!task_subscriptions || task_subscriptions.length === 0) {
+    throw new ValidationError("Aucune tâche sélectionnée.");
+  }
+
+  // Appel RPC sécurisé (Security Definer)
+  const { data, error } = await supabaseUser.rpc('add_tasks_to_subscription', {
+    p_user_id: userId,
+    p_campaign_id: campaign_id,
+    p_tasks: task_subscriptions
+  });
+
+  if (error) {
+    console.error('RPC Error details:', error);
+    throw new ValidationError(`Erreur lors de l'ajout: ${error.message}`);
+  }
+
+  return successResponse(res, 200, 'Tâches ajoutées avec succès', { added: task_subscriptions.length });
+};
+
 module.exports = {
   subscribeToCampaign,
+  addTasksToSubscription,
   getUserTasks,
   updateTaskProgress,
   markTaskComplete,

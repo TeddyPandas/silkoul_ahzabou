@@ -58,6 +58,11 @@
 	<string>Cette application a besoin de votre position pour trouver les lieux de Wazifa à proximité.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Cette application a besoin de votre position pour trouver les lieux de Wazifa à proximité.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>fetch</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
