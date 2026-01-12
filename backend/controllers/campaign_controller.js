@@ -1,4 +1,4 @@
-const { supabase, supabaseAdmin } = require('../config/supabase');
+const { createClient } = require('@supabase/supabase-js');
 const { NotFoundError, ValidationError, AuthorizationError } = require('../utils/errors');
 const { successResponse, createdResponse, paginatedResponse } = require('../utils/response');
 
@@ -9,12 +9,26 @@ const createCampaign = async (req, res) => {
   const { name, description, start_date, end_date, category, is_public, access_code, tasks } = req.body;
   const userId = req.userId;
 
+  // Créer un client Supabase scopé à l'utilisateur pour respecter RLS
+  const supabaseUser = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: req.headers.authorization
+        }
+      }
+    }
+  );
+
   // Générer une référence unique pour la campagne
   const reference = `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
 
+  console.log(`[createCampaign] Attempting to create campaign for userId: ${userId}`);
+
   // Créer la campagne
-  //const { data: campaign, error: campaignError } = await supabase
-  const { data: campaign, error: campaignError } = await supabaseAdmin
+  const { data: campaign, error: campaignError } = await supabaseUser
     .from('campaigns')
     .insert({
       name,
@@ -31,7 +45,8 @@ const createCampaign = async (req, res) => {
     .single();
 
   if (campaignError) {
-    throw new ValidationError(`Erreur lors de la création de la campagne: ${campaignError.message}`);
+    console.error('[createCampaign] Supabase Error:', campaignError);
+    throw new ValidationError(`Erreur lors de la création de la campagne: ${campaignError.message} (Code: ${campaignError.code})`);
   }
 
   // Créer les tâches associées
@@ -43,14 +58,14 @@ const createCampaign = async (req, res) => {
     daily_goal: task.daily_goal || null
   }));
 
-  const { data: createdTasks, error: tasksError } = await supabaseAdmin
+  const { data: createdTasks, error: tasksError } = await supabaseUser
     .from('tasks')
     .insert(tasksToInsert)
     .select();
 
   if (tasksError) {
     // Supprimer la campagne si les tâches échouent
-    await supabaseAdmin.from('campaigns').delete().eq('id', campaign.id);
+    await supabaseUser.from('campaigns').delete().eq('id', campaign.id);
     throw new ValidationError(`Erreur lors de la création des tâches: ${tasksError.message}`);
   }
 
@@ -72,8 +87,31 @@ const getCampaigns = async (req, res) => {
 
   console.log(`[getCampaigns] User ID: ${userId || 'Anonymous'}`);
 
-  // Utiliser supabaseAdmin pour contourner RLS car nous gérons les permissions manuellement ici
-  let query = supabaseAdmin
+  // Déterminer quel client utiliser
+  // - Si utilisateur connecté : Client scopé (avec Authorization header)
+  // - Si anonyme : Client public (anon key)
+  let supabaseClient;
+
+  if (userId && req.headers.authorization) {
+    // Créer un client scopé pour l'utilisateur
+    supabaseClient = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: req.headers.authorization
+          }
+        }
+      }
+    );
+  } else {
+    // Utiliser le client global (anon) importé depuis la config
+    const { supabase } = require('../config/supabase');
+    supabaseClient = supabase;
+  }
+
+  let query = supabaseClient
     .from('campaigns')
     .select(`
       id, name, reference, description, start_date, end_date, created_by, category, is_public, is_weekly, created_at,
@@ -137,9 +175,28 @@ const getCampaignById = async (req, res) => {
   const { code } = req.query; // Code d'accès optionnel
   const userId = req.userId;
 
-  // Utiliser supabaseAdmin pour pouvoir récupérer la campagne même si privée (RLS)
-  // afin de vérifier ensuite les permissions applicatives
-  const { data: campaign, error } = await supabaseAdmin
+  // Déterminer quel client utiliser
+  let supabaseClient;
+
+  if (userId && req.headers.authorization) {
+    supabaseClient = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: req.headers.authorization
+          }
+        }
+      }
+    );
+  } else {
+    const { supabase } = require('../config/supabase');
+    supabaseClient = supabase;
+  }
+
+  // Utiliser le client approprié
+  const { data: campaign, error } = await supabaseClient
     .from('campaigns')
     .select(`
       *,
@@ -178,6 +235,78 @@ const getCampaignById = async (req, res) => {
     throw new AuthorizationError('Campagne privée : Code d\'accès requis');
   }
 
+  // 4. Enrichir les données avec le nombre de complétions (Calculé via user_tasks)
+  if (campaign.tasks && campaign.tasks.length > 0) {
+    const taskIds = campaign.tasks.map(t => t.id);
+
+    // On utilise supabaseAdmin pour l'accès global et supabaseClient pour l'accès local (fallback si admin mal configuré)
+    const { supabaseAdmin: supabaseAdminClient } = require('../config/supabase');
+
+    // 1. GLOBAL STATS (Try Admin)
+    const { data: adminStats, error: adminError } = await supabaseAdminClient
+      .from('user_tasks')
+      .select('task_id, completed_quantity, is_completed')
+      .in('task_id', taskIds)
+      .eq('is_completed', true);
+
+    // 2. USER STATS (Fallback/Supplement)
+    let userStats = [];
+    if (userId && supabaseClient) {
+      const { data: myStats, error: myError } = await supabaseClient
+        .from('user_tasks')
+        .select('task_id, completed_quantity, is_completed')
+        .in('task_id', taskIds)
+        .eq('is_completed', true);
+
+      if (myStats) userStats = myStats;
+      if (myError) console.log('[getCampaignById] User stats error:', myError);
+    }
+
+    console.log(`[getCampaignById] Campaign ${id} - Stats Query:`, {
+      adminResults: adminStats?.length || 0,
+      userResults: userStats.length,
+      adminError: adminError?.message
+    });
+
+    // 3. MERGE STATS
+    const completionMap = {};
+
+    // Process Admin Data
+    if (!adminError && adminStats) {
+      adminStats.forEach(stat => {
+        completionMap[stat.task_id] = (completionMap[stat.task_id] || 0) + 1;
+      });
+    }
+
+    // Process User Data (Ensure at least my data is counted if Admin failed/blocked)
+    // Note: If Admin works, it includes User data. If Admin fails (RLS), it's 0.
+    // We can't easily know if Admin "included" User data blindly without IDs.
+    // But logically: Global >= Local.
+
+    // Heuristic: Calculate local counts explicitly and override if Global < Local
+    const localMap = {};
+    userStats.forEach(stat => {
+      localMap[stat.task_id] = (localMap[stat.task_id] || 0) + 1;
+    });
+
+    // Merge: Key exists in global? Max(global, local). Else set local.
+    Object.keys(localMap).forEach(taskId => {
+      const globalCount = completionMap[taskId] || 0;
+      const localCount = localMap[taskId];
+      if (localCount > globalCount) {
+        completionMap[taskId] = localCount;
+      }
+    });
+
+    console.log(`[getCampaignById] Final Completion Map:`, completionMap);
+
+    // Attacher le compte aux tâches
+    campaign.tasks = campaign.tasks.map(task => ({
+      ...task,
+      completed_count: completionMap[task.id] || 0
+    }));
+  }
+
   return successResponse(res, 200, 'Campagne récupérée', campaign);
 };
 
@@ -188,6 +317,22 @@ const updateCampaign = async (req, res) => {
   const { id } = req.params;
   const userId = req.userId;
   const updates = req.body;
+
+  // Client non scopé pour la lecture publique (si nécessaire) ou scopé
+  const { supabase } = require('../config/supabase');
+
+  // Client scopé pour l'écriture
+  const supabaseUser = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: req.headers.authorization
+        }
+      }
+    }
+  );
 
   // Vérifier que l'utilisateur est le créateur
   const { data: campaign } = await supabase
@@ -205,7 +350,7 @@ const updateCampaign = async (req, res) => {
   }
 
   // Mettre à jour la campagne
-  const { data: updatedCampaign, error } = await supabaseAdmin
+  const { data: updatedCampaign, error } = await supabaseUser
     .from('campaigns')
     .update(updates)
     .eq('id', id)
@@ -226,6 +371,21 @@ const deleteCampaign = async (req, res) => {
   const { id } = req.params;
   const userId = req.userId;
 
+  // Client scopé pour l'écriture
+  const supabaseUser = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: req.headers.authorization
+        }
+      }
+    }
+  );
+
+  const { supabase } = require('../config/supabase');
+
   // Vérifier que l'utilisateur est le créateur
   const { data: campaign } = await supabase
     .from('campaigns')
@@ -242,7 +402,7 @@ const deleteCampaign = async (req, res) => {
   }
 
   // Supprimer la campagne (cascade supprimera les tâches et souscriptions)
-  const { error } = await supabaseAdmin
+  const { error } = await supabaseUser
     .from('campaigns')
     .delete()
     .eq('id', id);
@@ -261,12 +421,25 @@ const getUserCampaigns = async (req, res) => {
   const userId = req.userId;
   const { type = 'all' } = req.query; // all, created, subscribed
 
+  // Initialiser le client scopé uniquement si l'utilisateur est connecté
+  // Ce endpoint est protégé, donc req.userId devrait être présent
+  const supabaseUser = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: req.headers.authorization
+        }
+      }
+    }
+  );
+
   let campaigns = [];
 
   if (type === 'all' || type === 'created') {
     // Campagnes créées par l'utilisateur
-    // const { data: createdCampaigns, error: createdError } = await supabase
-    const { data: createdCampaigns, error: createdError } = await supabaseAdmin
+    const { data: createdCampaigns, error: createdError } = await supabaseUser
       .from('campaigns')
       .select(`
         *,
@@ -287,8 +460,7 @@ const getUserCampaigns = async (req, res) => {
 
   if (type === 'all' || type === 'subscribed') {
     // Campagnes auxquelles l'utilisateur est abonné
-    // const { data: subscribedCampaigns, error: subscribedError } = await supabase
-    const { data: subscribedCampaigns, error: subscribedError } = await supabaseAdmin
+    const { data: subscribedCampaigns, error: subscribedError } = await supabaseUser
       .from('user_campaigns')
       .select(`
         campaign:campaigns(
@@ -327,9 +499,22 @@ const checkSubscription = async (req, res) => {
   const { campaignId } = req.params;
   const userId = req.userId;
 
+  // Créer un client scopé pour l'utilisateur
+  const supabaseUser = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: req.headers.authorization
+        }
+      }
+    }
+  );
+
   // Vérifier l'existence de la souscription
   // const { data, error } = await supabase
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabaseUser
     .from('user_campaigns')
     .select('id')
     .eq('campaign_id', campaignId)

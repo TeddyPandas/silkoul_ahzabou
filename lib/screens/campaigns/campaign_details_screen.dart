@@ -33,6 +33,10 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
   // Store full user task subscriptions for finish task feature
   List<Map<String, dynamic>> _myUserTasks = [];
   String? _accessCode;
+  
+  // State for Inline Quran Subscription
+  final Set<String> _tempSelectedJuzIds = {};
+  bool _isJoining = false;
 
   @override
   void initState() {
@@ -385,15 +389,21 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
 
                       // 4. Global Progress
                       const SizedBox(height: 20),
-                      _buildGlobalProgressBar(isDark),
+                      if (_campaign!.category != 'Quran')
+                         _buildGlobalProgressBar(isDark),
 
-                      // 5. Filters
-                      const SizedBox(height: 24),
-                      _buildFilterChips(isDark),
+                      // 5. Filters (Standard only)
+                      if (_campaign!.category != 'Quran') ...[
+                        const SizedBox(height: 24),
+                        _buildFilterChips(isDark),
+                      ],
 
-                      // 6. Task List
+                      // 6. Task List or Quran View
                       const SizedBox(height: 16),
-                      _buildTaskListView(isDark),
+                      if (_campaign!.category == 'Quran')
+                         _buildQuranView(isDark)
+                      else
+                         _buildTaskListView(isDark),
                     ],
                   ),
                 ),
@@ -403,6 +413,526 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
         ],
       ),
     );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WIDGET: VUE SPÉCIALE CORAN
+  // ═══════════════════════════════════════════════════════════════════════════
+  Widget _buildQuranView(bool isDark) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final isCreator = authProvider.user != null && _campaign?.createdBy == authProvider.user!.id; // TODO: Add isAdmin check if needed
+    final tasks = _campaign?.tasks ?? [];
+
+    // 1. CALCULATE STATS
+    int totalRead = tasks.fold(0, (sum, t) => sum + t.completedCount);
+    int totalTaken = tasks.where((t) => t.remainingNumber == 0).length;
+    int totalCount = tasks.length;
+    int inProgressCount = totalTaken >= totalRead ? totalTaken - totalRead : 0;
+    int freeCount = totalCount - totalTaken;
+    
+    double readPercentage = totalCount > 0 ? (totalRead / totalCount) : 0.0;
+    double takenPercentage = totalCount > 0 ? (inProgressCount / totalCount) : 0.0;
+    double freePercentage = totalCount > 0 ? (freeCount / totalCount) : 0.0;
+    
+    String readPercentageStr = (readPercentage * 100).toStringAsFixed(0);
+    
+    // Sort tasks
+    final sortedTasks = List<Task>.from(tasks);
+    sortedTasks.sort((a, b) {
+      int numA = int.tryParse(a.name.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+      int numB = int.tryParse(b.name.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+      return numA.compareTo(numB);
+    });
+
+    // 2. DASHBOARD WIDGET (Visible to ALL)
+    Widget dashboardWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // STATS CARD
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+            ],
+          ),
+          child: Column(
+            children: [
+              const Text("Progression Globale", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 16),
+             // PROGRESS BAR
+        Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 24,
+                child: Row(
+                  children: [
+                    // READ (Green)
+                    if (readPercentage > 0)
+                      Expanded(
+                        flex: (readPercentage * 100).toInt(),
+                        child: Container(color: Colors.green),
+                      ),
+                    // TAKEN (Orange)
+                    if (takenPercentage > 0)
+                      Expanded(
+                        flex: (takenPercentage * 100).toInt(),
+                        child: Container(color: Colors.orange),
+                      ),
+                    // FREE (Grey)
+                    if (freePercentage > 0)
+                      Expanded(
+                        flex: (freePercentage * 100).toInt(),
+                        child: Container(color: Colors.grey.shade300),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("$totalRead Lus ($readPercentageStr%)", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                Text("$totalTaken Pris", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                Text("$freeCount Libres", style: TextStyle(color: Colors.grey.shade600)),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // ADMIN ACTIONS (Creator Only)
+        if (isCreator) ...[
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _confirmTerminateCampaign(),
+                  icon: const Icon(Icons.stop_circle_outlined, color: Colors.orange),
+                  label: const Text("Terminer", style: TextStyle(color: Colors.orange)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.orange),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _confirmDeleteCampaign(),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  label: const Text("Supprimer", style: TextStyle(color: Colors.red)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // GLOBAL VISUALIZATION GRID (Small dots)
+        ExpansionTile(
+          title: const Text("Voir la carte globale", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          initiallyExpanded: false,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 10, // Very compact
+                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 4,
+                  mainAxisSpacing: 4,
+                ),
+                itemCount: sortedTasks.length,
+                itemBuilder: (context, index) {
+                  final task = sortedTasks[index];
+                  final isRead = task.completedCount > 0;
+                  final isTaken = task.remainingNumber == 0;
+                  
+                  Color color = isRead ? Colors.green : (isTaken ? Colors.orange : Colors.grey.shade300);
+                  
+                  return Container(
+                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                    child: Center(
+                      child: Text(
+                        "${index + 1}", 
+                        style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold)
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Legend
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildDotLegend(Colors.green, "Lu"),
+                const SizedBox(width: 12),
+                _buildDotLegend(Colors.orange, "Pris"),
+                const SizedBox(width: 12),
+                _buildDotLegend(Colors.grey.shade300, "Libre"),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+        const Divider(height: 32),
+      ],
+    );
+
+
+    // 3. UNIFIED USER ACTION WIDGETS
+    bool isCampaignFull = sortedTasks.every((t) => t.remainingNumber <= 0);
+    
+    Widget myJuzWidget = const SizedBox.shrink();
+    if (_isSubscribed) {
+       final myTasks = tasks.where((t) => _mySubscribedTaskIds.contains(t.id)).toList();
+       myTasks.sort((a, b) {
+        int numA = int.tryParse(a.name.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        int numB = int.tryParse(b.name.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        return numA.compareTo(numB);
+      });
+      
+      myJuzWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Mes Juz (Appuyez pour marquer comme lu)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textPrimary)),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: myTasks.map((task) {
+              final userTaskRel = _myUserTasks.firstWhere((ut) => ut['task_id'] == task.id);
+              final userTaskId = userTaskRel['id'] as String;
+              final isCompleted = (userTaskRel['completed_quantity'] as int? ?? 0) >= (userTaskRel['subscribed_quantity'] as int? ?? 1);
+              String juzNumber = task.name.replaceAll(RegExp(r'[^0-9]'), '');
+
+              return GestureDetector(
+                onTap: () async => await _handleQuranTaskToggle(task, userTaskId, !isCompleted),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isCompleted ? Colors.green : (isDark ? Colors.white10 : Colors.grey.shade100),
+                    border: Border.all(color: isCompleted ? Colors.green : (isDark ? Colors.grey : Colors.grey.shade300), width: 2),
+                    boxShadow: isCompleted ? [BoxShadow(color: Colors.green.withOpacity(0.4), blurRadius: 4, offset: const Offset(0, 2))] : [],
+                  ),
+                  alignment: Alignment.center,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
+                        juzNumber,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isCompleted ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                        ),
+                      ),
+                      if (isCompleted)
+                         const Positioned(
+                          bottom: 2,
+                          right: 2,
+                          child: Icon(Icons.check, size: 10, color: Colors.white),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 32),
+          const Divider(),
+          const SizedBox(height: 16),
+        ],
+      );
+    }
+
+    Widget selectionWidget;
+    if (isCampaignFull) {
+        selectionWidget = Center(
+          child: Column(
+            children: [
+              Icon(Icons.lock_clock, size: 64, color: Colors.grey.shade400),
+              const SizedBox(height: 16),
+              const Text("Campagne Complète", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text("Tous les Juz ont été pris. Barak Allahufikum.", style: TextStyle(color: Colors.grey.shade600)),
+            ],
+          ),
+        );
+    } else {
+        // Selection Grid
+        selectionWidget = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+             Text(
+              _isSubscribed ? "Prendre d'autres Juz (Moussa'ada/Aide)" : "Sélectionnez vos Juz (Max 3)",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textPrimary),
+            ),
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                childAspectRatio: 1.0,
+                crossAxisSpacing: 8, 
+                mainAxisSpacing: 8,
+              ),
+              itemCount: sortedTasks.length,
+              itemBuilder: (context, index) {
+                final task = sortedTasks[index];
+                bool isSelected = _tempSelectedJuzIds.contains(task.id);
+                bool isAvailable = task.remainingNumber > 0;
+                // Allow taking up to 3 at a time in specific session, regardless of total? 
+                // Let's keep rule max 3 per selection action to prevent spam.
+                bool isLocked = !isSelected && _tempSelectedJuzIds.length >= 3;
+
+                // Color Logic
+                Color bgColor = isDark ? Colors.white10 : Colors.grey.shade100;
+                Color textColor = isDark ? Colors.grey.shade300 : Colors.black87;
+                Color borderColor = isDark ? Colors.white24 : Colors.grey.shade300;
+
+                if (!isAvailable) {
+                   bgColor = isDark ? Colors.red.shade900.withOpacity(0.3) : Colors.grey.shade300;
+                   textColor = isDark ? Colors.red.shade200 : Colors.grey.shade500;
+                   borderColor = Colors.transparent;
+                } else if (isSelected) {
+                   bgColor = Colors.redAccent;
+                   textColor = Colors.white;
+                   borderColor = Colors.red;
+                } else if (isLocked) {
+                   bgColor = isDark ? Colors.black26 : Colors.grey.shade50;
+                   textColor = isDark ? Colors.white24 : Colors.grey.shade300;
+                }
+
+                return InkWell(
+                  onTap: (!isAvailable || (isLocked && !isSelected))
+                      ? null
+                      : () {
+                          setState(() {
+                            if (isSelected) {
+                              _tempSelectedJuzIds.remove(task.id);
+                            } else {
+                              _tempSelectedJuzIds.add(task.id);
+                            }
+                          });
+                        },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: borderColor, width: isSelected ? 0 : 1),
+                      boxShadow: isSelected ? [
+                        BoxShadow(color: Colors.redAccent.withOpacity(0.4), blurRadius: 4, offset: const Offset(0, 2))
+                      ] : null,
+                    ),
+                    alignment: Alignment.center,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Text("${index + 1}", style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 12)),
+                        if (isSelected) const Positioned(bottom: 2, right: 2, child: Icon(Icons.check, size: 10, color: Colors.white)),
+                        if (!isAvailable) Positioned(child: Icon(Icons.block, size: 20, color: Colors.grey.withOpacity(0.5))),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: (_tempSelectedJuzIds.isEmpty || _isJoining) ? null : _handleInlineSubscription,
+                icon: _isJoining ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.login),
+                label: Text(_isJoining ? "Traitement..." : (_isSubscribed ? "Ajouter ces Juz (${_tempSelectedJuzIds.length})" : "Rejoindre la campagne (${_tempSelectedJuzIds.length})")),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.tealPrimary, padding: const EdgeInsets.symmetric(vertical: 16)),
+              ),
+            ),
+          ],
+        );
+    }
+
+    return Column(
+      children: [
+        dashboardWidget,
+        myJuzWidget,
+        selectionWidget,
+      ],
+    );
+
+  }
+
+  // Helper Legend
+  Widget _buildDotLegend(Color color, String label) {
+    return Row(
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
+  // --- LOGIQUE D'INSCRIPTION INLINE ---
+  Future<void> _handleInlineSubscription() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vous devez être connecté.")));
+      return;
+    }
+
+    setState(() => _isJoining = true);
+
+    try {
+      final campaignProvider = Provider.of<CampaignProvider>(context, listen: false);
+      
+      // Préparer la liste des tâches (quantity: 1 pour chaque Juz sélectionné)
+      final List<Map<String, dynamic>> selectedTasks = _tempSelectedJuzIds
+          .map((id) => {'task_id': id, 'quantity': 1})
+          .toList();
+
+      bool success;
+      if (_isSubscribed) {
+        success = await campaignProvider.addTasksToSubscription(
+          campaignId: _campaign!.id,
+          selectedTasks: selectedTasks,
+        );
+      } else {
+        success = await campaignProvider.subscribeToCampaign(
+          userId: user.id,
+          campaignId: _campaign!.id,
+          accessCode: _campaign!.accessCode,
+          selectedTasks: selectedTasks,
+        );
+      }
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isSubscribed ? "Juz ajoutés avec succès !" : "Inscription réussie ! Jazak Allah Khair 🤲"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Recharger pour passer en mode "Inscrit"
+        await _loadCampaignDetails();
+        setState(() {
+          _tempSelectedJuzIds.clear(); // Clean up
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(campaignProvider.errorMessage ?? "Erreur d'inscription")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e")));
+    } finally {
+      if (mounted) setState(() => _isJoining = false);
+    }
+  }
+
+  // Helper pour toggle simple de tâche Coran
+  Future<void> _handleQuranTaskToggle(Task task, String userTaskId, bool markAsDone) async {
+    // ⚡️ DIRECT ACTION: Pas de dialog de confirmation
+
+    // Show loading (Subtle or blocking? user hates dialogs, but we need to block double-taps)
+    // Using a minimal blocking loader for safety
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black12, // Very subtle overlay
+      builder: (context) => const Center(
+        child: SizedBox(
+          width: 30, height: 30,
+          child: CircularProgressIndicator(strokeWidth: 3),
+        ),
+      ),
+    );
+
+    try {
+      final taskService = TaskService();
+      // Si on marque comme fait => on envoie subscribed_quantity (qui est le max)
+      // Si on annule => on envoie 0
+      // On doit récupérer la quantité souscrite exacte
+      final userTaskRel = _myUserTasks.firstWhere((ut) => ut['task_id'] == task.id);
+      final subscribedQty = userTaskRel['subscribed_quantity'] as int? ?? 1;
+
+      final qtyToSend = markAsDone ? subscribedQty : 0;
+
+      // Utiliser updateTaskProgress pour permettre le toggle (0 ou 100%)
+      await taskService.updateTaskProgress(
+        userTaskId: userTaskId,
+        completedQuantity: qtyToSend,
+      );
+
+      // OPTIMISTIC UPDATE (Instant Feedback)
+      if (mounted) {
+        setState(() {
+          // 1. Update Global Count
+          final taskIndex = _campaign!.tasks!.indexWhere((t) => t.id == task.id);
+          if (taskIndex != -1) {
+             int change = markAsDone ? 1 : -1;
+             int newCount = task.completedCount + change;
+             if (newCount < 0) newCount = 0; // Safety
+             
+             // Update the task in the list
+             _campaign!.tasks![taskIndex] = task.copyWith(completedCount: newCount);
+          }
+          
+          // 2. Update Local User Status
+          final myIndex = _myUserTasks.indexWhere((ut) => ut['task_id'] == task.id);
+          if (myIndex != -1) {
+             _myUserTasks[myIndex]['completed_quantity'] = markAsDone ? subscribedQty : 0;
+             // Important: update local is_completed check too if needed by UI
+             // UI logic uses (completed >= subscribed), so updating quantity is enough
+          }
+        });
+
+        Navigator.pop(context); // Close loading
+
+        // Show feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(markAsDone ? "Juz ${task.name} terminé ! 🌟" : "Lecture de ${task.name} annulée."),
+             backgroundColor: markAsDone ? Colors.green : Colors.orange,
+             duration: const Duration(seconds: 1),
+             behavior: SnackBarBehavior.floating,
+             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+             margin: const EdgeInsets.all(12),
+          ),
+        );
+        
+        // Silent refresh to sync everything perfectly
+        _loadCampaignDetails(); 
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: ${e.toString()}")));
+    }
   }
 
   // --- WIDGETS ---
@@ -807,6 +1337,13 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
   }
 
   Widget _buildBottomBar(BuildContext context, bool isDark) {
+    // ⚡️ CORAN MODE EXCEPTION: 
+    // Subscription is handled INLINE in the body.
+    // We hide this bottom bar to prevent showing the redundant "Join" dialog.
+    if (_campaign?.category == 'Quran') {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -869,5 +1406,71 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
         ),
       ),
     );
+  }
+
+  // Helper pour les stats
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+      ],
+    );
+  }
+
+  Future<void> _confirmTerminateCampaign() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Terminer la campagne ?"),
+        content: const Text("Cela marquera la campagne comme terminée maintenant. Cette action est irréversible."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Annuler")),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Terminer", style: TextStyle(color: Colors.orange))),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final provider = Provider.of<CampaignProvider>(context, listen: false);
+      final userId = Provider.of<AuthProvider>(context, listen: false).user!.id; // Safe if creator
+      
+      final success = await provider.updateCampaign(
+        campaignId: widget.campaignId,
+        userId: userId,
+        updates: {'end_date': DateTime.now().toIso8601String()},
+      );
+
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Campagne terminée.")));
+        Navigator.pop(context); // Leave screen or reload?
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteCampaign() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Supprimer la campagne ?"),
+        content: const Text("Toutes les données associées seront perdues. Cette action est irréversible."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Annuler")),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Supprimer", style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final provider = Provider.of<CampaignProvider>(context, listen: false);
+      final userId = Provider.of<AuthProvider>(context, listen: false).user!.id;
+
+      final success = await provider.deleteCampaign(campaignId: widget.campaignId, userId: userId);
+
+      if (success && mounted) {
+        Navigator.pop(context); // Return to list
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Campagne supprimée.")));
+      }
+    }
   }
 }

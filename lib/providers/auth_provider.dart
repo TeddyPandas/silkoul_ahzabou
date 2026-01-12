@@ -18,6 +18,10 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _user != null;
+  
+  // Role Check Helpers
+  bool get isAdmin => _profile?.role == 'ADMIN' || _profile?.role == 'SUPER_ADMIN';
+  bool get isSuperAdmin => _profile?.role == 'SUPER_ADMIN';
 
   AuthProvider() {
     _initAuthListener();

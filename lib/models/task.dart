@@ -1,13 +1,13 @@
 class Task {
   final String id;
-  final String
-      campaignId; // Required - but may be empty if parsed from nested response
+  final String campaignId; // Required - but may be empty if parsed from nested response
   final String name;
   final int totalNumber;
   final int remainingNumber;
   final int? dailyGoal;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int completedCount; // ✅ Adds tracking of global completions
 
   Task({
     required this.id,
@@ -18,14 +18,13 @@ class Task {
     this.dailyGoal,
     required this.createdAt,
     required this.updatedAt,
+    this.completedCount = 0,
   });
 
   /// Parse from JSON with robust null handling
-  /// Note: When tasks are nested in campaign responses, campaign_id may be omitted
   factory Task.fromJson(Map<String, dynamic> json) {
     return Task(
       id: json['id'] as String? ?? '',
-      // Backend omits campaign_id when tasks are nested inside campaigns
       campaignId: json['campaign_id'] as String? ?? '',
       name: json['name'] as String? ?? 'Tâche sans nom',
       totalNumber: (json['total_number'] as num?)?.toInt() ?? 0,
@@ -37,6 +36,7 @@ class Task {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'] as String)
           : DateTime.now(),
+      completedCount: (json['completed_count'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -50,22 +50,24 @@ class Task {
       'daily_goal': dailyGoal,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'completed_count': completedCount,
     };
   }
 
   // Calculer le pourcentage de complétion globale
   double get completionPercentage {
     if (totalNumber == 0) return 0.0;
-    final completed = totalNumber - remainingNumber;
-    return (completed / totalNumber * 100).clamp(0.0, 100.0);
+    return (completedCount / totalNumber * 100).clamp(0.0, 100.0);
   }
 
-  // Vérifier si la tâche est complète
+  // Vérifier si la tâche est complète (tous assignés OU tous finis ?)
   bool get isCompleted {
     return remainingNumber <= 0;
   }
 
-  // Nombre déjà complété
+  // Nombre déjà complété (Legacy / Subscription usage)
+  // Used in task_card.dart. 
+  // If task_card wants "how many taken", it's (total - remaining).
   int get completedNumber {
     return totalNumber - remainingNumber;
   }
@@ -77,6 +79,7 @@ class Task {
     int? remainingNumber,
     int? dailyGoal,
     DateTime? updatedAt,
+    int? completedCount,
   }) {
     return Task(
       id: id,
@@ -87,6 +90,7 @@ class Task {
       dailyGoal: dailyGoal ?? this.dailyGoal,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      completedCount: completedCount ?? this.completedCount,
     );
   }
 }

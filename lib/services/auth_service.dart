@@ -28,7 +28,9 @@ class AuthService {
         },
       );
 
-      // 2. Créer le profil dans la table profiles
+      // 2. Le profil est créé automatiquement par le trigger Supabase (handle_new_user)
+      // On ne l'appelle plus manuellement pour éviter les conflits RLS / Duplication
+      /*
       if (response.user != null) {
         await _createProfile(
           userId: response.user!.id,
@@ -36,6 +38,7 @@ class AuthService {
           displayName: displayName,
         );
       }
+      */
 
       return {
         'user': response.user,
@@ -168,7 +171,7 @@ class AuthService {
   }) async {
     try {
       final now = DateTime.now();
-      await _supabase.from(SupabaseConfig.profilesTable).insert({
+      await _supabase.from(SupabaseConfig.profilesTable).upsert({
         'id': userId,
         'email': email,
         'display_name': displayName,

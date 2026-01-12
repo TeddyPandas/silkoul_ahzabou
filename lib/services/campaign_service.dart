@@ -524,6 +524,42 @@ class CampaignService {
   }
 
   /// ══════════════════════════════════════════════════════════════════════════
+  /// AJOUTER DES TÂCHES SUPPLÉMENTAIRES (Aider / Prendre plus)
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<void> addTasksToSubscription({
+    required String campaignId,
+    required List<Map<String, dynamic>> selectedTasks,
+  }) async {
+    if (_baseUrl == null) throw Exception('API_BASE_URL non configurée');
+
+    final token = _supabase.auth.currentSession?.accessToken;
+    if (token == null) throw Exception('Utilisateur non authentifié');
+
+    final url = Uri.parse('$_baseUrl/tasks/add-tasks');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = json.encode({
+      'campaign_id': campaignId,
+      'task_subscriptions': selectedTasks,
+    });
+
+    try {
+      final response = await _client.post(url, headers: headers, body: body);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Une erreur est survenue';
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de l\'ajout des tâches: $e');
+    }
+  }
+
+  /// ══════════════════════════════════════════════════════════════════════════
   /// VÉRIFIER SI L'UTILISATEUR EST ABONNÉ À UNE CAMPAGNE
   /// ══════════════════════════════════════════════════════════════════════════
   ///

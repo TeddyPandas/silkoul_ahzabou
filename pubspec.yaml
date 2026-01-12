@@ -68,7 +68,17 @@ dependencies:
   # Location (Phase 2)
   geolocator: ^10.1.0
   google_maps_flutter: ^2.5.0
+  flutter_map: ^6.1.0 # Alternative OpenSource (OSM)
+  latlong2: ^0.9.0
   flutter_dotenv: ^6.0.0
+  just_audio: ^0.10.5
+  audio_service: ^0.18.18
+  youtube_player_flutter: ^9.1.3
+  flutter_html: ^3.0.0
+  chewie: ^1.12.1
+  video_player: ^2.10.1
+  share_plus: ^12.0.1
+  file_picker: ^10.3.8
 
 dev_dependencies:
   flutter_test:

@@ -9,6 +9,7 @@ class Profile {
   final String? avatarUrl;
   final int points;
   final int level;
+  final String role; // 'USER', 'ADMIN', 'SUPER_ADMIN'
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -23,6 +24,7 @@ class Profile {
     this.avatarUrl,
     this.points = 0,
     this.level = 1,
+    this.role = 'USER',
     required this.createdAt,
     required this.updatedAt,
   });
@@ -42,6 +44,7 @@ class Profile {
       avatarUrl: json['avatar_url'] as String?,
       points: json['points'] as int? ?? 0,
       level: json['level'] as int? ?? 1,
+      role: json['role'] as String? ?? 'USER',
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -60,6 +63,7 @@ class Profile {
       'avatar_url': avatarUrl,
       'points': points,
       'level': level,
+      'role': role,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -74,8 +78,8 @@ class Profile {
     DateTime? dateOfBirth,
     String? silsilaId,
     String? avatarUrl,
-    int? points,
     int? level,
+    String? role,
     DateTime? updatedAt,
   }) {
     return Profile(
@@ -89,6 +93,7 @@ class Profile {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       points: points ?? this.points,
       level: level ?? this.level,
+      role: role ?? this.role,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
