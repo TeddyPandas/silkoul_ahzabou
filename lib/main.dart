@@ -21,6 +21,8 @@ import 'modules/admin/screens/admin_show_episodes_screen.dart'; // Episodes Admi
 import 'modules/admin/screens/admin_wazifa_screen.dart'; // Wazifa Admin
 import 'modules/admin/screens/admin_user_management_screen.dart'; // User Management
 import 'modules/admin/screens/admin_podcast_create_screen.dart'; // Podcast Create
+import 'modules/admin/screens/admin_videos_screen.dart'; // Video Admin
+import 'modules/admin/screens/admin_video_create_screen.dart'; // Video Create
 import 'config/app_theme.dart';
 
 void main() async {
@@ -147,6 +149,8 @@ class MyApp extends StatelessWidget {
           '/admin/wazifa': (context) => const AdminWazifaScreen(),
           '/admin/users': (context) => const AdminUserManagementScreen(),
           '/admin/podcasts/create': (context) => const AdminPodcastCreateScreen(),
+          '/admin/videos': (context) => const AdminVideosScreen(),
+          '/admin/videos/create': (context) => const AdminVideoCreateScreen(),
         },
       ),
     );

@@ -334,6 +334,76 @@ class TeachingService {
        // Duration might change content changed
        'duration_seconds': teaching.durationSeconds,
        'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
      }).eq('id', teaching.id);
+  }
+
+  // --- Video Management ---
+
+  Future<void> createVideoTeaching(Teaching teaching) async {
+    // Determine thumbnail from YouTube URL if not provided
+    String? thumbUrl = teaching.thumbnailUrl;
+    if ((thumbUrl == null || thumbUrl.isEmpty) && teaching.mediaUrl.contains('youtube.com') || teaching.mediaUrl.contains('youtu.be')) {
+      // Basic extraction
+       try {
+         final videoId = _extractYoutubeId(teaching.mediaUrl);
+         if (videoId != null) {
+           thumbUrl = 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+         }
+       } catch (e) {
+         print("Error extracting thumbnail: $e");
+       }
+    }
+
+    await _client.from('teachings').insert({
+      'type': 'VIDEO',
+      'title_fr': teaching.titleFr,
+      'title_ar': teaching.titleAr,
+      'description_fr': teaching.descriptionFr,
+      'author_id': teaching.authorId,
+      'category_id': teaching.categoryId,
+      'media_url': teaching.mediaUrl, // YouTube URL
+      'thumbnail_url': thumbUrl,
+      'published_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> updateVideoTeaching(Teaching teaching) async {
+     String? thumbUrl = teaching.thumbnailUrl;
+      if ((thumbUrl == null || thumbUrl.isEmpty) && (teaching.mediaUrl.contains('youtube.com') || teaching.mediaUrl.contains('youtu.be'))) {
+       try {
+         final videoId = _extractYoutubeId(teaching.mediaUrl);
+         if (videoId != null) {
+           thumbUrl = 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+         }
+       } catch (e) { print("Error extracting thumbnail: $e"); }
+    }
+
+    await _client.from('teachings').update({
+      'title_fr': teaching.titleFr,
+      'title_ar': teaching.titleAr,
+      'description_fr': teaching.descriptionFr,
+      'author_id': teaching.authorId,
+      'category_id': teaching.categoryId,
+      'media_url': teaching.mediaUrl,
+      'thumbnail_url': thumbUrl,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', teaching.id);
+  }
+
+  Future<void> deleteTeaching(String id) async {
+    await _client.from('teachings').delete().eq('id', id);
+  }
+
+  String? _extractYoutubeId(String url) {
+    if (url.contains('youtu.be/')) {
+      return url.split('youtu.be/')[1].split('?')[0];
+    }
+    if (url.contains('v=')) {
+      return url.split('v=')[1].split('&')[0];
+    }
+    return null;
+  }
+}).eq('id', teaching.id);
   }
 }
