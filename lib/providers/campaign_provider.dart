@@ -10,6 +10,7 @@ class CampaignProvider with ChangeNotifier {
   List<Campaign> _campaigns = [];
   List<Campaign> _myCampaigns = [];
   Campaign? _selectedCampaign;
+  final Set<String> _readCampaignIds = {};
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -29,6 +30,24 @@ class CampaignProvider with ChangeNotifier {
       final timeDifference = c.endDate.difference(now);
       return timeDifference.inHours <= 24 && timeDifference.inSeconds > 0;
     }).toList();
+  }
+
+  // Check if there are any unread ending soon campaigns
+  bool get hasUnreadNotifications {
+    return endingSoonCampaigns.any((c) => !_readCampaignIds.contains(c.id));
+  }
+
+  // Check if a specific campaign notification is read
+  bool isCampaignRead(String campaignId) {
+    return _readCampaignIds.contains(campaignId);
+  }
+
+  // Mark a campaign notification as read
+  void markCampaignAsRead(String campaignId) {
+    if (!_readCampaignIds.contains(campaignId)) {
+      _readCampaignIds.add(campaignId);
+      notifyListeners();
+    }
   }
 
   // ============================================

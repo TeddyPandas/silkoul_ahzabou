@@ -28,26 +28,33 @@ class NotificationsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.notifications_none_rounded,
-                    size: 64,
-                    color: Colors.grey[300],
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.notifications_none_rounded,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   Text(
                     'Aucune notification',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[600],
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Vous n\'avez pas encore de notifications',
+                    'Vous êtes à jour !',
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[400],
+                      fontSize: 16,
+                      color: Colors.grey[500],
                     ),
                   ),
                 ],
@@ -55,52 +62,143 @@ class NotificationsScreen extends StatelessWidget {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
+          return ListView.separated(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             itemCount: notifications.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final campaign = notifications[index];
-              return Card(
-                elevation: 2,
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
+              final isRead = provider.isCampaignRead(campaign.id);
+              
+              // Calculate remaining time for a nice display
+              final now = DateTime.now();
+              final difference = campaign.endDate.difference(now);
+              final hoursLeft = difference.inHours;
+              
+              return GestureDetector(
+                onTap: () {
+                  // Mark as read immediately
+                  provider.markCampaignAsRead(campaign.id);
+                  
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CampaignDetailsScreen(campaignId: campaign.id),
                     ),
-                    child: const Icon(Icons.access_time_rounded, color: Colors.red),
+                  );
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isRead ? const Color(0xFFF8F9FA) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: isRead 
+                        ? Border.all(color: Colors.transparent)
+                        : Border.all(color: Colors.red.withValues(alpha: 0.1), width: 1),
+                    boxShadow: isRead 
+                        ? []
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
                   ),
-                  title: const Text(
-                    'Fin de campagne proche',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  subtitle: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 4),
-                      Text(
-                        'La campagne "${campaign.name}" se termine bientôt. Terminez vos tâches !',
-                        style: TextStyle(color: Colors.grey[700]),
+                      // Status Indicator Icon
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isRead 
+                              ? Colors.grey.withValues(alpha: 0.1) 
+                              : const Color(0xFFFFF0F0),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.hourglass_bottom_rounded,
+                          color: isRead ? Colors.grey : Colors.red,
+                          size: 24,
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Fin : ${DateFormat('dd MMM à HH:mm').format(campaign.endDate)}',
-                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                      const SizedBox(width: 16),
+                      // Content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Se termine bientôt',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: isRead ? Colors.grey : Colors.red,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                if (!isRead)
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              campaign.name,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                                color: isRead ? Colors.grey[700] : Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Il reste moins de ${hoursLeft + 1} heures ! Terminez vos tâches avant la fin.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isRead ? Colors.grey[500] : Colors.grey[600],
+                                height: 1.4,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 14,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  DateFormat('dd MMMM à HH:mm').format(campaign.endDate),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CampaignDetailsScreen(campaignId: campaign.id),
-                      ),
-                    );
-                  },
                 ),
               );
             },

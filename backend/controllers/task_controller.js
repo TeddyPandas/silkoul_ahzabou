@@ -325,7 +325,8 @@ const unsubscribeFromCampaign = async (req, res) => {
       if (remainingQuantity > 0) {
         // Warning: This update might fail if RLS prevents UPDATE on tasks.
         // Ideally this should be an RPC 'unsubscribe_and_restore'
-        await supabaseUser
+        // FIX: Update using ADMIN client to bypass RLS policies on 'tasks' table
+        await supabaseAdmin
           .from('tasks')
           .update({
             remaining_number: userTask.task.remaining_number + remainingQuantity
@@ -428,8 +429,8 @@ const finishTask = async (req, res) => {
 
   if (returnedQuantity > 0) {
     const newRemaining = userTask.task.remaining_number + returnedQuantity;
-    // RLS Issue potential here too
-    const { error: taskUpdateError } = await supabaseUser
+    // FIX: Update using ADMIN client to bypass RLS policies on 'tasks' table
+    const { error: taskUpdateError } = await supabaseAdmin
       .from('tasks')
       .update({ remaining_number: newRemaining })
       .eq('id', userTask.task_id);

@@ -435,7 +435,7 @@ class _DashboardTabState extends State<DashboardTab> {
         ),
         Consumer<CampaignProvider>(
           builder: (context, provider, child) {
-            final hasNotifications = provider.endingSoonCampaigns.isNotEmpty;
+            final hasNotifications = provider.hasUnreadNotifications;
             return Stack(
               clipBehavior: Clip.none,
               children: [
