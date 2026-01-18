@@ -19,6 +19,7 @@ dependencies:
     
   # UI & Icons
   cupertino_icons: ^1.0.6
+  font_awesome_flutter: ^10.6.0
   google_fonts: ^6.1.0
   flutter_svg: ^2.0.9
   lottie: ^3.0.0

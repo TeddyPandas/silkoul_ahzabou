@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:silkoul_ahzabou/screens/silsila/silsila_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_theme.dart';
 import '../screens/tasks/my_tasks_screen.dart';
 import '../screens/badges/badges_screen.dart';
@@ -80,6 +82,51 @@ class CustomDrawer extends StatelessWidget {
                     title: 'Mon Profil',
                     onTap: () => Navigator.push(context,
                         MaterialPageRoute(builder: (_) => const ProfileTab())),
+                  ),
+                  _buildDivider(),
+                  // Social Media Icons Section
+                  const Padding(
+                    padding: EdgeInsets.only(left: 12, bottom: 8),
+                    child: Text(
+                      'Nous contacter',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildSocialIconFA(
+                          context,
+                          FontAwesomeIcons.instagram,
+                          'https://www.instagram.com/markazseyidtijani?igsh=MTY2cnQyYzJtaG8zNg==',
+                          const Color(0xFFE4405F), // Instagram pink
+                        ),
+                        _buildSocialIconFA(
+                          context,
+                          FontAwesomeIcons.xTwitter,
+                          'https://x.com/markaztijani',
+                          Colors.black, // X black
+                        ),
+                        _buildSocialIconFA(
+                          context,
+                          FontAwesomeIcons.whatsapp,
+                          'https://Wa.me/221781098017',
+                          const Color(0xFF25D366), // WhatsApp green
+                        ),
+                        _buildSocialIcon(
+                          context,
+                          'assets/icons/website.png',
+                          Icons.language_rounded,
+                          'https://www.markaztijani.com',
+                        ),
+                      ],
+                    ),
                   ),
                   _buildDivider(),
                   _buildMenuItem(
@@ -223,6 +270,62 @@ class CustomDrawer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Divider(color: Colors.grey[100], thickness: 1),
+    );
+  }
+
+  Widget _buildSocialIcon(
+    BuildContext context,
+    String assetPath,
+    IconData fallbackIcon,
+    String url,
+  ) {
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.tealPrimary.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          fallbackIcon,
+          color: AppColors.tealPrimary,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialIconFA(
+    BuildContext context,
+    IconData icon,
+    String url,
+    Color iconColor,
+  ) {
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: FaIcon(
+          icon,
+          color: iconColor,
+          size: 24,
+        ),
+      ),
     );
   }
 }

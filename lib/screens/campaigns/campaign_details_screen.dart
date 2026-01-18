@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../models/campaign.dart';
 import '../../models/task.dart';
 import '../../models/campaign_subscriber.dart';
@@ -1006,12 +1007,46 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             ),
           ),
           IconButton(
-            onPressed: () {}, // Options menu
-            icon: Icon(Icons.more_vert,
+            onPressed: _shareCampaign,
+            icon: Icon(Icons.share_rounded,
                 color: isDark ? Colors.white : AppColors.textPrimary),
           ),
         ],
       ),
+    );
+  }
+
+  /// Share campaign details to other apps
+  void _shareCampaign() {
+    if (_campaign == null) return;
+
+    // Build the task list with global amounts
+    final StringBuffer tasksInfo = StringBuffer();
+    if (_campaign!.tasks != null && _campaign!.tasks!.isNotEmpty) {
+      tasksInfo.writeln('📋 Tâches:');
+      for (final task in _campaign!.tasks!) {
+        tasksInfo.writeln('  • ${task.name}: ${task.totalNumber}');
+      }
+    }
+
+    // Build the share text with instructions
+    final String shareText = '''
+🕌 ${_campaign!.name}
+
+👤 Créé par: ${_campaign!.createdByName ?? 'Inconnu'}
+
+${tasksInfo.toString()}
+📲 Pour rejoindre cette campagne:
+1. Téléchargez l'app "Silkoul Ahzabou" sur le Play Store / App Store
+2. Recherchez la campagne "${_campaign!.name}"
+3. Inscrivez-vous et participez !
+
+#SilkoulAhzabou #Tijani
+''';
+
+    Share.share(
+      shareText.trim(),
+      subject: 'Campagne: ${_campaign!.name}',
     );
   }
 
