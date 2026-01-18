@@ -115,7 +115,7 @@ class _AdminVideosScreenState extends State<AdminVideosScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(video.titleFr, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          Text(video.authorName ?? "Inconnu", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          Text(video.author?.name ?? "Inconnu", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,

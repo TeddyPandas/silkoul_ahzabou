@@ -9,6 +9,7 @@ import 'providers/auth_provider.dart';
 import 'providers/campaign_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/nafahat_provider.dart';
+import 'providers/media_provider.dart'; // Media Module
 import 'providers/wazifa_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/splash_screen.dart';
@@ -23,6 +24,7 @@ import 'modules/admin/screens/admin_user_management_screen.dart'; // User Manage
 import 'modules/admin/screens/admin_podcast_create_screen.dart'; // Podcast Create
 import 'modules/admin/screens/admin_videos_screen.dart'; // Video Admin
 import 'modules/admin/screens/admin_video_create_screen.dart'; // Video Create
+import 'modules/admin/screens/admin_media_import_screen.dart'; // Media Import
 import 'config/app_theme.dart';
 
 void main() async {
@@ -112,6 +114,9 @@ class MyApp extends StatelessWidget {
         // ✅ Provider Nafahat (Articles)
         ChangeNotifierProvider(create: (_) => NafahatProvider()..initialize()),
 
+        // ✅ Provider Media (Vidéos/Enseignements)
+        ChangeNotifierProvider(create: (_) => MediaProvider()),
+
         // ✅ Provider Wazifa (Localisation)
         ChangeNotifierProvider(create: (_) => WazifaProvider()),
 
@@ -151,6 +156,7 @@ class MyApp extends StatelessWidget {
           '/admin/podcasts/create': (context) => const AdminPodcastCreateScreen(),
           '/admin/videos': (context) => const AdminVideosScreen(),
           '/admin/videos/create': (context) => const AdminVideoCreateScreen(),
+          '/admin/media/import': (context) => const AdminMediaImportScreen(),
         },
       ),
     );

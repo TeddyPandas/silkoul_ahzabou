@@ -72,8 +72,9 @@ class AdminSidebar extends StatelessWidget {
                   Icons.mic_none_rounded,
                   '/admin/teachings',
                 ),
-                _buildMenuItem(Icons.mic, "Podcasts", "/admin/podcasts"),
-                _buildMenuItem(Icons.video_library, "Vidéos", "/admin/videos"),
+                _buildMenuItem("Podcasts", Icons.mic, "/admin/podcasts"),
+                _buildMenuItem("Vidéos", Icons.video_library, "/admin/videos"),
+                _buildMenuItem("Import YouTube", Icons.cloud_download, "/admin/media/import"),
                 _buildSectionHeader("COMMUNAUTÉ"),
                 _buildMenuItem(
                   "Wazifa Finder",

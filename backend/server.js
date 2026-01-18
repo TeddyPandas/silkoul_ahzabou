@@ -11,6 +11,7 @@ const campaignRoutes = require('./routes/campaigns');
 const taskRoutes = require('./routes/tasks');
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
+const mediaRoutes = require('./routes/media');
 
 // Initialiser Express
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/media', mediaRoutes);
 
 // ==================== Gestion des erreurs ====================
 

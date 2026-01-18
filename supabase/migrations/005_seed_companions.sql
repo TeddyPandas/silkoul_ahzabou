@@ -1,0 +1,126 @@
+-- ============================================
+-- SEED: 005_seed_companions
+-- DESCRIPTION: Insert verified Companions of Cheikh Ahmad At-Tidiani
+-- SOURCE: https://tidjaniya.com/fr/category/sidi-ahmed-tidjani/compagnons-cheikh-tidjani/ (Pages 1-9)
+-- ============================================
+
+-- 1. Insert Companions as Global Nodes (Level 90)
+INSERT INTO public.silsilas (name, is_global, level) VALUES 
+-- Page 1
+('Sidi Ahmed ibn ‘Achour Semgouni', TRUE, 90),
+('Sidi Mohamed ibn Ahmed El Jabary', TRUE, 90),
+('Sidi ‘Abbas Charaibi', TRUE, 90),
+('Sidi Mohammed Ibn Ahmed Senoussi', TRUE, 90),
+('Sidi Omar El ‘Iraqi', TRUE, 90),
+('Sidi Moulay Ahmed Boukili', TRUE, 90),
+('Mohamed ibn Abdallah Tilimsani', TRUE, 90),
+('Sidi Mohammed Dala-i', TRUE, 90),
+('Sidi Mohamed Harouchi', TRUE, 90),
+('Sidi El Mouhib ben Qadour Zarhouni', TRUE, 90),
+('Sidi ’Abdsalem Zamouri', TRUE, 90),
+('Sidi Mohamed ben Qouider El ‘Abdelaoui', TRUE, 90),
+-- Page 2
+('Sidi Mohammed ibn ‘Arabi El Madaghari', TRUE, 90),
+('Sidi ‘Omar Charaïbi', TRUE, 90),
+('Sidi Ahmed Maghbar', TRUE, 90),
+('Sidi ‘AbdelQader ibn Abdel Malek El Idrissi', TRUE, 90),
+('Sidi Mou’ti', TRUE, 90),
+('Sidi Ahmed ibn ‘Asaker El Djaza-iri', TRUE, 90),
+('Sidi Lakhdar', TRUE, 90),
+('Hajj Abdelmajid Bouhlal', TRUE, 90),
+('Hajj Mou’ti', TRUE, 90),
+('Sidi Mokhtar Dabbagh Tilimsani', TRUE, 90),
+('Sidi ‘Abdelwahab Tazi El Fesi', TRUE, 90),
+('Sidi Ahmed ibn Isma’il El Laghouati', TRUE, 90),
+('Sidi Youssuf ibn Dhanoun El Bija-i Tounsi', TRUE, 90),
+-- Page 3
+('Sidi Makki ibn Abdallah', TRUE, 90),
+('Sidi Hajj ‘Ali Amlas', TRUE, 90),
+('Sidi Mohammed Ben Jaloul', TRUE, 90),
+('Sidi Hajj Daoudi', TRUE, 90),
+('Sidi Bouziane', TRUE, 90),
+('Sidi Mohammed ibn Ahmed', TRUE, 90),
+('Sidi Ahmed Mazouni', TRUE, 90),
+('Sidi Ahmed Dadouch El Moussaoui Semghouni', TRUE, 90),
+('Sidi Hajj Moussa ibn Ahmed ibn Bettoun Semghouni', TRUE, 90),
+('Sidi ‘Arbi El ‘Iraqi', TRUE, 90),
+('Sidi ‘Abdsalem Abou Taleb', TRUE, 90),
+('Sidi Abdallah Soufi', TRUE, 90),
+-- Page 4
+('Sidi Za’noun', TRUE, 90),
+('Sidi Hajj Ahmed Djawiyed Tanji', TRUE, 90),
+('Sidi Ahmed ibn Kirane', TRUE, 90),
+('Sidi Madani Charaibi', TRUE, 90),
+('Sidi Hajj Taleb El Labar', TRUE, 90),
+('Sidi Ahmed Abdelaoui', TRUE, 90),
+('Sidi Mohammed Seghir', TRUE, 90),
+('Sidi Mohamed ibn Ghazi', TRUE, 90),
+('Sidi Moufadal Ibn Bou’iza El Meknessi', TRUE, 90),
+('Sidi Hajj Touhami Lahlou', TRUE, 90),
+('Sidi Ahmed Lakhdar Tamacini', TRUE, 90),
+('Sidi Tahar Bouteïba', TRUE, 90),
+-- Page 5
+('Saïdat Safiya Loubadat', TRUE, 90),
+('Sidi ‘Abbas Charqawi', TRUE, 90),
+('Sidi Ahmed ibn Mohamed Fathan Bannani Fesi', TRUE, 90),
+('Sidi Mohammed Moucharaf Gharbani', TRUE, 90),
+('Sidi Hajj Mohamed ibn Hayyoun El Fesi', TRUE, 90),
+('Sidi Ahmed ibn Ma’amar Laghouati', TRUE, 90),
+('Sidi Hassan ibn Abdallah Boukili', TRUE, 90),
+('Sidi Chahid El Wazani', TRUE, 90),
+('Sidi Mohamed Zine Sahraoui', TRUE, 90),
+('Sidi Hajj Mohamed ibn Moussa El Turki', TRUE, 90),
+('Sidi Na’imi ibn Zidane', TRUE, 90),
+('Sidi El Hajj El Kabir Lahlou', TRUE, 90),
+-- Page 6
+('Sidi Sahnoun ibn El Hajj', TRUE, 90),
+('Sidi Bou’iza El Berbery', TRUE, 90),
+('Sidi Ahmed Benounah', TRUE, 90),
+('Sidi AbdeRahman Chinguiti', TRUE, 90),
+('Sidi ‘Omar Dabbagh', TRUE, 90),
+('Sidi Mohamed Kensoussi', TRUE, 90),
+('Sidi AbdelWahid Boughaly', TRUE, 90),
+('Sidi Mohamed ibn Fqirah', TRUE, 90),
+('Sidi Ahmed Dabizah', TRUE, 90),
+('Sidi Mohamed Belqacem Basri', TRUE, 90),
+('Sidi Abdel’Adhim El ‘Alami', TRUE, 90),
+('Sidi ‘Ali Chtioui', TRUE, 90),
+-- Page 7
+('Sidi Ahmed ibn ‘AbdeRahman Semghouni', TRUE, 90),
+('Sidi Hajj ‘AbdeRahman Berada', TRUE, 90),
+('Sidi Mohamed Bouhassouna', TRUE, 90),
+('Sidi Bilal', TRUE, 90),
+('Sidi Ahmed Baniss', TRUE, 90),
+('Sidi Mohamed ibn Ma’zouz', TRUE, 90),
+('Sidi Mohamed Sassi', TRUE, 90),
+('Sidi Zaki Madaghari', TRUE, 90),
+('Sidi Boujam’a', TRUE, 90),
+('Sidi Mohamed ibn Souleiïman Mana’i', TRUE, 90),
+('Lallah Mannana', TRUE, 90),
+('Sidi Mohamed ibn Abbas Semghouni', TRUE, 90),
+-- Page 8
+('Sidi Hajj Tayeb Qabab', TRUE, 90),
+('Sidi Mohamed ibn Hirzoullah', TRUE, 90),
+('Sidi AbdelWahab Baniss', TRUE, 90),
+('Sidi ‘Arbi El Achhab', TRUE, 90),
+('Sidi Mahmoud Tounsi', TRUE, 90),
+('Sidi Tayeb Sefiani', TRUE, 90),
+('Sidi Hajj AbdelWahab ibn Ahmar', TRUE, 90),
+('Sidi Mohamed Ben Abi Nasr El ‘Alawi', TRUE, 90),
+('Sultan Souleiman', TRUE, 90),
+('Sidi Ibrahim Riyahi', TRUE, 90),
+('Sidi Mohamed El Hafidh Chingiti', TRUE, 90),
+('Sidi Mohamed El Ghali', TRUE, 90),
+-- Page 9 (Major Figures)
+('Sidi Mohamed El Habib Tijani', TRUE, 90),
+('Sidi Mohamed El Kebir Tijani', TRUE, 90),
+('Sidi Mohamed ibn Mechri', TRUE, 90),
+('Sidi Hajj ‘Ali Tamacini', TRUE, 90),
+('Sidi Mohamed Ibn ‘Arabi Damraoui', TRUE, 90),
+('Sidi Hajj ‘Ali Harazim Berada', TRUE, 90)
+ON CONFLICT DO NOTHING;
+
+-- NOTE: We do NOT automatically link all these to Cheikh Ahmad At-Tidiani
+-- because not all are direct disciples. They are inserted as available roots/nodes
+-- for users to select. Ideally, a separate verified graph update would link them correctly.
+

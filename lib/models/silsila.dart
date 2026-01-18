@@ -1,15 +1,19 @@
 class Silsila {
   final String id;
   final String name;
-  final String? parentId;
+  final bool isGlobal;
+  final String? imageUrl;
   final int level;
   final String? description;
+  // Note: Parent IDs sont gérés à part ou chargés à la demande dans une structure de graphe
+  
   final DateTime createdAt;
 
   Silsila({
     required this.id,
     required this.name,
-    this.parentId,
+    this.isGlobal = false,
+    this.imageUrl,
     required this.level,
     this.description,
     required this.createdAt,
@@ -19,7 +23,8 @@ class Silsila {
     return Silsila(
       id: json['id'] as String,
       name: json['name'] as String,
-      parentId: json['parent_id'] as String?,
+      isGlobal: json['is_global'] ?? false,
+      imageUrl: json['image_url'] as String?,
       level: json['level'] as int,
       description: json['description'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -30,28 +35,26 @@ class Silsila {
     return {
       'id': id,
       'name': name,
-      'parent_id': parentId,
+      'is_global': isGlobal,
+      'image_url': imageUrl,
       'level': level,
       'description': description,
       'created_at': createdAt.toIso8601String(),
     };
   }
 
-  // Vérifier si c'est une silsila racine
-  bool get isRoot {
-    return parentId == null;
-  }
-
   Silsila copyWith({
     String? name,
-    String? parentId,
+    bool? isGlobal,
+    String? imageUrl,
     int? level,
     String? description,
   }) {
     return Silsila(
       id: id,
       name: name ?? this.name,
-      parentId: parentId ?? this.parentId,
+      isGlobal: isGlobal ?? this.isGlobal,
+      imageUrl: imageUrl ?? this.imageUrl,
       level: level ?? this.level,
       description: description ?? this.description,
       createdAt: createdAt,

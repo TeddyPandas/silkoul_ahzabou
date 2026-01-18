@@ -404,6 +404,4 @@ class TeachingService {
     }
     return null;
   }
-}).eq('id', teaching.id);
-  }
 }

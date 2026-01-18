@@ -37,7 +37,6 @@ class CustomDrawer extends StatelessWidget {
                     context,
                     icon: Icons.link_rounded,
                     title: 'The Silsila',
-                    subtitle: 'Coming soon',
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
