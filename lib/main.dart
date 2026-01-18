@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'services/supabase_service.dart';
+import 'services/notification_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/campaign_provider.dart';
 import 'providers/user_provider.dart';
@@ -88,6 +89,14 @@ void main() async {
     );
   } catch (e) {
     print('❌ ERREUR lors de l\'initialisation de Supabase : $e');
+  }
+
+  // ✅ Initialiser NotificationService
+  try {
+    await NotificationService().initialize();
+    print('✅ NotificationService initialisé avec succès');
+  } catch (e) {
+    print('❌ ERREUR lors de l\'initialisation de NotificationService : $e');
   }
 
   print('🚀 [main] ======== STARTING APP ========');

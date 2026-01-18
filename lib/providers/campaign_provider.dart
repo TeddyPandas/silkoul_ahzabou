@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/campaign.dart';
 import '../services/campaign_service.dart';
+import '../services/notification_service.dart';
 
 class CampaignProvider with ChangeNotifier {
   final CampaignService _campaignService = CampaignService();
@@ -19,6 +20,16 @@ class CampaignProvider with ChangeNotifier {
   Campaign? get selectedCampaign => _selectedCampaign;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  // Campaigns ending in less than 24 hours
+  List<Campaign> get endingSoonCampaigns {
+    final now = DateTime.now();
+    return _myCampaigns.where((c) {
+      if (c.isFinished) return false;
+      final timeDifference = c.endDate.difference(now);
+      return timeDifference.inHours <= 24 && timeDifference.inSeconds > 0;
+    }).toList();
+  }
 
   // ============================================
   // RÉCUPÉRER TOUTES LES CAMPAGNES PUBLIQUES
@@ -65,6 +76,13 @@ class CampaignProvider with ChangeNotifier {
         userId: userId,
         onlyCreated: onlyCreated,
       );
+
+      // Schedule notifications for ongoing campaigns
+      for (var campaign in _myCampaigns) {
+        if (!campaign.isFinished && campaign.isActive) {
+          NotificationService().scheduleCampaignEndNotification(campaign);
+        }
+      }
       debugPrint(
           '✅ [CampaignProvider] Fetched ${_myCampaigns.length} user campaigns');
 

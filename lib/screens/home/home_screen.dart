@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+
 import 'package:provider/provider.dart';
 
 
@@ -17,6 +17,7 @@ import '../campaigns/campaign_details_screen.dart';
 import '../campaigns/create_campaign_screen.dart';
 import '../wazifa/wazifa_map_screen.dart';
 import '../nafahat/nafahat_screen.dart';
+import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -119,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -176,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.tealPrimary.withOpacity(0.1)
+                    ? AppColors.tealPrimary.withValues(alpha: 0.1)
                     : Colors.transparent,
                 shape: BoxShape.circle,
               ),
@@ -315,8 +316,9 @@ class _DashboardTabState extends State<DashboardTab> {
             const SizedBox(height: 12),
             // Indicators
             Consumer<CampaignProvider>(builder: (context, provider, _) {
-              if (provider.myCampaigns.length <= 1)
+              if (provider.myCampaigns.length <= 1) {
                 return const SizedBox.shrink();
+              }
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
@@ -328,7 +330,7 @@ class _DashboardTabState extends State<DashboardTab> {
                           decoration: BoxDecoration(
                               color: _currentCampaignIndex == index
                                   ? AppColors.tealPrimary
-                                  : AppColors.tealPrimary.withOpacity(0.3),
+                                  : AppColors.tealPrimary.withValues(alpha: 0.3),
                               shape: BoxShape.circle),
                         )),
               );
@@ -431,11 +433,41 @@ class _DashboardTabState extends State<DashboardTab> {
           style: TextStyle(
               fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
-        IconButton(
-          icon: const Icon(Icons.search, color: Colors.black87),
-          onPressed: () {},
-          style: IconButton.styleFrom(
-              backgroundColor: Colors.white, padding: EdgeInsets.zero),
+        Consumer<CampaignProvider>(
+          builder: (context, provider, child) {
+            final hasNotifications = provider.endingSoonCampaigns.isNotEmpty;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_none_rounded,
+                      color: Colors.black87),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen()),
+                    );
+                  },
+                  style: IconButton.styleFrom(
+                      backgroundColor: Colors.white, padding: EdgeInsets.zero),
+                ),
+                if (hasNotifications)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -478,7 +510,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 image: NetworkImage(imageUrl), fit: BoxFit.cover),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 5))
             ]),
@@ -490,7 +522,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.8)],
                 ),
               ),
             ),
@@ -501,7 +533,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -564,10 +596,10 @@ class _DashboardTabState extends State<DashboardTab> {
       decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.grey.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 5))
           ]),
@@ -657,7 +689,7 @@ class _DashboardTabState extends State<DashboardTab> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                  color: Colors.grey.withOpacity(0.05),
+                  color: Colors.grey.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5))
             ]),

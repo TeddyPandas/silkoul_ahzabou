@@ -7,6 +7,7 @@ import '../screens/wazifa/wazifa_map_screen.dart';
 
 import '../screens/profile/profile_tab.dart';
 import '../modules/teachings/screens/teachings_home_screen.dart';
+import '../services/notification_service.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -80,6 +81,16 @@ class CustomDrawer extends StatelessWidget {
                     onTap: () => Navigator.push(context,
                         MaterialPageRoute(builder: (_) => const ProfileTab())),
                   ),
+                  _buildDivider(),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.notifications_active_rounded,
+                    title: 'Test Notification',
+                    subtitle: 'Debug only',
+                    onTap: () {
+                      NotificationService().showInstantNotification();
+                    },
+                  ),
                 ],
               ),
             ),
@@ -109,7 +120,7 @@ class CustomDrawer extends StatelessWidget {
       ),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.tealPrimary.withOpacity(0.05),
+        color: AppColors.tealPrimary.withValues(alpha: 0.05),
         border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
       ),
       child: Column(
@@ -122,7 +133,7 @@ class CustomDrawer extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.tealPrimary.withOpacity(0.1),
+                  color: AppColors.tealPrimary.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
