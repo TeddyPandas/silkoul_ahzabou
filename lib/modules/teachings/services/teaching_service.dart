@@ -1,9 +1,9 @@
-
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/teaching.dart';
 import '../models/article.dart';
 import '../models/category.dart';
-import '../models/category.dart';
+
 import '../models/author.dart';
 import '../models/podcast_show.dart';
 import '../models/transcript_segment.dart';
@@ -334,7 +334,6 @@ class TeachingService {
        // Duration might change content changed
        'duration_seconds': teaching.durationSeconds,
        'updated_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
      }).eq('id', teaching.id);
   }
 
@@ -351,7 +350,7 @@ class TeachingService {
            thumbUrl = 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
          }
        } catch (e) {
-         print("Error extracting thumbnail: $e");
+         debugPrint("Error extracting thumbnail: $e");
        }
     }
 
@@ -376,7 +375,7 @@ class TeachingService {
          if (videoId != null) {
            thumbUrl = 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
          }
-       } catch (e) { print("Error extracting thumbnail: $e"); }
+       } catch (e) { debugPrint("Error extracting thumbnail: $e"); }
     }
 
     await _client.from('teachings').update({
@@ -404,6 +403,5 @@ class TeachingService {
     }
     return null;
   }
-}).eq('id', teaching.id);
-  }
+
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+
 import '../../../../utils/app_theme.dart';
 import '../../teachings/models/teaching.dart';
 import '../../teachings/services/teaching_service.dart';
@@ -45,9 +45,13 @@ class _AdminVideosScreenState extends State<AdminVideosScreen> {
       try {
         await TeachingService.instance.deleteTeaching(id);
         _refreshVideos();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vidéo supprimée.")));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vidéo supprimée.")));
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.red));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.red));
+        }
       }
     }
   }
@@ -115,7 +119,7 @@ class _AdminVideosScreenState extends State<AdminVideosScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(video.titleFr, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          Text(video.authorName ?? "Inconnu", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          Text(video.author?.name ?? "Inconnu", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,

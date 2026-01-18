@@ -189,6 +189,15 @@ class CampaignProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
+      // Vérifier si la campagne est terminée
+      final campaign = await getCampaignById(campaignId);
+      if (campaign != null && campaign.isFinished) {
+        _errorMessage = "Cette campagne est terminée. Vous ne pouvez plus y participer.";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
       await _campaignService.addTasksToSubscription(
         campaignId: campaignId,
         selectedTasks: selectedTasks,
@@ -218,6 +227,15 @@ class CampaignProvider with ChangeNotifier {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
+
+      // Vérifier si la campagne est terminée
+      final campaign = await getCampaignById(campaignId);
+      if (campaign != null && campaign.isFinished) {
+        _errorMessage = "Cette campagne est terminée. Vous ne pouvez plus vous inscrire.";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
 
       // ✅ CORRECTION : Plus de paramètre dupliqué
       await _campaignService.subscribeToCampaign(

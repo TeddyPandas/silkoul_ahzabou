@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:silkoul_ahzabou/screens/silsila/silsila_screen.dart';
 import '../utils/app_theme.dart';
 import '../screens/tasks/my_tasks_screen.dart';
-import '../screens/silsila/silsila_screen.dart';
 import '../screens/badges/badges_screen.dart';
 import '../screens/wazifa/wazifa_map_screen.dart';
-import '../screens/calculators/abjad_calculator_screen.dart';
+
 import '../screens/profile/profile_tab.dart';
 import '../modules/teachings/screens/teachings_home_screen.dart';
 
@@ -71,16 +71,7 @@ class CustomDrawer extends StatelessWidget {
                         MaterialPageRoute(
                             builder: (_) => const TeachingsHomeScreen())),
                   ),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.calculate_rounded,
-                    title: 'Abjad Calculator',
-                    subtitle: 'Coming soon',
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const AbjadCalculatorScreen())),
-                  ),
+
                   _buildDivider(),
                   _buildMenuItem(
                     context,

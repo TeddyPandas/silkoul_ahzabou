@@ -22,6 +22,13 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   bool _isLoading = false;
   bool _waitingForGoogleAuth = false;
   bool _hasNavigated = false;
+  AuthProvider? _authProvider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
+  }
 
   @override
   void initState() {
@@ -62,8 +69,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     // Remove auth listener
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    authProvider.removeListener(_onAuthChanged);
+    _authProvider?.removeListener(_onAuthChanged);
 
     WidgetsBinding.instance.removeObserver(this);
     _emailController.dispose();

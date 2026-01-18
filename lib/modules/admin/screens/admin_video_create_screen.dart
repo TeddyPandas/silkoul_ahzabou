@@ -56,7 +56,7 @@ class _AdminVideoCreateScreenState extends State<AdminVideoCreateScreen> {
       _videoToEdit = args;
       _titleFrController.text = args.titleFr;
       _titleArController.text = args.titleAr;
-      _descFrController.text = args.descriptionFr;
+      _descFrController.text = args.descriptionFr ?? '';
       _urlController.text = args.mediaUrl;
       _selectedAuthorId = args.authorId;
       _selectedCategoryId = args.categoryId;
@@ -79,7 +79,7 @@ class _AdminVideoCreateScreenState extends State<AdminVideoCreateScreen> {
       categoryId: _selectedCategoryId ?? _categories.firstOrNull?.id ?? '', // Safe default
       mediaUrl: _urlController.text.trim(),
       durationSeconds: 0, // Not checking duration for now
-      publishedAt: _videoToEdit?.publishedAt ?? DateTime.now(), videoId: '', thumbnailUrl: '',
+      publishedAt: _videoToEdit?.publishedAt ?? DateTime.now(), thumbnailUrl: '',
     );
 
     try {
@@ -94,7 +94,9 @@ class _AdminVideoCreateScreenState extends State<AdminVideoCreateScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.red));
+      }
     }
   }
 
@@ -174,7 +176,8 @@ class _Dropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
-      value: value,
+      key: ValueKey(value),
+      initialValue: value,
       items: items,
       onChanged: onChanged,
       style: const TextStyle(color: Colors.white),

@@ -404,6 +404,34 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                          _buildQuranView(isDark)
                       else
                          _buildTaskListView(isDark),
+
+                      // 7. Finished Status (if applicable)
+                      if (_campaign!.isFinished)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(top: 24),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green.withOpacity(0.5)),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.check_circle, color: Colors.green, size: 32),
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Campagne Terminée",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                              ),
+                              Text(
+                                "Les inscriptions sont closes.",
+                                style: TextStyle(color: isDark ? Colors.grey[300] : Colors.grey[600], fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -516,15 +544,16 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _confirmTerminateCampaign(),
+                  onPressed: _campaign!.isFinished ? null : () => _confirmTerminateCampaign(),
                   icon: const Icon(Icons.stop_circle_outlined, color: Colors.orange),
-                  label: const Text("Terminer", style: TextStyle(color: Colors.orange)),
+                  label: Text(_campaign!.isFinished ? "Déjà terminée" : "Terminer", style: const TextStyle(color: Colors.orange)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.orange),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
+
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
@@ -684,9 +713,12 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
              Text(
-              _isSubscribed ? "Prendre d'autres Juz (Moussa'ada/Aide)" : "Sélectionnez vos Juz (Max 3)",
+              _campaign!.isFinished 
+                  ? "Détails de la campagne (Terminée)" 
+                  : (_isSubscribed ? "Prendre d'autres Juz (Moussa'ada/Aide)" : "Sélectionnez vos Juz (Max 3)"),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textPrimary),
             ),
+
             const SizedBox(height: 16),
             GridView.builder(
               shrinkWrap: true,
@@ -725,7 +757,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                 }
 
                 return InkWell(
-                  onTap: (!isAvailable || (isLocked && !isSelected))
+                  onTap: (_campaign!.isFinished || !isAvailable || (isLocked && !isSelected))
                       ? null
                       : () {
                           setState(() {
@@ -759,26 +791,31 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
               },
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: (_tempSelectedJuzIds.isEmpty || _isJoining) ? null : _handleInlineSubscription,
-                icon: _isJoining ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.login),
-                label: Text(_isJoining ? "Traitement..." : (_isSubscribed ? "Ajouter ces Juz (${_tempSelectedJuzIds.length})" : "Rejoindre la campagne (${_tempSelectedJuzIds.length})")),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.tealPrimary, padding: const EdgeInsets.symmetric(vertical: 16)),
+            if (!_campaign!.isFinished)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: (_tempSelectedJuzIds.isEmpty || _isJoining) ? null : _handleInlineSubscription,
+                  icon: _isJoining ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.login),
+                  label: Text(_isJoining ? "Traitement..." : (_isSubscribed ? "Ajouter ces Juz (${_tempSelectedJuzIds.length})" : "Rejoindre la campagne (${_tempSelectedJuzIds.length})")),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.tealPrimary, padding: const EdgeInsets.symmetric(vertical: 16)),
+                ),
               ),
-            ),
           ],
         );
     }
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         dashboardWidget,
         myJuzWidget,
         selectionWidget,
       ],
     );
+
+
+
 
   }
 
@@ -967,20 +1004,66 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
   }
 
   Widget _buildHeaderInfo(bool isDark) {
+    // Check if current user is creator
+    final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
+    final isCreator = userId == _campaign!.createdBy;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          _campaign!.name,
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            letterSpacing: -0.5,
-            color: isDark ? Colors.white : AppColors.textPrimary,
-            height: 1.2,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                _campaign!.name,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                  color: isDark ? Colors.white : AppColors.textPrimary,
+                  height: 1.2,
+                ),
+              ),
+            ),
+            if (_campaign!.isFinished)
+              Container(
+                margin: const EdgeInsets.only(left: 8, top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green),
+                ),
+                child: const Text(
+                  "Terminée",
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
         ),
+        // Finish Button for Creator (if not finished)
+        if (isCreator && !_campaign!.isFinished)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: OutlinedButton.icon(
+              onPressed: () => _confirmTerminateCampaign(),
+              icon: const Icon(Icons.stop_circle_outlined, size: 16, color: Colors.orange),
+              label: const Text("Terminer la campagne", style: TextStyle(color: Colors.orange, fontSize: 12)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.orange),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
         const SizedBox(height: 4),
+
         Row(
           children: [
             Text(
@@ -1003,6 +1086,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       ],
     );
   }
+
 
   Widget _buildMembersAndCategory(bool isDark) {
     return Row(
@@ -1343,6 +1427,11 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     if (_campaign?.category == 'Quran') {
       return const SizedBox.shrink();
     }
+    
+    // Si terminée, on n'affiche plus rien dans la bottom bar (c'est géré dans le body)
+    if (_campaign?.isFinished == true) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1438,13 +1527,19 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       final success = await provider.updateCampaign(
         campaignId: widget.campaignId,
         userId: userId,
-        updates: {'end_date': DateTime.now().toIso8601String()},
+        updates: {
+          'is_finished': true,
+          'end_date': DateTime.now().toIso8601String(),
+        },
       );
+
+
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Campagne terminée.")));
-        Navigator.pop(context); // Leave screen or reload?
+        await _loadCampaignDetails(); // Reload to show updated status
       }
+
     }
   }
 

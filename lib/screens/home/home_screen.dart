@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../config/app_constants.dart';
+
+
 import '../../models/campaign.dart';
-import '../../models/profile.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/campaign_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../services/campaign_service.dart';
+
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_drawer.dart'; // Import CustomDrawer
-import '../auth/login_screen.dart';
+
 import '../campaigns/campaign_details_screen.dart';
 import '../campaigns/create_campaign_screen.dart';
 import '../wazifa/wazifa_map_screen.dart';
@@ -987,17 +987,27 @@ class _CampaignsTabState extends State<CampaignsTab> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.person_outline,
-                            size: 14, color: AppColors.tealPrimary),
-                        const SizedBox(width: 4),
-                        Text(
-                          campaign.createdByName ?? 'Inconnu',
-                          style: TextStyle(
-                              color: AppColors.tealPrimary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500),
+                        Expanded(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.person_outline,
+                                  size: 14, color: AppColors.tealPrimary),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  campaign.createdByName ?? 'Inconnu',
+                                  style: TextStyle(
+                                      color: AppColors.tealPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         if (campaign.isPublic)
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -1019,7 +1029,30 @@ class _CampaignsTabState extends State<CampaignsTab> {
                             child: Text('Privé',
                                 style: TextStyle(
                                     color: Colors.amber[800], fontSize: 10)),
+                          ),
+                        const SizedBox(width: 8),
+                        if (campaign.isFinished)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(4)),
+                            child: Text('Terminée',
+                                style: TextStyle(
+                                    color: Colors.grey[800], fontSize: 10)),
                           )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(4)),
+                            child: Text('En cours',
+                                style: TextStyle(
+                                    color: Colors.blue[800], fontSize: 10)),
+                          ),
                       ],
                     )
                   ],
