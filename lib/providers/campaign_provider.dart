@@ -1,6 +1,7 @@
 // lib/providers/campaign_provider.dart
 import 'package:flutter/foundation.dart';
 import '../models/campaign.dart';
+import '../models/campaign_subscriber.dart';
 import '../services/campaign_service.dart';
 import '../services/notification_service.dart';
 
@@ -11,6 +12,9 @@ class CampaignProvider with ChangeNotifier {
   List<Campaign> _myCampaigns = [];
   Campaign? _selectedCampaign;
   final Set<String> _readCampaignIds = {};
+  List<CampaignSubscriber> _subscribers = [];
+  bool _hasMoreSubscribers = true;
+  bool _isLoadingSubscribers = false;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -19,6 +23,9 @@ class CampaignProvider with ChangeNotifier {
   List<Campaign> get campaigns => _campaigns;
   List<Campaign> get myCampaigns => _myCampaigns;
   Campaign? get selectedCampaign => _selectedCampaign;
+  List<CampaignSubscriber> get subscribers => _subscribers;
+  bool get hasMoreSubscribers => _hasMoreSubscribers;
+  bool get isLoadingSubscribers => _isLoadingSubscribers;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -211,6 +218,58 @@ class CampaignProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('Erreur lors de la récupération des tâches souscrites: $e');
       return [];
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // RÉCUPÉRER LES ABONNÉS (POUR LE CRÉATEUR)
+  // ══════════════════════════════════════════════════════════════════════════
+  Future<void> fetchSubscribers(String campaignId, {int page = 0, String? searchQuery, bool refresh = false}) async {
+    debugPrint('📥 [Provider] fetchSubscribers called - campaign: $campaignId, page: $page, refresh: $refresh');
+    
+    if (_isLoadingSubscribers) {
+      debugPrint('⏳ [Provider] Already loading, skipping...');
+      return;
+    }
+
+    try {
+      _isLoadingSubscribers = true;
+      if (refresh) {
+        _subscribers = [];
+        _hasMoreSubscribers = true;
+        // Use Future.microtask to defer notifyListeners to avoid calling it during build
+        Future.microtask(() => notifyListeners());
+      }
+
+      if (!_hasMoreSubscribers && !refresh) {
+        _isLoadingSubscribers = false;
+        Future.microtask(() => notifyListeners());
+        return;
+      }
+
+      final newSubscribers = await _campaignService.getCampaignSubscribers(
+        campaignId, 
+        page: page, 
+        searchQuery: searchQuery
+      );
+
+      if (refresh) {
+        _subscribers = newSubscribers;
+      } else {
+        _subscribers.addAll(newSubscribers);
+      }
+
+      // Assume if we got less than requested limit (default 20), we reached the end
+      if (newSubscribers.length < 20) {
+        _hasMoreSubscribers = false;
+      }
+      
+      _isLoadingSubscribers = false;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Provider: Erreur fetchSubscribers: $e');
+      _isLoadingSubscribers = false;
+      notifyListeners();
     }
   }
 
