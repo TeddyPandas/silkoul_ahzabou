@@ -11,6 +11,7 @@ import 'podcast_details_screen.dart';
 import 'article_reader_screen.dart';
 import 'search_screen.dart';
 import '../widgets/mini_player.dart';
+import '../../../screens/nafahat/media_tab.dart'; // Import MediaTab
 import '../../../utils/app_theme.dart';
 
 class TeachingsHomeScreen extends StatefulWidget {
@@ -80,7 +81,7 @@ class _TeachingsHomeScreenState extends State<TeachingsHomeScreen> with SingleTi
             child: TabBarView(
               controller: _tabController,
               children: const [
-                _TeachingsList(type: TeachingType.VIDEO),
+                MediaTab(), // New Netflix-style Video UI
                 _PodcastTab(), // Distinct UI for Podcasts
                 _ArticlesList(),
               ],
