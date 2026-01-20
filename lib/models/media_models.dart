@@ -54,6 +54,7 @@ class MediaVideo {
   // Relations
   final String? authorId;
   final String? categoryId;
+  final String status; // 'PUBLISHED', 'HIDDEN', 'DRAFT'
   
   // Expanded for UI (Optional)
   final MediaAuthor? author;
@@ -69,6 +70,7 @@ class MediaVideo {
     this.customSubtitleUrl,
     this.authorId,
     this.categoryId,
+    this.status = 'PUBLISHED',
     this.author,
     this.category,
   });
@@ -86,6 +88,7 @@ class MediaVideo {
       customSubtitleUrl: json['custom_subtitle_url'],
       authorId: json['author_id'],
       categoryId: json['category_id'],
+      status: json['status'] ?? 'PUBLISHED',
       author: json['media_authors'] != null ? MediaAuthor.fromJson(json['media_authors']) : null,
       category: json['media_categories'] != null ? MediaCategory.fromJson(json['media_categories']) : null,
     );

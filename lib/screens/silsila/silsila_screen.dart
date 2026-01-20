@@ -5,6 +5,11 @@ import 'package:silkoul_ahzabou/providers/auth_provider.dart';
 import 'package:silkoul_ahzabou/services/silsila_service.dart';
 import 'package:silkoul_ahzabou/widgets/silsila_tree_viewer.dart';
 import 'package:silkoul_ahzabou/screens/silsila/widgets/add_silsila_sheet.dart';
+import 'package:silkoul_ahzabou/modules/teachings/screens/article_reader_screen.dart';
+import 'package:silkoul_ahzabou/modules/teachings/models/article.dart';
+import 'package:silkoul_ahzabou/modules/teachings/models/author.dart';
+import 'package:silkoul_ahzabou/modules/teachings/models/category.dart';
+import 'package:silkoul_ahzabou/content/pole_biography.dart';
 
 class SilsilaScreen extends StatefulWidget {
   const SilsilaScreen({super.key});
@@ -201,6 +206,64 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
               textAlign: TextAlign.center,
             ),
             
+            
+            // 🌟 BIOGRAPHIE DU PÔLE (Si Cheikh Ahmad At-Tidiani)
+            if (isCheikhRoot) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFD700).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      "Seïdina Ahmed Tijani (qu’Allah sanctifie son précieux secret) est né en 1150 de l’Hégire (1737/38) à ‘Aïn Madhi. Issu d'une lignée de savants et de saints, il est le Fondateur de la Tariqa Tidjaniya et le Sceau des Saints (Khatm al-Awliya).",
+                      textAlign: TextAlign.justify,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(height: 1.5),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        // Construire l'article statique
+                        final article = Article(
+                          id: 'biography_ahmed_tijani',
+                          titleFr: poleBiographyTitle,
+                          titleAr: "حياة الشيخ أحمد التجاني رضي الله عنه",
+                          contentFr: poleBiographyContent,
+                          contentAr: "", // Optionnel
+                          publishedAt: DateTime(1737),
+                          author: Author(id: 'tidjaniya', name: 'Tidjaniya.com', bio: 'Source Officielle'),
+                          category: Category(id: 'biography', nameFr: 'Biographie', nameAr: 'سيرة ذاتية', slug: 'biography'),
+                          readTimeMinutes: 20,
+                        );
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ArticleReaderScreen(
+                              article: article,
+                              heroTag: 'pole_star', // Trigger Hero animation
+                            ),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.brown,
+                        side: const BorderSide(color: Colors.brown),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                        minimumSize: const Size(0, 36),
+                      ),
+                      icon: const Icon(Icons.menu_book_rounded, size: 16),
+                      label: const Text("Lire la biographie complète"),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // Parents / Connexions vers le haut
             if (parents.isNotEmpty) ...[
               const SizedBox(height: 16),

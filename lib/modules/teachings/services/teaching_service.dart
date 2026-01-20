@@ -158,6 +158,36 @@ class TeachingService {
     return (response as List).map((e) => Article.fromJson(e)).toList();
   }
 
+  Future<void> createArticle(Article article) async {
+    await _client.from('articles').insert({
+      'title_fr': article.titleFr,
+      'title_ar': article.titleAr,
+      'content_fr': article.contentFr,
+      'content_ar': article.contentAr,
+      'author_id': article.authorId,
+      'category_id': article.categoryId,
+      'read_time_minutes': article.readTimeMinutes,
+      'published_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> updateArticle(Article article) async {
+    await _client.from('articles').update({
+      'title_fr': article.titleFr,
+      'title_ar': article.titleAr,
+      'content_fr': article.contentFr,
+      'content_ar': article.contentAr,
+      'author_id': article.authorId,
+      'category_id': article.categoryId,
+      'read_time_minutes': article.readTimeMinutes,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', article.id);
+  }
+
+  Future<void> deleteArticle(String id) async {
+    await _client.from('articles').delete().eq('id', id);
+  }
+
   // --- User Interactions (Favorites) ---
   Future<bool> toggleFavorite({
     required String userId,

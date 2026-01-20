@@ -28,7 +28,11 @@ import 'modules/admin/screens/admin_user_management_screen.dart'; // User Manage
 import 'modules/admin/screens/admin_podcast_create_screen.dart'; // Podcast Create
 import 'modules/admin/screens/admin_videos_screen.dart'; // Video Admin
 import 'modules/admin/screens/admin_video_create_screen.dart'; // Video Create
+import 'modules/admin/screens/admin_video_create_screen.dart'; // Video Create
 import 'modules/admin/screens/admin_media_import_screen.dart'; // Media Import
+import 'modules/admin/screens/admin_teachings_screen.dart'; // Teachings Admin
+import 'modules/admin/screens/admin_silsila_list_screen.dart'; // Silsila Admin
+import 'modules/admin/screens/admin_campaigns_screen.dart'; // Campaigns Admin
 import 'config/app_theme.dart';
 
 void main() async {
@@ -235,6 +239,9 @@ class _MyAppState extends State<MyApp> {
           '/admin/wazifa': (context) => const AdminWazifaScreen(),
           '/admin/users': (context) => const AdminUserManagementScreen(),
           '/admin/podcasts/create': (context) => const AdminPodcastCreateScreen(),
+          '/admin/teachings': (context) => const AdminTeachingsScreen(),
+          '/admin/silsila': (context) => const AdminSilsilaListScreen(),
+          '/admin/campaigns': (context) => const AdminCampaignsScreen(),
           '/admin/videos': (context) => const AdminVideosScreen(),
           '/admin/videos/create': (context) => const AdminVideoCreateScreen(),
           '/admin/media/import': (context) => const AdminMediaImportScreen(),
