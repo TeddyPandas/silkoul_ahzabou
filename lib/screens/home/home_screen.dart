@@ -391,6 +391,18 @@ class _DashboardTabState extends State<DashboardTab> {
                             null,
                             thumbnailWidth,
                             imageHeight,
+                            () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CampaignDetailsScreen(campaignId: campaign.id),
+                                ),
+                              );
+                              if (mounted) {
+                                widget.onRefresh();
+                              }
+                            },
                           );
                         },
                       ),
@@ -638,10 +650,12 @@ class _DashboardTabState extends State<DashboardTab> {
   // Responsive campaign thumbnail
   Widget _buildCampaignThumbnail(
       String title, String subtitle, String? imageUrl,
-      [double width = 120, double imageHeight = 100]) {
-    return Container(
-      width: width,
-      margin: const EdgeInsets.only(right: 12),
+      [double width = 120, double imageHeight = 100, VoidCallback? onTap]) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        margin: const EdgeInsets.only(right: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -652,15 +666,11 @@ class _DashboardTabState extends State<DashboardTab> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: Colors.grey[300],
-              image: imageUrl != null
-                  ? DecorationImage(
-                      image: NetworkImage(imageUrl), fit: BoxFit.cover)
-                  : null,
+              image: const DecorationImage(
+                image: AssetImage('assets/images/miniature_zikr.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
-            child: imageUrl == null
-                ? const Center(
-                    child: Icon(Icons.mosque, color: Colors.white, size: 32))
-                : null,
           ),
           const SizedBox(height: 4),
           Text(title,
@@ -673,6 +683,7 @@ class _DashboardTabState extends State<DashboardTab> {
               overflow: TextOverflow.ellipsis),
         ],
       ),
+    ),
     );
   }
 

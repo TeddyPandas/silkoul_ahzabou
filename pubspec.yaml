@@ -126,7 +126,6 @@ flutter:
     - assets/icons/navigation/profile.png
     
     # Illustrations de campagnes
-    - assets/images/ramadan_campaign.png
     - assets/images/daily_zikr_campaign.png
     - assets/images/community_campaign.png
     
@@ -136,6 +135,7 @@ flutter:
     
     # Placeholders
     - assets/images/avatar_placeholder.png
+    - assets/images/miniature_zikr.jpg
     # - assets/images/logo/
     # - assets/images/illustrations/
     # - assets/images/backgrounds/
