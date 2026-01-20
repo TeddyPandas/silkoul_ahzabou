@@ -2,12 +2,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/article.dart';
 
 class ArticleReaderScreen extends StatefulWidget {
   final Article article;
+  final String? heroTag;
 
-  const ArticleReaderScreen({super.key, required this.article});
+  const ArticleReaderScreen({
+    super.key, 
+    required this.article,
+    this.heroTag, // Allow passing a Hero tag for animation
+  });
 
   @override
   State<ArticleReaderScreen> createState() => _ArticleReaderScreenState();
@@ -22,6 +28,7 @@ class _ArticleReaderScreenState extends State<ArticleReaderScreen> {
   Widget build(BuildContext context) {
     final backgroundColor = _isDarkMode ? Colors.black : Colors.white;
     final textColor = _isDarkMode ? Colors.white : Colors.black87;
+    final starColor = const Color(0xFFFFD700);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -55,6 +62,28 @@ class _ArticleReaderScreenState extends State<ArticleReaderScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // HERO ANIMATION: SACRED STAR
+            if (widget.heroTag != null)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Hero(
+                    tag: widget.heroTag!,
+                    child: Icon(
+                      Icons.star_rounded,
+                      size: 100,
+                      color: starColor,
+                      shadows: [
+                        Shadow(color: starColor.withOpacity(0.5), blurRadius: 20),
+                      ],
+                    ),
+                  )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .scale(begin: const Offset(1, 1), end: const Offset(1.2, 1.2), duration: 1.seconds)
+                  .shimmer(color: Colors.white, duration: 2.seconds),
+                ),
+              ),
+
             // Title
             Text(
               _isArabic ? widget.article.titleAr : widget.article.titleFr,

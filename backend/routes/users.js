@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, isAdmin } = require('../middleware/auth');
 const { profileValidation, handleValidationErrors } = require('../middleware/validation');
 const { catchAsync } = require('../utils/response');
 const {
@@ -104,6 +104,7 @@ router.get(
   catchAsync(getSilsilas)
 );
 
+
 /**
  * @route   POST /api/users/silsilas
  * @desc    Créer une nouvelle silsila
@@ -112,6 +113,7 @@ router.get(
 router.post(
   '/silsilas',
   authenticate,
+  isAdmin,
   [
     body('name')
       .notEmpty().withMessage('Le nom de la silsila est requis')

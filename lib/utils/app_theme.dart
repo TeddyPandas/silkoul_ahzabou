@@ -24,6 +24,7 @@ class AppColors {
   static const Color error = Color(0xFFE53935); // Rouge erreur
   static const Color warning = Color(0xFFFFA726); // Orange avertissement
   static const Color info = Color(0xFF29B6F6); // Bleu information
+  static const Color goldPrimary = Color(0xFFD4AF37); // Gold Premium
 
   // Couleurs de texte
   static const Color textPrimary = Color(0xFF212121); // Texte principal

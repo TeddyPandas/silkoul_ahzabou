@@ -11,6 +11,7 @@ const campaignRoutes = require('./routes/campaigns');
 const taskRoutes = require('./routes/tasks');
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
+const mediaRoutes = require('./routes/media');
 
 // Initialiser Express
 const app = express();
@@ -25,8 +26,22 @@ app.use(helmet());
 
 // CORS
 // CORS
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://localhost:8080',
+  /\.vercel\.app$/, // Example for web deployment
+];
+
 app.use(cors({
-  origin: true, // Allow any origin
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.some(ao => (typeof ao === 'string' ? ao === origin : ao.test(origin)))) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS Policy: Access denied'), false);
+  },
   credentials: true,
   optionsSuccessStatus: 200
 }));
@@ -72,6 +87,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/media', mediaRoutes);
 
 // ==================== Gestion des erreurs ====================
 

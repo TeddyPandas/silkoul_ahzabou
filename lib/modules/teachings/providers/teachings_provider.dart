@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/teaching.dart';
 import '../models/article.dart';
 import '../models/category.dart';
@@ -115,6 +116,48 @@ class TeachingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> createArticle(Article article) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _service.createArticle(article);
+      await fetchArticles();
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateArticle(Article article) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _service.updateArticle(article);
+      await fetchArticles();
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteArticle(String id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _service.deleteArticle(id);
+      await fetchArticles();
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> fetchPodcastShows() async {
     try {
       _podcastShows = await _service.getPodcastShows();
@@ -141,12 +184,9 @@ class TeachingsProvider with ChangeNotifier {
   }
 
   Future<void> _loadFavorites() async {
-    // Current User ID (Mock or Real)
-    // For now using a hardcoded test ID or getting from Supabase if auth is set up
-    // final userId = Supabase.instance.client.auth.currentUser?.id;
-    const userId = "test-user-id"; // Placeholder until Auth context is fully passed or singleton used
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     
-    if (userId.isNotEmpty) {
+    if (userId != null && userId.isNotEmpty) {
       try {
         final favs = await _service.getFavoriteIds(userId, 'TEACHING'); // Only Teachings for now
         _favoriteIds = favs.toSet();
@@ -158,7 +198,9 @@ class TeachingsProvider with ChangeNotifier {
   }
 
   Future<void> toggleFavorite(Teaching item) async {
-    const userId = "test-user-id"; // Placeholder
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+    
     final isFav = _favoriteIds.contains(item.id);
     
     // Optimistic Update
