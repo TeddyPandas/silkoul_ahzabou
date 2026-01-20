@@ -213,48 +213,82 @@ class _SilsilaTreeViewerState extends State<SilsilaTreeViewer> {
         // 1. LE CERCLE (AVATAR)
         GestureDetector(
           onTap: () => widget.onNodeTap?.call(node),
-          child: Container(
-            width: isRoot ? 100 : 70, 
-            height: isRoot ? 100 : 70,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: theme.scaffoldBackgroundColor,
-              border: Border.all(
-                color: isRoot ? const Color(0xFFFFD700) : theme.colorScheme.primary.withOpacity(0.5),
-                width: isRoot ? 4 : 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isRoot 
-                      ? const Color(0xFFFFD700).withOpacity(0.3)
-                      : Colors.black.withOpacity(0.05),
-                  blurRadius: isRoot ? 25 : 10,
-                  offset: const Offset(0, 5),
+          child: isRoot
+              ? Hero(
+                  tag: 'pole_star', // Unique tag for the Pole Star animation
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.scaffoldBackgroundColor,
+                      border: Border.all(
+                        color: const Color(0xFFFFD700),
+                        width: 4,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFFD700).withOpacity(0.3),
+                          blurRadius: 25,
+                          offset: const Offset(0, 5),
+                        )
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                        ),
+                        child: const Icon(
+                          Icons.star_rounded,
+                          size: 50,
+                          color: Color(0xFFFFD700),
+                        ),
+                      ),
+                    ),
+                  ),
                 )
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(4.0), // Espace entre bordure et image
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: node.image != null 
-                      ? DecorationImage(image: AssetImage(node.image!), fit: BoxFit.cover)
-                      : null,
-                  color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-                ),
-                child: node.image == null 
-                    ? Icon(
-                        isRoot ? Icons.star_rounded : (node.isUser ? Icons.person_outline : Icons.mosque_outlined),
-                        size: isRoot ? 50 : 28, // Plus grand pour l'étoile
-                        color: isRoot ? const Color(0xFFFFD700) : theme.colorScheme.primary,
+              : Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.scaffoldBackgroundColor,
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withOpacity(0.5),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
                       )
-                    : null,
-              ),
-            ),
-          ),
-        ).animate()
-         .scale(duration: 400.ms, curve: Curves.easeOutBack),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: node.image != null
+                            ? DecorationImage(image: AssetImage(node.image!), fit: BoxFit.cover)
+                            : null,
+                        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      ),
+                      child: node.image == null
+                          ? Icon(
+                              node.isUser ? Icons.person_outline : Icons.mosque_outlined,
+                              size: 28,
+                              color: theme.colorScheme.primary,
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+        ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
 
         const SizedBox(height: 12),
 

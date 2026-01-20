@@ -200,7 +200,7 @@ const getCampaignById = async (req, res) => {
     .from('campaigns')
     .select(`
       *,
-      creator:created_by(id, display_name, avatar_url, email),
+      creator:created_by(id, display_name, avatar_url),
       tasks(id, name, total_number, remaining_number, daily_goal, created_at)
     `)
     .eq('id', id)

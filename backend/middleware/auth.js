@@ -65,7 +65,33 @@ const optionalAuthenticate = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware pour vérifier si l'utilisateur est un administrateur
+ */
+const isAdmin = async (req, res, next) => {
+  try {
+    if (!req.userId) {
+      throw new AuthenticationError('Authentification requise');
+    }
+
+    const { data: profile, error } = await req.supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', req.userId)
+      .single();
+
+    if (error || !profile || profile.role !== 'ADMIN') {
+      throw new AuthenticationError('Accès refusé : Droits administrateur requis');
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   authenticate,
-  optionalAuthenticate
+  optionalAuthenticate,
+  isAdmin
 };

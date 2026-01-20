@@ -292,7 +292,7 @@ const searchUsers = async (req, res) => {
 
   let dbQuery = supabase
     .from('profiles')
-    .select('id, display_name, avatar_url, email')
+    .select('id, display_name, avatar_url')
     .limit(limit);
 
   if (query) {

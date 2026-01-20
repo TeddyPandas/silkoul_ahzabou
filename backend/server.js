@@ -26,8 +26,22 @@ app.use(helmet());
 
 // CORS
 // CORS
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://localhost:8080',
+  /\.vercel\.app$/, // Example for web deployment
+];
+
 app.use(cors({
-  origin: true, // Allow any origin
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.some(ao => (typeof ao === 'string' ? ao === origin : ao.test(origin)))) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS Policy: Access denied'), false);
+  },
   credentials: true,
   optionsSuccessStatus: 200
 }));
