@@ -35,7 +35,7 @@ class MediaProvider with ChangeNotifier {
 
       _authors = results[0] as List<MediaAuthor>;
       _categories = results[1] as List<MediaCategory>;
-      _featuredVideos = results[2] as List<MediaVideo>;
+      _featuredVideos = (results[2] as ({List<MediaVideo> videos, int count})).videos;
       
     } catch (e) {
       debugPrint('❌ Error loading media data: $e');
@@ -51,21 +51,66 @@ class MediaProvider with ChangeNotifier {
       return _videosByCategory[categoryId]!;
     }
 
-    final videos = await _service.getVideos(categoryId: categoryId, limit: 50);
-    _videosByCategory[categoryId] = videos;
+    final result = await _service.getVideos(categoryId: categoryId, limit: 50);
+    _videosByCategory[categoryId] = result.videos;
     notifyListeners();
-    return videos;
+    return result.videos;
   }
   
-    /// Get videos for a specific author (with caching)
+  /// Get videos for a specific author (with caching)
   Future<List<MediaVideo>> getVideosForAuthor(String authorId) async {
     if (_videosByAuthor.containsKey(authorId)) {
       return _videosByAuthor[authorId]!;
     }
 
-    final videos = await _service.getVideos(authorId: authorId, limit: 10);
-    _videosByAuthor[authorId] = videos;
+    final result = await _service.getVideos(authorId: authorId, limit: 10);
+    _videosByAuthor[authorId] = result.videos;
     notifyListeners();
-    return videos;
+    return result.videos;
+  }
+
+  // ===========================================================================
+  // ADMIN METHODS
+  // ===========================================================================
+
+  Future<({List<MediaVideo> videos, int count})> getAllVideos({int? page, int limit = 20}) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      return await _service.getAllVideos(page: page, limit: limit);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateVideo(String id, {
+    String? title,
+    String? description,
+    String? authorId,
+    String? categoryId,
+    String? status,
+    String? customSubtitleUrl,
+  }) async {
+    await _service.updateVideo(
+      id,
+      title: title,
+      description: description,
+      authorId: authorId,
+      categoryId: categoryId,
+      status: status,
+      customSubtitleUrl: customSubtitleUrl,
+    );
+    // Invalidate caches to force refresh on next view
+    _videosByCategory.clear();
+    _videosByAuthor.clear();
+    initialize(); // Refresh home widgets
+  }
+
+  Future<void> deleteVideo(String id) async {
+    await _service.deleteVideo(id);
+    _videosByCategory.clear();
+    _videosByAuthor.clear();
+    initialize();
   }
 }
