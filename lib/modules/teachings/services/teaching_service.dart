@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/teaching.dart';
 import '../models/article.dart';
 import '../models/category.dart';
-import '../models/category.dart';
 import '../models/author.dart';
 import '../models/podcast_show.dart';
 import '../models/transcript_segment.dart';
@@ -364,7 +363,6 @@ class TeachingService {
        // Duration might change content changed
        'duration_seconds': teaching.durationSeconds,
        'updated_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
      }).eq('id', teaching.id);
   }
 
