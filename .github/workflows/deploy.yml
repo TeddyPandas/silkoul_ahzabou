@@ -19,10 +19,20 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/silkoul-backend/backend
+            # Prepare directory
+            mkdir -p /var/www/silkoul-backend
+            cd /var/www/silkoul-backend
+
+            # Clone if not exists, else pull
+            if [ ! -d "backend" ]; then
+              echo "🚀 Cloning repository for the first time..."
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              echo "🔄 Pulling latest changes..."
+              git pull origin main
+            fi
             
-            # Pull latest changes
-            git pull origin main
+            cd backend
             
             # Create .env file from secrets if it doesn't exist or update it
             echo "PORT=3000" > .env
