@@ -4,6 +4,8 @@ import '../../config/app_theme.dart';
 import '../../config/app_constants.dart';
 import '../../providers/auth_provider.dart';
 import 'signup_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../modules/admin/screens/admin_dashboard_screen.dart';
 import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -54,7 +56,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       _waitingForGoogleAuth = false;
 
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(
+            builder: (_) =>
+                kIsWeb ? const AdminDashboardScreen() : const HomeScreen()),
       );
     }
   }
@@ -99,7 +103,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       _hasNavigated = true;
       _waitingForGoogleAuth = false;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(
+            builder: (_) =>
+                kIsWeb ? const AdminDashboardScreen() : const HomeScreen()),
       );
     } else {
       debugPrint('🔐 [LoginScreen] ❌ No user yet, waiting for auth...');
@@ -132,9 +138,15 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     setState(() => _isLoading = false);
 
     if (success) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      if (kIsWeb) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
