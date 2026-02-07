@@ -4,6 +4,8 @@ import '../config/app_theme.dart';
 import '../config/app_constants.dart';
 import '../providers/auth_provider.dart';
 import 'auth/login_screen.dart';
+import '../modules/admin/screens/admin_dashboard_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'home/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -37,10 +39,17 @@ class _SplashScreenState extends State<SplashScreen> {
         '[SplashScreen] Auth state check: isAuthenticated = $isAuthenticated');
 
     if (isAuthenticated) {
-      print('[SplashScreen] Navigating to HomeScreen...');
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      if (kIsWeb) {
+        print('[SplashScreen] Web detected: Navigating to AdminDashboardScreen...');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+        );
+      } else {
+        print('[SplashScreen] Navigating to HomeScreen...');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
     } else {
       print('[SplashScreen] Navigating to LoginScreen...');
       Navigator.of(context).pushReplacement(
