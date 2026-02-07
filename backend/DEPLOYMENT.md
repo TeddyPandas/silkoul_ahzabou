@@ -175,107 +175,68 @@ npm install -g pm2
 ```
 
 5. **Configuration du firewall**
-```bash
-ufw allow ssh
-ufw allow http
-ufw allow https
-ufw enable
-```
+### Déploiement avec Docker (Recommandé)
 
-### Déploiement de l'Application
+Cette méthode est plus robuste et évite les conflits de dépendances.
 
-1. **Cloner le repository**
-```bash
-cd /var/www
-git clone your_repository_url
-cd backend
-```
+1. **Prérequis sur le VPS**
+   - Docker installé
+   - Docker Compose installé
+   - Git installé
 
-2. **Installer les dépendances**
-```bash
-npm install --production
-```
+2. **Installation Rapide**
+   ```bash
+   # Cloner le dépôt
+   git clone https://github.com/votre-user/silkoul-ahzabou-backend.git
+   cd silkoul-ahzabou-backend/backend
+   
+   # Créer le fichier .env
+   cp .env.example .env
+   nano .env # Remplir avec vos valeurs de production
+   
+   # Lancer le déploiement
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
 
-3. **Créer le fichier .env**
-```bash
-nano .env
-# Coller vos variables d'environnement
-```
+3. **Ce que fait le script `deploy.sh`**
+   - Vérifie la présence de Docker
+   - Tire la dernière version du code (git pull)
+   - Construit les images Docker
+   - Lance les conteneurs (API + Nginx) en arrière-plan
+   - Nettoie les images inutilisées
 
-4. **Démarrer avec PM2**
-```bash
-pm2 start server.js --name silkoul-api
-pm2 save
-pm2 startup
-```
+4. **Vérification**
+   ```bash
+   docker ps
+   # Vous devriez voir deux conteneurs : backend-api et backend-nginx
+   ```
 
-5. **Configuration Nginx (Reverse Proxy)**
+5. **Configuration Nginx (Avancé)**
+### Automatisation Complète (Recommandé)
 
-Installer Nginx:
-```bash
-apt install -y nginx
-```
+1.  **Préparation du Serveur (Bootstrap)**
+    Depuis votre machine locale, exécutez le script d'initialisation :
+    ```bash
+    cd backend
+    ./setup_vps.sh root@VOTRE_IP_VPS
+    ```
+    Cela va installer Docker, Docker Compose, et configurer le pare-feu automatiquement.
 
-Créer la configuration:
-```bash
-nano /etc/nginx/sites-available/silkoul-api
-```
+2.  **Déploiement Continu (CI/CD)**
+    Le fichier `.github/workflows/deploy.yml` est configuré pour déployer automatiquement à chaque push sur `main`.
+    
+    Pour que cela fonctionne, ajoutez ces **Secrets** dans votre dépôt GitHub (Settings > Secrets and variables > Actions) :
+    -   `VPS_HOST` : L'adresse IP de votre VPS
+    -   `VPS_USER` : Le nom d'utilisateur (ex: root)
+    -   `SSH_PRIVATE_KEY` : Votre clé privée SSH (contenu de `~/.ssh/id_rsa`)
+    -   `SUPABASE_URL` : Votre URL Supabase
+    -   `SUPABASE_ANON_KEY` : Clé anon
+    -   `SUPABASE_SERVICE_ROLE_KEY` : Clé service role
 
-Contenu:
-```nginx
-server {
-    listen 80;
-    server_name api.your-domain.com;
+3.  **Mise à jour manuelle**
+    Si besoin, vous pouvez toujours vous connecter et lancer `./deploy.sh` manuellement.
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-Activer le site:
-```bash
-ln -s /etc/nginx/sites-available/silkoul-api /etc/nginx/sites-enabled/
-nginx -t
-systemctl restart nginx
-```
-
-6. **Configuration SSL avec Let's Encrypt**
-
-```bash
-apt install -y certbot python3-certbot-nginx
-certbot --nginx -d api.your-domain.com
-```
-
-### Automatisation des Déploiements
-
-Créer un script de déploiement:
-```bash
-nano /var/www/backend/deploy.sh
-```
-
-Contenu:
-```bash
-#!/bin/bash
-cd /var/www/backend
-git pull origin main
-npm install --production
-pm2 restart silkoul-api
-echo "✅ Déploiement terminé!"
-```
-
-Rendre exécutable:
-```bash
-chmod +x deploy.sh
-```
 
 ## Configuration de Supabase
 
