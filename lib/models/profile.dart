@@ -78,6 +78,7 @@ class Profile {
     DateTime? dateOfBirth,
     String? silsilaId,
     String? avatarUrl,
+    int? points,
     int? level,
     String? role,
     DateTime? updatedAt,

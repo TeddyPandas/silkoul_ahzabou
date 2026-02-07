@@ -726,7 +726,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
              Text(
-              _isSubscribed ? "Prendre d'autres Juz (Mouchaa'anda/Aide)" : "Sélectionnez vos Juz (Max 3)",
+              _isSubscribed ? "Prendre d'autres Juz" : "Sélectionnez vos Juz (Max 3)",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textPrimary),
             ),
 
