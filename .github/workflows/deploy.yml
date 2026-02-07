@@ -1,0 +1,36 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/silkoul-backend/backend
+            
+            # Pull latest changes
+            git pull origin main
+            
+            # Create .env file from secrets if it doesn't exist or update it
+            echo "PORT=3000" > .env
+            echo "NODE_ENV=production" >> .env
+            echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+            echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+            echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
+            
+            # Run deployment script
+            chmod +x deploy.sh
+            ./deploy.sh
