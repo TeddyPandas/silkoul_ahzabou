@@ -3,6 +3,7 @@ import '../models/user_task.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart'; // Import UserService
 import '../utils/error_handler.dart';
+import 'auth_provider.dart';
 
 class UserProvider with ChangeNotifier {
   final TaskService _taskService = TaskService();
