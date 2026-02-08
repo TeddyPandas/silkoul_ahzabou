@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile.dart';
 import '../config/supabase_config.dart';
+import 'package:flutter/foundation.dart';
 import 'supabase_service.dart';
 
 /// Service d'authentification unifié utilisant UNIQUEMENT Supabase Auth
@@ -78,8 +79,8 @@ class AuthService {
     try {
       final response = await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: SupabaseConfig.redirectUrl,
-        authScreenLaunchMode: LaunchMode.externalApplication,
+        redirectTo: kIsWeb ? null : SupabaseConfig.redirectUrl,
+        authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
       );
 
       // Note: Le profil sera créé automatiquement lors du callback OAuth
