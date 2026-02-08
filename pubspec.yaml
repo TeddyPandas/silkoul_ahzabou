@@ -61,8 +61,8 @@ dependencies:
   email_validator: ^2.1.17
   
   # Audio (Abjad Calculator)
-  audioplayers: ^5.2.1
-  vector_math: ^2.1.4
+  # audioplayers: ^5.2.1
+  # vector_math: ^2.1.4
   
   # Navigation
   go_router: ^13.0.0
