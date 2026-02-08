@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/user_task.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart'; // Import UserService
-import 'auth_provider.dart'; // Import AuthProvider to update profile
+import '../utils/error_handler.dart';
 
 class UserProvider with ChangeNotifier {
   final TaskService _taskService = TaskService();
@@ -40,7 +40,7 @@ class UserProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -72,7 +72,7 @@ class UserProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       rethrow;
@@ -97,7 +97,7 @@ class UserProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -113,19 +113,19 @@ class UserProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      debugPrint(
+      ErrorHandler.log(
           '🔄 [UserProvider] loadAllUserTasks called for userId: $userId, onlyIncomplete: $onlyIncomplete');
       _userTasks = await _taskService.getAllUserTasks(
         userId: userId,
         onlyIncomplete: onlyIncomplete,
       );
-      debugPrint(
+      ErrorHandler.log(
           '✅ [UserProvider] loadAllUserTasks success. Found ${_userTasks.length} tasks.');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -166,7 +166,7 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -199,7 +199,7 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -231,7 +231,7 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -251,7 +251,7 @@ class UserProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -270,7 +270,7 @@ class UserProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }

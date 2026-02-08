@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile.dart';
 import '../services/auth_service.dart';
 import '../services/supabase_service.dart';
+import '../utils/error_handler.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -29,37 +30,37 @@ class AuthProvider with ChangeNotifier {
 
   /// Initialiser le listener d'état d'authentification
   void _initAuthListener() {
-    debugPrint('🔐 [AuthProvider] Initializing auth listener...');
+    ErrorHandler.log('🔐 [AuthProvider] Initializing auth listener...');
 
     SupabaseService.client.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       final Session? session = data.session;
 
-      debugPrint('🔐 [AuthProvider] ======= AUTH EVENT RECEIVED =======');
-      debugPrint('🔐 [AuthProvider] Event: $event');
-      debugPrint('🔐 [AuthProvider] Session exists: ${session != null}');
+      ErrorHandler.log('🔐 [AuthProvider] ======= AUTH EVENT RECEIVED =======');
+      ErrorHandler.log('🔐 [AuthProvider] Event: $event');
+      ErrorHandler.log('🔐 [AuthProvider] Session exists: ${session != null}');
       if (session != null) {
-        debugPrint('🔐 [AuthProvider] User ID: ${session.user.id}');
-        debugPrint('🔐 [AuthProvider] User email: ${session.user.email}');
+        ErrorHandler.log('🔐 [AuthProvider] User ID: ${session.user.id}');
+        ErrorHandler.log('🔐 [AuthProvider] User email: ${session.user.email}');
       }
-      debugPrint('🔐 [AuthProvider] ===================================');
+      ErrorHandler.log('🔐 [AuthProvider] ===================================');
 
       if (event == AuthChangeEvent.signedIn) {
-        debugPrint('🔐 [AuthProvider] ✅ User signed in! Updating state...');
+        ErrorHandler.log('🔐 [AuthProvider] ✅ User signed in! Updating state...');
         _user = session?.user;
-        debugPrint('🔐 [AuthProvider] _user set to: ${_user?.id}');
+        ErrorHandler.log('🔐 [AuthProvider] _user set to: ${_user?.id}');
         _loadProfile();
       } else if (event == AuthChangeEvent.signedOut) {
-        debugPrint('🔐 [AuthProvider] User signed out');
+        ErrorHandler.log('🔐 [AuthProvider] User signed out');
         _user = null;
         _profile = null;
         notifyListeners();
       } else if (event == AuthChangeEvent.tokenRefreshed) {
-        debugPrint('🔐 [AuthProvider] Token refreshed');
+        ErrorHandler.log('🔐 [AuthProvider] Token refreshed');
         _user = session?.user;
         notifyListeners();
       } else if (event == AuthChangeEvent.initialSession) {
-        debugPrint('🔐 [AuthProvider] Initial session event');
+        ErrorHandler.log('🔐 [AuthProvider] Initial session event');
         _user = session?.user;
         if (_user != null) {
           _loadProfile();
@@ -81,7 +82,7 @@ class AuthProvider with ChangeNotifier {
       _profile = await _authService.getCurrentProfile();
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors du chargement du profil: $e');
+      ErrorHandler.log('Erreur lors du chargement du profil: $e');
     }
   }
 
@@ -116,7 +117,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -150,7 +151,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -174,7 +175,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return success;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -189,7 +190,7 @@ class AuthProvider with ChangeNotifier {
       _profile = null;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       notifyListeners();
     }
   }
@@ -225,7 +226,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;

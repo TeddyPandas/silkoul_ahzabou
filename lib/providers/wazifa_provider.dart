@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/wazifa_gathering.dart';
 import '../services/wazifa_service.dart';
 import 'package:geolocator/geolocator.dart';
+import '../utils/error_handler.dart';
 
 class WazifaProvider with ChangeNotifier {
   final WazifaService _service = WazifaService.instance;
@@ -45,7 +46,7 @@ class WazifaProvider with ChangeNotifier {
         try {
           _currentPosition = await _determinePosition();
         } catch (locationError) {
-          print("⚠️ Impossible d'obtenir le GPS: $locationError");
+          ErrorHandler.log("⚠️ Impossible d'obtenir le GPS: $locationError");
           // Fallback silencieux ou via position par défaut (Dakar) pour ne pas bloquer l'app
           // On ne met pas _currentPosition à null si on veut qu'il utilise le fallback
           // Mais pour l'instant, disons qu'on utilise une position par défaut si null
@@ -63,8 +64,8 @@ class WazifaProvider with ChangeNotifier {
       );
 
     } catch (e) {
-      _error = e.toString();
-      print("Erreur WazifaProvider: $e");
+      _error = ErrorHandler.sanitize(e);
+      ErrorHandler.log("Erreur WazifaProvider: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -117,7 +118,7 @@ class WazifaProvider with ChangeNotifier {
       // Recharger la liste après ajout
       await loadNearbyGatherings();
     } catch (e) {
-      _error = e.toString();
+      _error = ErrorHandler.sanitize(e);
       rethrow;
     } finally {
       _isLoading = false;
@@ -126,47 +127,47 @@ class WazifaProvider with ChangeNotifier {
   }
 
   Future<Position> _determinePosition() async {
-    print('📍 [WazifaProvider] Début _determinePosition');
+    ErrorHandler.log('📍 [WazifaProvider] Début _determinePosition');
     bool serviceEnabled;
     LocationPermission permission;
 
     // 1. Vérifier si le service est activé
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    print('📍 [WazifaProvider] Service localisation activé: $serviceEnabled');
+    ErrorHandler.log('📍 [WazifaProvider] Service localisation activé: $serviceEnabled');
     if (!serviceEnabled) {
       throw Exception('Les services de localisation sont désactivés. Activez le GPS.');
     }
 
     // 2. Vérifier la permission actuelle
     permission = await Geolocator.checkPermission();
-    print('📍 [WazifaProvider] Permission actuelle: $permission');
+    ErrorHandler.log('📍 [WazifaProvider] Permission actuelle: $permission');
     
     if (permission == LocationPermission.denied) {
       // 3. Demander la permission
       permission = await Geolocator.requestPermission();
-      print('📍 [WazifaProvider] Permission après demande: $permission');
+      ErrorHandler.log('📍 [WazifaProvider] Permission après demande: $permission');
       if (permission == LocationPermission.denied) {
         throw Exception('Les permissions de localisation sont refusées');
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      print('📍 [WazifaProvider] Permission refusée définitivement');
+      ErrorHandler.log('📍 [WazifaProvider] Permission refusée définitivement');
       throw Exception(
           'Les permissions de localisation sont définitivement refusées.');
     }
 
     // 4. Obtenir la position
-    print('📍 [WazifaProvider] Récupération de la position...');
+    ErrorHandler.log('📍 [WazifaProvider] Récupération de la position...');
     try {
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium, // Réduit pour tester
         timeLimit: const Duration(seconds: 10), // Timeout de 10s
       );
-      print('📍 [WazifaProvider] Position obtenue: ${position.latitude}, ${position.longitude}');
+      ErrorHandler.log('📍 [WazifaProvider] Position obtenue: ${position.latitude}, ${position.longitude}');
       return position;
     } catch (e) {
-      print('📍 [WazifaProvider] Erreur getCurrentPosition: $e');
+      ErrorHandler.log('📍 [WazifaProvider] Erreur getCurrentPosition: $e');
       rethrow;
     }
   }

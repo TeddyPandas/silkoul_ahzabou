@@ -4,6 +4,7 @@ import '../models/campaign.dart';
 import '../models/campaign_subscriber.dart';
 import '../services/campaign_service.dart';
 import '../services/notification_service.dart';
+import '../utils/error_handler.dart';
 
 class CampaignProvider with ChangeNotifier {
   final CampaignService _campaignService = CampaignService();
@@ -66,19 +67,19 @@ class CampaignProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      debugPrint('🔄 [CampaignProvider] Fetching public campaigns...');
+      ErrorHandler.log('🔄 [CampaignProvider] Fetching public campaigns...');
       _campaigns = await _campaignService.getPublicCampaigns(
         category: category,
         searchQuery: searchQuery,
       );
-      debugPrint(
+      ErrorHandler.log(
           '✅ [CampaignProvider] Fetched ${_campaigns.length} public campaigns');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ [CampaignProvider] Error fetching campaigns: $e');
-      _errorMessage = _parseErrorMessage(e.toString());
+      ErrorHandler.log('❌ [CampaignProvider] Error fetching campaigns: $e');
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -96,7 +97,7 @@ class CampaignProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      debugPrint(
+      ErrorHandler.log(
           '🔄 [CampaignProvider] Fetching my campaigns for userId: $userId (onlyCreated: $onlyCreated)...');
       _myCampaigns = await _campaignService.getUserCampaigns(
         userId: userId,
@@ -109,14 +110,14 @@ class CampaignProvider with ChangeNotifier {
           NotificationService().scheduleCampaignEndNotification(campaign);
         }
       }
-      debugPrint(
+      ErrorHandler.log(
           '✅ [CampaignProvider] Fetched ${_myCampaigns.length} user campaigns');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ [CampaignProvider] Error fetching my campaigns: $e');
-      _errorMessage = _parseErrorMessage(e.toString());
+      ErrorHandler.log('❌ [CampaignProvider] Error fetching my campaigns: $e');
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -138,7 +139,7 @@ class CampaignProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = _parseErrorMessage(e.toString());
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -160,7 +161,7 @@ class CampaignProvider with ChangeNotifier {
       return await _campaignService.getCampaignById(campaignId,
           accessCode: accessCode);
     } catch (e) {
-      _errorMessage = _parseErrorMessage(e.toString());
+      _errorMessage = ErrorHandler.sanitize(e);
       notifyListeners();
       return null;
     }
@@ -196,7 +197,7 @@ class CampaignProvider with ChangeNotifier {
       );
     } catch (e) {
       // En cas d'erreur, considérer comme non abonné
-      debugPrint('Erreur lors de la vérification de souscription: $e');
+      ErrorHandler.log('Erreur lors de la vérification de souscription: $e');
       return false;
     }
   }
@@ -216,7 +217,7 @@ class CampaignProvider with ChangeNotifier {
     try {
       return await _campaignService.getUserTaskSubscriptions(campaignId);
     } catch (e) {
-      debugPrint('Erreur lors de la récupération des tâches souscrites: $e');
+      ErrorHandler.log('Erreur lors de la récupération des tâches souscrites: $e');
       return [];
     }
   }
@@ -225,10 +226,10 @@ class CampaignProvider with ChangeNotifier {
   // RÉCUPÉRER LES ABONNÉS (POUR LE CRÉATEUR)
   // ══════════════════════════════════════════════════════════════════════════
   Future<void> fetchSubscribers(String campaignId, {int page = 0, String? searchQuery, bool refresh = false}) async {
-    debugPrint('📥 [Provider] fetchSubscribers called - campaign: $campaignId, page: $page, refresh: $refresh');
+    ErrorHandler.log('📥 [Provider] fetchSubscribers called - campaign: $campaignId, page: $page, refresh: $refresh');
     
     if (_isLoadingSubscribers) {
-      debugPrint('⏳ [Provider] Already loading, skipping...');
+      ErrorHandler.log('⏳ [Provider] Already loading, skipping...');
       return;
     }
 
@@ -267,7 +268,7 @@ class CampaignProvider with ChangeNotifier {
       _isLoadingSubscribers = false;
       notifyListeners();
     } catch (e) {
-      debugPrint('Provider: Erreur fetchSubscribers: $e');
+      ErrorHandler.log('Provider: Erreur fetchSubscribers: $e');
       _isLoadingSubscribers = false;
       notifyListeners();
     }
@@ -303,7 +304,7 @@ class CampaignProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = _parseErrorMessage(e.toString());
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -346,7 +347,7 @@ class CampaignProvider with ChangeNotifier {
       return true;
     } catch (e) {
       // ✅ AMÉLIORATION : Parser l'erreur pour un message plus clair
-      _errorMessage = _parseErrorMessage(e.toString());
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -443,7 +444,7 @@ class CampaignProvider with ChangeNotifier {
       notifyListeners();
       return campaignId;
     } catch (e) {
-      _errorMessage = _parseErrorMessage(e.toString());
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return null;
@@ -507,7 +508,7 @@ class CampaignProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = _parseErrorMessage(e.toString());
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -571,7 +572,7 @@ class CampaignProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = _parseErrorMessage(e.toString());
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -606,7 +607,7 @@ class CampaignProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = _parseErrorMessage(e.toString());
+      _errorMessage = ErrorHandler.sanitize(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -618,61 +619,5 @@ class CampaignProvider with ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
-  }
-
-  // ============================================
-  // ✅ PARSER LES MESSAGES D'ERREUR (NOUVEAU)
-  // ============================================
-  String _parseErrorMessage(String rawError) {
-    // Extraire un message utilisateur clair depuis l'erreur brute
-
-    if (rawError.contains('déjà abonné') ||
-        rawError.contains('already subscribed')) {
-      return 'Vous êtes déjà abonné à cette campagne.';
-    }
-
-    if (rawError.contains('Code d\'accès requis') ||
-        rawError.contains('Access code required')) {
-      return 'Un code d\'accès est requis pour accéder à cette campagne.';
-    }
-
-    if (rawError.contains('Code d\'accès invalide') ||
-        rawError.contains('Invalid access code') ||
-        rawError.contains('access code')) {
-      return 'Le code d\'accès est invalide.';
-    }
-
-    if (rawError.contains('Quantité') || rawError.contains('quantity')) {
-      return 'La quantité demandée n\'est plus disponible.';
-    }
-
-    if (rawError.contains('non authentifié') ||
-        rawError.contains('not authenticated')) {
-      return 'Vous devez être connecté pour effectuer cette action.';
-    }
-
-    if (rawError.contains('400')) {
-      // Tentative d'extraction du message d'erreur spécifique du backend
-      // Format attendu: "Exception: Erreur 400: Le message du backend"
-      if (rawError.contains('Erreur 400:')) {
-        return rawError.split('Erreur 400:').last.trim();
-      }
-      return 'Les données envoyées sont invalides. Veuillez vérifier.';
-    }
-
-    if (rawError.contains('404')) {
-      return 'La campagne demandée n\'existe pas ou a été supprimée.';
-    }
-
-    if (rawError.contains('500') || rawError.contains('503')) {
-      return 'Le serveur rencontre un problème. Veuillez réessayer plus tard.';
-    }
-
-    if (rawError.contains('réseau') || rawError.contains('network')) {
-      return 'Erreur de connexion. Vérifiez votre connexion Internet.';
-    }
-
-    // Si aucun pattern reconnu, retourner un message générique
-    return 'Une erreur est survenue. Veuillez réessayer.';
   }
 }
