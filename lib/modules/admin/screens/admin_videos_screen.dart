@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../utils/app_theme.dart';
 import '../../../../providers/media_provider.dart';
@@ -60,6 +61,10 @@ class _AdminVideosScreenState extends State<AdminVideosScreen> {
         }
       }
     }
+  }
+
+  void _editVideo(MediaVideo video) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Modification non supportée pour le moment.")));
   }
 
   @override

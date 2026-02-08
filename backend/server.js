@@ -30,6 +30,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   'http://localhost:8080',
+  /^http:\/\/localhost:\d+$/, // Allow any localhost port for development
   /\.vercel\.app$/, // Example for web deployment
 ];
 
