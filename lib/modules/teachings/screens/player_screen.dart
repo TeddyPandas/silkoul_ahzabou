@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui'; // For ImageFilter
 import 'package:share_plus/share_plus.dart';
 import '../models/teaching.dart';
-import '../models/transcript_segment.dart';
 import '../widgets/transcript_view.dart';
 import '../services/teaching_service.dart';
 import '../providers/teachings_provider.dart';
@@ -348,7 +347,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   provider.setPlaybackSpeed(speed);
                   Navigator.pop(context);
                 },
-              )).toList(),
+              )),
               const SizedBox(height: 16),
             ],
           ),

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/campaign.dart';
 import '../models/task.dart';
+import '../models/campaign_subscriber.dart';
 import 'supabase_service.dart';
 
 /// ════════════════════════════════════════════════════════════════════════════
@@ -876,5 +877,73 @@ class CampaignService {
     if (url != null && url.isNotEmpty) return url;
     // Fallback pour émulateur Android ou localhost
     return 'http://10.0.2.2:3000/api';
+  }
+
+  /// ══════════════════════════════════════════════════════════════════════════
+  /// RÉCUPÉRER LES ABONNÉS D'UNE CAMPAGNE (AVEC PAGINATION & RECHERCHE)
+  /// ══════════════════════════════════════════════════════════════════════════
+  ///
+  /// Récupère la liste des abonnés avec leurs profils et tâches souscrites.
+  /// Supporte la pagination et la recherche par nom.
+  ///
+  /// PARAMÈTRES :
+  /// - campaignId : UUID de la campagne
+  /// - page : Numéro de la page (0-indexé)
+  /// - limit : Nombre d'éléments par page (défaut 20)
+  /// - searchQuery : Terme de recherche optionnel (filtre sur display_name)
+  ///
+  /// RETOURNE :
+  /// - List<CampaignSubscriber> : Liste des abonnés avec leurs tâches souscrites
+  /// ══════════════════════════════════════════════════════════════════════════
+  Future<List<CampaignSubscriber>> getCampaignSubscribers(
+    String campaignId, {
+    int page = 0,
+    int limit = 20,
+    String? searchQuery,
+  }) async {
+    try {
+      debugPrint('🔄 getCampaignSubscribers called for campaign: $campaignId');
+      
+      // Query with user_tasks joined via user_id
+      // The user_tasks table has a foreign key to profiles via user_id
+      dynamic query = _supabase
+          .from('user_campaigns')
+          .select('''
+            joined_at, 
+            user_id, 
+            profiles!inner(
+              id, 
+              display_name, 
+              avatar_url,
+              user_tasks(
+                subscribed_quantity,
+                task:tasks(id, name, campaign_id)
+              )
+            )
+          ''')
+          .eq('campaign_id', campaignId);
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+           query = query.ilike('profiles.display_name', '%$searchQuery%');
+      }
+
+      // Order and Pagination
+      final start = page * limit;
+      final end = start + limit - 1;
+
+      final response = await query
+          .order('joined_at', ascending: false)
+          .range(start, end);
+
+      debugPrint('✅ getCampaignSubscribers response: $response');
+      
+      final data = response as List<dynamic>;
+      debugPrint('📊 Number of subscribers found: ${data.length}');
+      
+      return data.map((json) => CampaignSubscriber.fromJson(json, campaignId: campaignId)).toList();
+    } catch (e) {
+      debugPrint('❌ Erreur lors de la récupération des abonnés: $e');
+      return [];
+    }
   }
 }

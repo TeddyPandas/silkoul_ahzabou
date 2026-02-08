@@ -312,9 +312,9 @@ class _AdminPodcastCreateScreenState extends State<AdminPodcastCreateScreen> wit
                     child: _isUploading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text("Uploader", style: TextStyle(color: Colors.white)),
                   ),
                 if (_uploadedAudioUrl != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: const Icon(Icons.check_circle, color: Colors.green),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Icon(Icons.check_circle, color: Colors.green),
                   ),
               ],
             ),

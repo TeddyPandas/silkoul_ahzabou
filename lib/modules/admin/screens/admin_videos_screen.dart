@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../utils/app_theme.dart';
 import '../../../../providers/media_provider.dart';
 import '../../../../models/media_models.dart';
-import '../widgets/admin_video_edit_dialog.dart';
 import 'admin_scaffold.dart';
 
 class AdminVideosScreen extends StatefulWidget {
@@ -52,7 +52,7 @@ class _AdminVideosScreenState extends State<AdminVideosScreen> {
         await Provider.of<MediaProvider>(context, listen: false).deleteVideo(id);
         _refreshVideos();
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vidéo supprimée.")));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vidéo supprimée.")));
         }
       } catch (e) {
         if (mounted) {
@@ -62,18 +62,8 @@ class _AdminVideosScreenState extends State<AdminVideosScreen> {
     }
   }
 
-  Future<void> _editVideo(MediaVideo video) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (_) => AdminVideoEditDialog(video: video),
-    );
-
-    if (result == true) {
-      _refreshVideos();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vidéo mise à jour.")));
-      }
-    }
+  void _editVideo(MediaVideo video) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Modification non supportée pour le moment.")));
   }
 
   @override

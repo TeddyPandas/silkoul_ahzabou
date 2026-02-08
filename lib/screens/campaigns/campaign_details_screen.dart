@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../models/campaign.dart';
 import '../../models/task.dart';
+import '../../models/campaign_subscriber.dart';
 import '../../providers/campaign_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/app_theme.dart';
@@ -9,6 +11,7 @@ import '../../services/task_service.dart';
 import '../../widgets/finish_task_dialog.dart';
 import 'package:silkoul_ahzabou/widgets/task_card.dart';
 import 'subscribe_dialog.dart';
+import 'campaign_subscribers_screen.dart';
 
 class CampaignDetailsScreen extends StatefulWidget {
   final String campaignId;
@@ -88,6 +91,16 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             _mySubscribedTaskIds =
                 userTasks.map((e) => e['task_id'] as String).toList();
             _myUserTasks = userTasks;
+          }
+          
+          // Debug: Check creator condition
+          debugPrint('🔍 [CampaignDetails] userId: $userId');
+          debugPrint('🔍 [CampaignDetails] campaign.createdBy: ${_campaign!.createdBy}');
+          debugPrint('🔍 [CampaignDetails] isCreator: ${_campaign!.createdBy == userId}');
+          
+          if (_campaign!.createdBy == userId) {
+             debugPrint('✅ [CampaignDetails] Calling fetchSubscribers...');
+             await campaignProvider.fetchSubscribers(widget.campaignId, refresh: true);
           }
         }
       } else {
@@ -234,7 +247,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.background,
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _errorMessage != null
               ? _buildErrorView()
               : _campaign == null
@@ -309,7 +322,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
   }
 
   void _showAccessCodeDialog() {
-    final TextEditingController _codeController = TextEditingController();
+    final TextEditingController codeController = TextEditingController();
 
     showDialog(
       context: context,
@@ -321,7 +334,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             const Text('Veuillez saisir le code d\'accès de la campagne :'),
             const SizedBox(height: 16),
             TextField(
-              controller: _codeController,
+              controller: codeController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Code secret',
@@ -339,7 +352,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              final code = _codeController.text.trim();
+              final code = codeController.text.trim();
               if (code.isNotEmpty) {
                 Navigator.pop(context);
                 _loadCampaignDetails(code);
@@ -404,6 +417,34 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                          _buildQuranView(isDark)
                       else
                          _buildTaskListView(isDark),
+
+                      // 7. Finished Status (if applicable)
+                      if (_campaign!.isFinished)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(top: 24),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green.withOpacity(0.5)),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.check_circle, color: Colors.green, size: 32),
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Campagne Terminée",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                              ),
+                              Text(
+                                "Les inscriptions sont closes.",
+                                style: TextStyle(color: isDark ? Colors.grey[300] : Colors.grey[600], fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -516,15 +557,16 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _confirmTerminateCampaign(),
+                  onPressed: _campaign!.isFinished ? null : () => _confirmTerminateCampaign(),
                   icon: const Icon(Icons.stop_circle_outlined, color: Colors.orange),
-                  label: const Text("Terminer", style: TextStyle(color: Colors.orange)),
+                  label: Text(_campaign!.isFinished ? "Déjà terminée" : "Terminer", style: const TextStyle(color: Colors.orange)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.orange),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
+
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
@@ -687,6 +729,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
               _isSubscribed ? "Prendre d'autres Juz" : "Sélectionnez vos Juz (Max 3)",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textPrimary),
             ),
+
             const SizedBox(height: 16),
             GridView.builder(
               shrinkWrap: true,
@@ -725,7 +768,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                 }
 
                 return InkWell(
-                  onTap: (!isAvailable || (isLocked && !isSelected))
+                  onTap: (_campaign!.isFinished || !isAvailable || (isLocked && !isSelected))
                       ? null
                       : () {
                           setState(() {
@@ -759,26 +802,31 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
               },
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: (_tempSelectedJuzIds.isEmpty || _isJoining) ? null : _handleInlineSubscription,
-                icon: _isJoining ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.login),
-                label: Text(_isJoining ? "Traitement..." : (_isSubscribed ? "Ajouter ces Juz (${_tempSelectedJuzIds.length})" : "Rejoindre la campagne (${_tempSelectedJuzIds.length})")),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.tealPrimary, padding: const EdgeInsets.symmetric(vertical: 16)),
+            if (!_campaign!.isFinished)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: (_tempSelectedJuzIds.isEmpty || _isJoining) ? null : _handleInlineSubscription,
+                  icon: _isJoining ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.login),
+                  label: Text(_isJoining ? "Traitement..." : (_isSubscribed ? "Ajouter ces Juz (${_tempSelectedJuzIds.length})" : "Rejoindre la campagne (${_tempSelectedJuzIds.length})")),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.tealPrimary, padding: const EdgeInsets.symmetric(vertical: 16)),
+                ),
               ),
-            ),
           ],
         );
     }
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         dashboardWidget,
         myJuzWidget,
         selectionWidget,
       ],
     );
+
+
+
 
   }
 
@@ -957,8 +1005,8 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             ),
           ),
           IconButton(
-            onPressed: () {}, // Options menu
-            icon: Icon(Icons.more_vert,
+            onPressed: _shareCampaign,
+            icon: Icon(Icons.share_rounded,
                 color: isDark ? Colors.white : AppColors.textPrimary),
           ),
         ],
@@ -966,21 +1014,101 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     );
   }
 
+  /// Share campaign details to other apps
+  void _shareCampaign() {
+    if (_campaign == null) return;
+
+    // Build the task list with global amounts
+    final StringBuffer tasksInfo = StringBuffer();
+    if (_campaign!.tasks != null && _campaign!.tasks!.isNotEmpty) {
+      tasksInfo.writeln('📋 Tâches:');
+      for (final task in _campaign!.tasks!) {
+        tasksInfo.writeln('  • ${task.name}: ${task.totalNumber}');
+      }
+    }
+
+    // Build the share text with instructions
+    final String shareText = '''
+🕌 ${_campaign!.name}
+
+👤 Créé par: ${_campaign!.createdByName ?? 'Inconnu'}
+
+${tasksInfo.toString()}
+📲 Pour rejoindre cette campagne:
+1. Téléchargez l'app "Silkoul Ahzabou" sur le Play Store / App Store
+2. Recherchez la campagne "${_campaign!.name}"
+3. Inscrivez-vous et participez !
+
+#SilkoulAhzabou #Tijani
+''';
+
+    Share.share(
+      shareText.trim(),
+      subject: 'Campagne: ${_campaign!.name}',
+    );
+  }
+
   Widget _buildHeaderInfo(bool isDark) {
+    // Check if current user is creator
+    final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
+    final isCreator = userId == _campaign!.createdBy;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          _campaign!.name,
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            letterSpacing: -0.5,
-            color: isDark ? Colors.white : AppColors.textPrimary,
-            height: 1.2,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                _campaign!.name,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                  color: isDark ? Colors.white : AppColors.textPrimary,
+                  height: 1.2,
+                ),
+              ),
+            ),
+            if (_campaign!.isFinished)
+              Container(
+                margin: const EdgeInsets.only(left: 8, top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green),
+                ),
+                child: const Text(
+                  "Terminée",
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
         ),
+        // Finish Button for Creator (if not finished)
+        if (isCreator && !_campaign!.isFinished)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: OutlinedButton.icon(
+              onPressed: () => _confirmTerminateCampaign(),
+              icon: const Icon(Icons.stop_circle_outlined, size: 16, color: Colors.orange),
+              label: const Text("Terminer la campagne", style: TextStyle(color: Colors.orange, fontSize: 12)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.orange),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
         const SizedBox(height: 4),
+
         Row(
           children: [
             Text(
@@ -1004,62 +1132,73 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     );
   }
 
+
   Widget _buildMembersAndCategory(bool isDark) {
+    // Check if current user is creator
+    final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
+    final isCreator = userId == _campaign!.createdBy;
+    final subscribers = Provider.of<CampaignProvider>(context).subscribers;
+    
+    // Determine count to show
+    // If creator, we have the list. If not, we rely on campaign.subscribersCount if available, or just say "Membres"
+    int count = isCreator ? subscribers.length : (_campaign!.subscribersCount > 0 ? _campaign!.subscribersCount : 0);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Members Avatars
-        Row(
-          children: [
-            SizedBox(
-              height: 36,
-              width: 90, // Approx width for standard overlap
-              child: Stack(
-                children: [
-                  _buildAvatarPlaceholder(0, AppColors.primaryLight),
-                  _buildAvatarPlaceholder(24, AppColors.secondaryLight),
-                  _buildAvatarPlaceholder(48, AppColors.goldLight),
-                  Positioned(
-                    left: 72,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color:
-                            isDark ? const Color(0xFF232f48) : Colors.grey[200],
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color:
-                                isDark ? const Color(0xFF121212) : Colors.white,
-                            width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          "+${_campaign!.isPublic ? '99' : '5'}", // Dummy data
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? Colors.grey[300]
-                                : AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
+        // Members Avatars (Clickable for creator)
+        InkWell(
+          onTap: (isCreator && subscribers.isNotEmpty) ? () => _showSubscribersList(context, subscribers) : null,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+            child: Row(
+              children: [
+                 if (isCreator && subscribers.isNotEmpty)
+                  SizedBox(
+                    height: 36,
+                    width: subscribers.length == 1 ? 40 : (subscribers.length == 2 ? 65 : 90), 
+                    child: Stack(
+                      children: [
+                        if (subscribers.isNotEmpty)
+                          _buildAvatarItem(0, subscribers[0]),
+                        if (subscribers.length > 1)
+                          _buildAvatarItem(24, subscribers[1]),
+                        if (subscribers.length > 2)
+                           _buildMoreSubscribersIndicator(48, subscribers.length - 2, isDark),
+                      ],
+                    ),
+                  )
+                else 
+                  // Placeholder visuals for non-creators or empty
+                  SizedBox(
+                    height: 36,
+                    width: 40,
+                    child: Stack(
+                      children: [
+                        _buildAvatarPlaceholder(0, AppColors.primaryLight),
+                         // Just show one generic icon if we don't have the list
+                      ],
                     ),
                   ),
-                ],
-              ),
+                
+                const SizedBox(width: 8),
+                Text(
+                  "$count Membres", 
+                  style: TextStyle(
+                    color: isDark ? Colors.grey[400] : AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (isCreator)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Icon(Icons.chevron_right, size: 16, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+                  )
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              "5 Membres", // Static for now as requested/mocked
-              style: TextStyle(
-                color: isDark ? Colors.grey[400] : AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+          ),
         ),
 
         // Category Badge
@@ -1082,6 +1221,55 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     );
   }
 
+  Widget _buildAvatarItem(double leftOffset, CampaignSubscriber subscriber) {
+    return Positioned(
+      left: leftOffset,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight,
+          shape: BoxShape.circle,
+          border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF121212) : Colors.white, width: 2),
+          image: subscriber.avatarUrl != null 
+              ? DecorationImage(image: NetworkImage(subscriber.avatarUrl!), fit: BoxFit.cover) 
+              : null,
+        ),
+        child: subscriber.avatarUrl == null 
+            ? Center(child: Text(subscriber.displayName.substring(0, 1).toUpperCase(), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14)))
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildMoreSubscribersIndicator(double leftOffset, int count, bool isDark) {
+    return Positioned(
+      left: leftOffset,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF232f48) : Colors.grey[200],
+          shape: BoxShape.circle,
+          border: Border.all(
+              color: isDark ? const Color(0xFF121212) : Colors.white,
+              width: 2),
+        ),
+        child: Center(
+          child: Text(
+            "+$count",
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.grey[300] : AppColors.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildAvatarPlaceholder(double leftOffset, Color color) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Positioned(
@@ -1096,6 +1284,18 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
               color: isDark ? const Color(0xFF121212) : Colors.white, width: 2),
         ),
         child: const Icon(Icons.person, size: 20, color: Colors.white54),
+      ),
+    );
+  }
+
+  void _showSubscribersList(BuildContext context, List<CampaignSubscriber> subscribers) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CampaignSubscribersScreen(
+          campaignId: widget.campaignId,
+          campaignName: _campaign!.name,
+        ),
       ),
     );
   }
@@ -1343,6 +1543,11 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     if (_campaign?.category == 'Quran') {
       return const SizedBox.shrink();
     }
+    
+    // Si terminée, on n'affiche plus rien dans la bottom bar (c'est géré dans le body)
+    if (_campaign?.isFinished == true) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1438,13 +1643,19 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       final success = await provider.updateCampaign(
         campaignId: widget.campaignId,
         userId: userId,
-        updates: {'end_date': DateTime.now().toIso8601String()},
+        updates: {
+          'is_finished': true,
+          'end_date': DateTime.now().toIso8601String(),
+        },
       );
+
+
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Campagne terminée.")));
-        Navigator.pop(context); // Leave screen or reload?
+        await _loadCampaignDetails(); // Reload to show updated status
       }
+
     }
   }
 

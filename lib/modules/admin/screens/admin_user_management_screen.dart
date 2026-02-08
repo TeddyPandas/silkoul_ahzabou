@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../utils/app_theme.dart';
 import '../../../../models/profile.dart';
 import '../../../../providers/auth_provider.dart';
 import 'admin_scaffold.dart';

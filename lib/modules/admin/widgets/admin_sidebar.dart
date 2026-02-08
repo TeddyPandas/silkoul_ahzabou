@@ -24,7 +24,7 @@ class AdminSidebar extends StatelessWidget {
             height: 80,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.1))),
+              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -139,7 +139,7 @@ class AdminSidebar extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.tealPrimary.withOpacity(0.15) : Colors.transparent,
+        color: isSelected ? AppColors.tealPrimary.withValues(alpha: 0.15) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(

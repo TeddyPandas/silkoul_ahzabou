@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../utils/app_theme.dart';
 import 'admin_scaffold.dart';
 
 class AdminDashboardScreen extends StatelessWidget {

@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/teachings_provider.dart';
 import '../screens/player_screen.dart';
 import '../models/teaching.dart';
-import '../../../utils/app_theme.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});

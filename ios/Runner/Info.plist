@@ -49,6 +49,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.supabase.silkoul</string>
+				<string>silkoulahzabou</string>
 			</array>
 		</dict>
 	</array>

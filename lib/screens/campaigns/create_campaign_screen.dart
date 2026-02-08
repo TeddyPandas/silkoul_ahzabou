@@ -239,7 +239,7 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
                     dropdownColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
                     style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                     isExpanded: true,
-                    items: <String>['Zikr', 'Quran', 'Dua', 'Charity', 'Community']
+                    items: <String>['Zikr', 'Quran']
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,

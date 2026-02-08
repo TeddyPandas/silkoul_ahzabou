@@ -42,7 +42,7 @@ void main() {
   group('CampaignService', () {
     test('getPublicCampaigns returns list of campaigns on 200', () async {
       // Arrange
-      final responseBody = '''
+      const responseBody = '''
         {
           "data": [
             {

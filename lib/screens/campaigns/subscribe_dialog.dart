@@ -11,11 +11,11 @@ class SubscribeDialog extends StatefulWidget {
   final String? initialAccessCode;
 
   const SubscribeDialog({
-    Key? key,
+    super.key,
     required this.campaign,
     required this.onSubscriptionSuccess,
     this.initialAccessCode,
-  }) : super(key: key);
+  });
 
   @override
   State<SubscribeDialog> createState() => _SubscribeDialogState();
@@ -197,7 +197,7 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
     return Column(
       children: [
         Text(
-          "Sélectionnez vos Juz (${currentSelectionCount}/3)",
+          "Sélectionnez vos Juz ($currentSelectionCount/3)",
           style: TextStyle(color: Colors.grey[600], fontSize: 13),
         ),
         const SizedBox(height: 10),
@@ -452,8 +452,8 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
         Navigator.of(context).pop();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
+          const SnackBar(
+            content: Row(
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 8),
@@ -461,7 +461,7 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
               ],
             ),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
+            duration: Duration(seconds: 3),
           ),
         );
       } else {

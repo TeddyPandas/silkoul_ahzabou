@@ -94,7 +94,9 @@ class _AdminVideoCreateScreenState extends State<AdminVideoCreateScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.red));
+      }
     }
   }
 
@@ -174,6 +176,7 @@ class _Dropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
+      key: ValueKey(value),
       value: value,
       items: items,
       onChanged: onChanged,

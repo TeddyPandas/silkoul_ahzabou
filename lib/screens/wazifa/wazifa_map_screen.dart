@@ -8,7 +8,7 @@ import '../../models/wazifa_gathering.dart';
 import 'add_wazifa_screen.dart';
 
 class WazifaMapScreen extends StatefulWidget {
-  const WazifaMapScreen({Key? key}) : super(key: key);
+  const WazifaMapScreen({super.key});
 
   @override
   State<WazifaMapScreen> createState() => _WazifaMapScreenState();
@@ -83,7 +83,7 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
 
           // Point central par défaut (Dakar) si pas encore de GPS
           // Note: le controller.move ci-dessus prendra le relais dès que possible
-          final center = const LatLng(14.6928, -17.4467);
+          const center = LatLng(14.6928, -17.4467);
 
           return Stack(
             children: [
@@ -126,7 +126,7 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
                             child: _buildWazifaPin(wazifa.rhythm),
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ],

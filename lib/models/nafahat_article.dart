@@ -1,4 +1,5 @@
 /// Model representing a Nafahat Article/Publication
+library;
 
 /// Model representing a Nafahat Article/Publication
 ///

@@ -6,7 +6,7 @@ class Silsila {
   final int level;
   final String? description;
   // Note: Parent IDs sont gérés à part ou chargés à la demande dans une structure de graphe
-  
+    
   final DateTime createdAt;
 
   Silsila({

@@ -1,7 +1,9 @@
 // lib/providers/campaign_provider.dart
 import 'package:flutter/foundation.dart';
 import '../models/campaign.dart';
+import '../models/campaign_subscriber.dart';
 import '../services/campaign_service.dart';
+import '../services/notification_service.dart';
 
 class CampaignProvider with ChangeNotifier {
   final CampaignService _campaignService = CampaignService();
@@ -9,6 +11,10 @@ class CampaignProvider with ChangeNotifier {
   List<Campaign> _campaigns = [];
   List<Campaign> _myCampaigns = [];
   Campaign? _selectedCampaign;
+  final Set<String> _readCampaignIds = {};
+  List<CampaignSubscriber> _subscribers = [];
+  bool _hasMoreSubscribers = true;
+  bool _isLoadingSubscribers = false;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -17,8 +23,39 @@ class CampaignProvider with ChangeNotifier {
   List<Campaign> get campaigns => _campaigns;
   List<Campaign> get myCampaigns => _myCampaigns;
   Campaign? get selectedCampaign => _selectedCampaign;
+  List<CampaignSubscriber> get subscribers => _subscribers;
+  bool get hasMoreSubscribers => _hasMoreSubscribers;
+  bool get isLoadingSubscribers => _isLoadingSubscribers;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  // Campaigns ending in less than 24 hours
+  List<Campaign> get endingSoonCampaigns {
+    final now = DateTime.now();
+    return _myCampaigns.where((c) {
+      if (c.isFinished) return false;
+      final timeDifference = c.endDate.difference(now);
+      return timeDifference.inHours <= 24 && timeDifference.inSeconds > 0;
+    }).toList();
+  }
+
+  // Check if there are any unread ending soon campaigns
+  bool get hasUnreadNotifications {
+    return endingSoonCampaigns.any((c) => !_readCampaignIds.contains(c.id));
+  }
+
+  // Check if a specific campaign notification is read
+  bool isCampaignRead(String campaignId) {
+    return _readCampaignIds.contains(campaignId);
+  }
+
+  // Mark a campaign notification as read
+  void markCampaignAsRead(String campaignId) {
+    if (!_readCampaignIds.contains(campaignId)) {
+      _readCampaignIds.add(campaignId);
+      notifyListeners();
+    }
+  }
 
   // ============================================
   // RÉCUPÉRER TOUTES LES CAMPAGNES PUBLIQUES
@@ -65,6 +102,13 @@ class CampaignProvider with ChangeNotifier {
         userId: userId,
         onlyCreated: onlyCreated,
       );
+
+      // Schedule notifications for ongoing campaigns
+      for (var campaign in _myCampaigns) {
+        if (!campaign.isFinished && campaign.isActive) {
+          NotificationService().scheduleCampaignEndNotification(campaign);
+        }
+      }
       debugPrint(
           '✅ [CampaignProvider] Fetched ${_myCampaigns.length} user campaigns');
 
@@ -177,6 +221,58 @@ class CampaignProvider with ChangeNotifier {
     }
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // RÉCUPÉRER LES ABONNÉS (POUR LE CRÉATEUR)
+  // ══════════════════════════════════════════════════════════════════════════
+  Future<void> fetchSubscribers(String campaignId, {int page = 0, String? searchQuery, bool refresh = false}) async {
+    debugPrint('📥 [Provider] fetchSubscribers called - campaign: $campaignId, page: $page, refresh: $refresh');
+    
+    if (_isLoadingSubscribers) {
+      debugPrint('⏳ [Provider] Already loading, skipping...');
+      return;
+    }
+
+    try {
+      _isLoadingSubscribers = true;
+      if (refresh) {
+        _subscribers = [];
+        _hasMoreSubscribers = true;
+        // Use Future.microtask to defer notifyListeners to avoid calling it during build
+        Future.microtask(() => notifyListeners());
+      }
+
+      if (!_hasMoreSubscribers && !refresh) {
+        _isLoadingSubscribers = false;
+        Future.microtask(() => notifyListeners());
+        return;
+      }
+
+      final newSubscribers = await _campaignService.getCampaignSubscribers(
+        campaignId, 
+        page: page, 
+        searchQuery: searchQuery
+      );
+
+      if (refresh) {
+        _subscribers = newSubscribers;
+      } else {
+        _subscribers.addAll(newSubscribers);
+      }
+
+      // Assume if we got less than requested limit (default 20), we reached the end
+      if (newSubscribers.length < 20) {
+        _hasMoreSubscribers = false;
+      }
+      
+      _isLoadingSubscribers = false;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Provider: Erreur fetchSubscribers: $e');
+      _isLoadingSubscribers = false;
+      notifyListeners();
+    }
+  }
+
   // ============================================
   // AJOUTER DES TÂCHES À UN ABONNEMENT EXISTANT
   // ============================================
@@ -188,6 +284,15 @@ class CampaignProvider with ChangeNotifier {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
+
+      // Vérifier si la campagne est terminée
+      final campaign = await getCampaignById(campaignId);
+      if (campaign != null && campaign.isFinished) {
+        _errorMessage = "Cette campagne est terminée. Vous ne pouvez plus y participer.";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
 
       await _campaignService.addTasksToSubscription(
         campaignId: campaignId,
@@ -218,6 +323,15 @@ class CampaignProvider with ChangeNotifier {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
+
+      // Vérifier si la campagne est terminée
+      final campaign = await getCampaignById(campaignId);
+      if (campaign != null && campaign.isFinished) {
+        _errorMessage = "Cette campagne est terminée. Vous ne pouvez plus vous inscrire.";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
 
       // ✅ CORRECTION : Plus de paramètre dupliqué
       await _campaignService.subscribeToCampaign(

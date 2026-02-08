@@ -13,7 +13,9 @@ class Campaign {
   final bool isPublic;
   final String? accessCode;
   final bool isWeekly;
+  final bool isFinished;
   final DateTime createdAt;
+
   final DateTime updatedAt;
   final List<Task>? tasks;
   final int subscribersCount;
@@ -31,7 +33,9 @@ class Campaign {
     this.isPublic = true,
     this.accessCode,
     this.isWeekly = false,
+    this.isFinished = false,
     required this.createdAt,
+
     required this.updatedAt,
     this.tasks,
     this.subscribersCount = 0,
@@ -102,6 +106,7 @@ class Campaign {
       isPublic: json['is_public'] as bool? ?? true,
       accessCode: json['access_code'] as String?,
       isWeekly: json['is_weekly'] as bool? ?? false,
+      isFinished: json['is_finished'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
@@ -127,7 +132,9 @@ class Campaign {
       'is_public': isPublic,
       'access_code': accessCode,
       'is_weekly': isWeekly,
+      'is_finished': isFinished,
       'created_at': createdAt.toIso8601String(),
+
       'updated_at': updatedAt.toIso8601String(),
       'subscribers_count': subscribersCount,
     };
@@ -141,8 +148,9 @@ class Campaign {
 
   // Vérifier si la campagne est terminée
   bool get isCompleted {
-    return DateTime.now().isAfter(endDate);
+    return isFinished || DateTime.now().isAfter(endDate);
   }
+
 
   // Vérifier si la campagne est à venir
   bool get isUpcoming {
@@ -179,7 +187,9 @@ class Campaign {
     bool? isPublic,
     String? accessCode,
     bool? isWeekly,
+    bool? isFinished,
     DateTime? updatedAt,
+
     int? subscribersCount,
   }) {
     return Campaign(
@@ -195,7 +205,9 @@ class Campaign {
       isPublic: isPublic ?? this.isPublic,
       accessCode: accessCode ?? this.accessCode,
       isWeekly: isWeekly ?? this.isWeekly,
+      isFinished: isFinished ?? this.isFinished,
       createdAt: createdAt,
+
       updatedAt: updatedAt ?? this.updatedAt,
       subscribersCount: subscribersCount ?? this.subscribersCount,
     );

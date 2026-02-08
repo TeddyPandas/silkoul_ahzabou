@@ -284,7 +284,7 @@ class _AddSilsilaSheetState extends State<AddSilsilaSheet> with SingleTickerProv
                             decoration: InputDecoration(
                               hintText: "Rechercher son Maître (Laisser vide si inconnu)...",
                               prefixIcon: const Icon(Icons.search),
-                              fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                               filled: true,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                               suffixIcon: _isSearchingParent 

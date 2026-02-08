@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:ui';
 import '../models/teaching.dart';
 import '../models/podcast_show.dart';
 import '../providers/teachings_provider.dart';
@@ -239,7 +238,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
           ),
           const SizedBox(height: 8),
            Text(
-            widget.show.author?.name?.toUpperCase() ?? "AUTEUR INCONNU",
+            widget.show.author?.name.toUpperCase() ?? "AUTEUR INCONNU",
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 13,

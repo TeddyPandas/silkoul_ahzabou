@@ -1,10 +1,14 @@
 // lib/main.dart
+import 'dart:async';
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'screens/campaigns/campaign_details_screen.dart';
 import 'services/supabase_service.dart';
+import 'services/notification_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/campaign_provider.dart';
 import 'providers/user_provider.dart';
@@ -95,14 +99,90 @@ void main() async {
     print('❌ ERREUR lors de l\'initialisation de Supabase : $e');
   }
 
+  // ✅ Initialiser NotificationService
+  try {
+    await NotificationService().initialize();
+    print('✅ NotificationService initialisé avec succès');
+  } catch (e) {
+    print('❌ ERREUR lors de l\'initialisation de NotificationService : $e');
+  }
+
   print('🚀 [main] ======== STARTING APP ========');
 
   // ✅ Lancer l'application
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  late final AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initDeepLinks() async {
+    _appLinks = AppLinks();
+
+    // Handle links when app is opened from a link (cold start)
+    try {
+      final initialUri = await _appLinks.getInitialLink();
+      if (initialUri != null) {
+        print('🔗 [DeepLink] Initial link: $initialUri');
+        _handleDeepLink(initialUri);
+      }
+    } catch (e) {
+      print('❌ [DeepLink] Error getting initial link: $e');
+    }
+
+    // Handle links when app is already running (warm start)
+    _linkSubscription = _appLinks.uriLinkStream.listen(
+      (Uri uri) {
+        print('🔗 [DeepLink] Received link: $uri');
+        _handleDeepLink(uri);
+      },
+      onError: (error) {
+        print('❌ [DeepLink] Stream error: $error');
+      },
+    );
+  }
+
+  void _handleDeepLink(Uri uri) {
+    // Handle campaign deep links: silkoulahzabou://campaign/{campaignId}
+    if (uri.scheme == 'silkoulahzabou' && uri.host == 'campaign') {
+      final pathSegments = uri.pathSegments;
+      if (pathSegments.isNotEmpty) {
+        final campaignId = pathSegments.first;
+        print('🔗 [DeepLink] Opening campaign: $campaignId');
+        
+        // Navigate to campaign details screen
+        // Use a small delay to ensure the app is fully initialized
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => CampaignDetailsScreen(campaignId: campaignId),
+            ),
+          );
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +215,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        navigatorKey: _navigatorKey,
         title: 'Silkoul Ahzabou Tidiani',
         debugShowCheckedModeBanner: false,
 

@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../config/app_constants.dart';
+import 'package:provider/provider.dart';
+
+
+
 import '../../models/campaign.dart';
-import '../../models/profile.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/campaign_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../services/campaign_service.dart';
+
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_drawer.dart'; // Import CustomDrawer
-import '../auth/login_screen.dart';
+
 import '../campaigns/campaign_details_screen.dart';
 import '../campaigns/create_campaign_screen.dart';
 import '../wazifa/wazifa_map_screen.dart';
 import '../nafahat/nafahat_screen.dart';
+import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -119,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -176,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.tealPrimary.withOpacity(0.1)
+                    ? AppColors.tealPrimary.withValues(alpha: 0.1)
                     : Colors.transparent,
                 shape: BoxShape.circle,
               ),
@@ -192,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 duration: const Duration(milliseconds: 200),
                 child: Text(
                   label,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.tealPrimary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -315,8 +316,9 @@ class _DashboardTabState extends State<DashboardTab> {
             const SizedBox(height: 12),
             // Indicators
             Consumer<CampaignProvider>(builder: (context, provider, _) {
-              if (provider.myCampaigns.length <= 1)
+              if (provider.myCampaigns.length <= 1) {
                 return const SizedBox.shrink();
+              }
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
@@ -328,7 +330,7 @@ class _DashboardTabState extends State<DashboardTab> {
                           decoration: BoxDecoration(
                               color: _currentCampaignIndex == index
                                   ? AppColors.tealPrimary
-                                  : AppColors.tealPrimary.withOpacity(0.3),
+                                  : AppColors.tealPrimary.withValues(alpha: 0.3),
                               shape: BoxShape.circle),
                         )),
               );
@@ -389,6 +391,18 @@ class _DashboardTabState extends State<DashboardTab> {
                             null,
                             thumbnailWidth,
                             imageHeight,
+                            () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CampaignDetailsScreen(campaignId: campaign.id),
+                                ),
+                              );
+                              if (mounted) {
+                                widget.onRefresh();
+                              }
+                            },
                           );
                         },
                       ),
@@ -431,11 +445,41 @@ class _DashboardTabState extends State<DashboardTab> {
           style: TextStyle(
               fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
-        IconButton(
-          icon: const Icon(Icons.search, color: Colors.black87),
-          onPressed: () {},
-          style: IconButton.styleFrom(
-              backgroundColor: Colors.white, padding: EdgeInsets.zero),
+        Consumer<CampaignProvider>(
+          builder: (context, provider, child) {
+            final hasNotifications = provider.hasUnreadNotifications;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_none_rounded,
+                      color: Colors.black87),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen()),
+                    );
+                  },
+                  style: IconButton.styleFrom(
+                      backgroundColor: Colors.white, padding: EdgeInsets.zero),
+                ),
+                if (hasNotifications)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -478,7 +522,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 image: NetworkImage(imageUrl), fit: BoxFit.cover),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 5))
             ]),
@@ -490,7 +534,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.8)],
                 ),
               ),
             ),
@@ -501,7 +545,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -564,10 +608,10 @@ class _DashboardTabState extends State<DashboardTab> {
       decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.grey.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 5))
           ]),
@@ -606,10 +650,12 @@ class _DashboardTabState extends State<DashboardTab> {
   // Responsive campaign thumbnail
   Widget _buildCampaignThumbnail(
       String title, String subtitle, String? imageUrl,
-      [double width = 120, double imageHeight = 100]) {
-    return Container(
-      width: width,
-      margin: const EdgeInsets.only(right: 12),
+      [double width = 120, double imageHeight = 100, VoidCallback? onTap]) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        margin: const EdgeInsets.only(right: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -620,15 +666,11 @@ class _DashboardTabState extends State<DashboardTab> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: Colors.grey[300],
-              image: imageUrl != null
-                  ? DecorationImage(
-                      image: NetworkImage(imageUrl), fit: BoxFit.cover)
-                  : null,
+              image: const DecorationImage(
+                image: AssetImage('assets/images/miniature_zikr.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
-            child: imageUrl == null
-                ? const Center(
-                    child: Icon(Icons.mosque, color: Colors.white, size: 32))
-                : null,
           ),
           const SizedBox(height: 4),
           Text(title,
@@ -641,6 +683,7 @@ class _DashboardTabState extends State<DashboardTab> {
               overflow: TextOverflow.ellipsis),
         ],
       ),
+    ),
     );
   }
 
@@ -657,7 +700,7 @@ class _DashboardTabState extends State<DashboardTab> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                  color: Colors.grey.withOpacity(0.05),
+                  color: Colors.grey.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5))
             ]),
@@ -987,17 +1030,27 @@ class _CampaignsTabState extends State<CampaignsTab> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.person_outline,
-                            size: 14, color: AppColors.tealPrimary),
-                        const SizedBox(width: 4),
-                        Text(
-                          campaign.createdByName ?? 'Inconnu',
-                          style: TextStyle(
-                              color: AppColors.tealPrimary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500),
+                        Expanded(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.person_outline,
+                                  size: 14, color: AppColors.tealPrimary),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  campaign.createdByName ?? 'Inconnu',
+                                  style: const TextStyle(
+                                      color: AppColors.tealPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         if (campaign.isPublic)
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -1019,7 +1072,30 @@ class _CampaignsTabState extends State<CampaignsTab> {
                             child: Text('Privé',
                                 style: TextStyle(
                                     color: Colors.amber[800], fontSize: 10)),
+                          ),
+                        const SizedBox(width: 8),
+                        if (campaign.isFinished)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(4)),
+                            child: Text('Terminée',
+                                style: TextStyle(
+                                    color: Colors.grey[800], fontSize: 10)),
                           )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(4)),
+                            child: Text('En cours',
+                                style: TextStyle(
+                                    color: Colors.blue[800], fontSize: 10)),
+                          ),
                       ],
                     )
                   ],
