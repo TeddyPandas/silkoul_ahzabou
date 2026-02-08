@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import '../models/nafahat_article.dart';
 import '../services/nafahat_service.dart';
 
+import '../utils/error_handler.dart';
+
 /// Provider for managing Nafahat Articles state
 class NafahatProvider with ChangeNotifier {
   final NafahatService _service = NafahatService();
@@ -100,8 +102,8 @@ class NafahatProvider with ChangeNotifier {
 
       _currentPage++;
     } catch (e) {
-      _error = 'Erreur de chargement des articles: $e';
-      debugPrint(_error);
+      _error = ErrorHandler.sanitize(e);
+      ErrorHandler.log(_error!);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -116,7 +118,7 @@ class NafahatProvider with ChangeNotifier {
 
       _featuredArticles = await _service.getFeaturedArticles(limit: 5);
     } catch (e) {
-      debugPrint('Error fetching featured articles: $e');
+      ErrorHandler.log('Error fetching featured articles: $e');
     } finally {
       _isFeaturedLoading = false;
       notifyListeners();
@@ -129,7 +131,7 @@ class NafahatProvider with ChangeNotifier {
       _latestArticles = await _service.getLatestArticles(limit: 10);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error fetching latest articles: $e');
+      ErrorHandler.log('Error fetching latest articles: $e');
     }
   }
 
@@ -139,7 +141,7 @@ class NafahatProvider with ChangeNotifier {
       _popularArticles = await _service.getPopularArticles(limit: 10);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error fetching popular articles: $e');
+      ErrorHandler.log('Error fetching popular articles: $e');
     }
   }
 
@@ -154,7 +156,7 @@ class NafahatProvider with ChangeNotifier {
       _articlesByCategory[category] = articles;
       notifyListeners();
     } catch (e) {
-      debugPrint('Error fetching articles by category: $e');
+      ErrorHandler.log('Error fetching articles by category: $e');
     }
   }
 
@@ -185,8 +187,8 @@ class NafahatProvider with ChangeNotifier {
         _error = 'Article non trouvé';
       }
     } catch (e) {
-      _error = 'Erreur de chargement de l\'article: $e';
-      debugPrint(_error);
+      _error = ErrorHandler.sanitize(e);
+      ErrorHandler.log(_error!);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -199,7 +201,7 @@ class NafahatProvider with ChangeNotifier {
       _relatedArticles = await _service.getRelatedArticles(article);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error fetching related articles: $e');
+      ErrorHandler.log('Error fetching related articles: $e');
     }
   }
 
@@ -219,7 +221,7 @@ class NafahatProvider with ChangeNotifier {
 
       _searchResults = await _service.searchArticles(query);
     } catch (e) {
-      debugPrint('Error searching articles: $e');
+      ErrorHandler.log('Error searching articles: $e');
     } finally {
       _isSearching = false;
       notifyListeners();
@@ -282,7 +284,7 @@ class NafahatProvider with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      debugPrint('Error toggling like: $e');
+      ErrorHandler.log('Error toggling like: $e');
     }
   }
 
@@ -299,7 +301,7 @@ class NafahatProvider with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      debugPrint('Error checking like status: $e');
+      ErrorHandler.log('Error checking like status: $e');
     }
   }
 
@@ -313,7 +315,7 @@ class NafahatProvider with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      debugPrint('Error sharing article: $e');
+      ErrorHandler.log('Error sharing article: $e');
     }
   }
 
