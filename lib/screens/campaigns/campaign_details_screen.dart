@@ -247,7 +247,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.background,
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _errorMessage != null
               ? _buildErrorView()
               : _campaign == null
@@ -322,7 +322,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
   }
 
   void _showAccessCodeDialog() {
-    final TextEditingController _codeController = TextEditingController();
+    final TextEditingController codeController = TextEditingController();
 
     showDialog(
       context: context,
@@ -334,7 +334,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             const Text('Veuillez saisir le code d\'accès de la campagne :'),
             const SizedBox(height: 16),
             TextField(
-              controller: _codeController,
+              controller: codeController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Code secret',
@@ -352,7 +352,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              final code = _codeController.text.trim();
+              final code = codeController.text.trim();
               if (code.isNotEmpty) {
                 Navigator.pop(context);
                 _loadCampaignDetails(code);

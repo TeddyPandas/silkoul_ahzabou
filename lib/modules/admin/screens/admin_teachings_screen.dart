@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../utils/app_theme.dart';
 import '../../teachings/providers/teachings_provider.dart';
-import '../../teachings/models/article.dart';
 import '../screens/admin_scaffold.dart';
 import 'admin_teaching_editor_screen.dart';
 
@@ -98,7 +97,7 @@ class _AdminTeachingsScreenState extends State<AdminTeachingsScreen> {
                             if (article.author != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
-                                child: Text("Auteur: ${article.author!.name}", style: TextStyle(color: Colors.white70)),
+                                child: Text("Auteur: ${article.author!.name}", style: const TextStyle(color: Colors.white70)),
                               ),
                             Padding(
                               padding: const EdgeInsets.only(top: 4.0),

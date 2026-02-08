@@ -177,7 +177,7 @@ class _Dropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
       key: ValueKey(value),
-      initialValue: value,
+      value: value,
       items: items,
       onChanged: onChanged,
       style: const TextStyle(color: Colors.white),

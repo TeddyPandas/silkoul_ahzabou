@@ -33,7 +33,7 @@ class _FinishTaskDialogState extends State<FinishTaskDialog> {
   late TextEditingController _quantityController;
   final _formKey = GlobalKey<FormState>();
   String? _errorMessage;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void initState() {

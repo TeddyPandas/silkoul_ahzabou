@@ -140,7 +140,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       color: AppColors.tealPrimary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.assignment_outlined,
+                    child: const Icon(Icons.assignment_outlined,
                         color: AppColors.tealPrimary, size: 20),
                   ),
                   const SizedBox(width: 12),

@@ -92,7 +92,7 @@ class _NafahatScreenState extends State<NafahatScreen> {
               elevation: 0,
               title: Row(
                 children: [
-                  Text(
+                  const Text(
                     'نفحات',
                     style: TextStyle(
                       fontSize: 24,
@@ -334,7 +334,7 @@ class _NafahatScreenState extends State<NafahatScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             '📭',
                             style: TextStyle(fontSize: 48),
                           ),

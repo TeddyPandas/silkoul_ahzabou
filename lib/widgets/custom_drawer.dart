@@ -185,7 +185,7 @@ class CustomDrawer extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(
+            child: const Icon(
               Icons.mosque_rounded,
               color: AppColors.tealPrimary,
               size: 32,
@@ -249,7 +249,7 @@ class CustomDrawer extends StatelessWidget {
                     if (subtitle != null)
                       Text(
                         subtitle,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.tealPrimary,
                             fontWeight: FontWeight.w500),

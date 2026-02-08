@@ -193,7 +193,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
           children: [
             CircleAvatar(
               radius: 40,
-              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               backgroundImage: node.image != null ? NetworkImage(node.image!) : null,
               child: node.image == null 
                 ? Text(node.name.isNotEmpty ? node.name[0] : '?', style: const TextStyle(fontSize: 24)) 

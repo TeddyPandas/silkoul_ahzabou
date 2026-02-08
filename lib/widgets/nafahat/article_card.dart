@@ -637,7 +637,7 @@ class FeaturedArticleCard extends StatelessWidget {
                           style: TextStyle(color: Colors.white54),
                         ),
                         const SizedBox(width: 8),
-                        Icon(
+                        const Icon(
                           Icons.access_time,
                           size: 12,
                           color: Colors.white54,

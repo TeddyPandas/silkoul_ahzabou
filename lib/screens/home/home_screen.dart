@@ -193,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 duration: const Duration(milliseconds: 200),
                 child: Text(
                   label,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.tealPrimary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -1034,13 +1034,13 @@ class _CampaignsTabState extends State<CampaignsTab> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.person_outline,
+                              const Icon(Icons.person_outline,
                                   size: 14, color: AppColors.tealPrimary),
                               const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
                                   campaign.createdByName ?? 'Inconnu',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       color: AppColors.tealPrimary,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500),

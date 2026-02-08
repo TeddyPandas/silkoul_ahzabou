@@ -8,7 +8,7 @@ import 'package:latlong2/latlong.dart';
 import 'location_picker_screen.dart';
 
 class AddWazifaScreen extends StatefulWidget {
-  const AddWazifaScreen({Key? key}) : super(key: key);
+  const AddWazifaScreen({super.key});
 
   @override
   State<AddWazifaScreen> createState() => _AddWazifaScreenState();
@@ -216,7 +216,7 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
 
               // --- LOCATION CARD ---
               Card(
-                color: theme.colorScheme.surfaceVariant,
+                color: theme.colorScheme.surfaceContainerHighest,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(

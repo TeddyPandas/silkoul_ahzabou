@@ -11,13 +11,13 @@ class TaskCard extends StatefulWidget {
   final bool isDark;
 
   const TaskCard({
-    Key? key,
+    super.key,
     required this.task,
     required this.isDark,
     this.userTaskData,
     this.onSubscribe,
     this.onFinish,
-  }) : super(key: key);
+  });
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -164,7 +164,7 @@ class _TaskCardState extends State<TaskCard> with TickerProviderStateMixin {
                                     size: 14, color: AppColors.success)
                               else
                                 Text(
-                                  "${percent}%",
+                                  "$percent%",
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
@@ -272,9 +272,9 @@ class _TaskCardState extends State<TaskCard> with TickerProviderStateMixin {
                                   color: AppColors.success.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: Row(
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: const [
+                                  children: [
                                     Icon(Icons.verified,
                                         size: 16, color: AppColors.success),
                                     SizedBox(width: 8),

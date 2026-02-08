@@ -106,7 +106,7 @@ class _MediaTabState extends State<MediaTab> {
                       );
                     },
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

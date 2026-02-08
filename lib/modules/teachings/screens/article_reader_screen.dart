@@ -28,7 +28,7 @@ class _ArticleReaderScreenState extends State<ArticleReaderScreen> {
   Widget build(BuildContext context) {
     final backgroundColor = _isDarkMode ? Colors.black : Colors.white;
     final textColor = _isDarkMode ? Colors.white : Colors.black87;
-    final starColor = const Color(0xFFFFD700);
+    const starColor = Color(0xFFFFD700);
 
     return Scaffold(
       backgroundColor: backgroundColor,

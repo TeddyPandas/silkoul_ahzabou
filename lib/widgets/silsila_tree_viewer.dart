@@ -92,7 +92,7 @@ class _SilsilaTreeViewerState extends State<SilsilaTreeViewer> {
         final nodeA = currentNodes[i];
         final nodeB = currentNodes[i + 1];
         final dist = nodeB.x - nodeA.x;
-        final minDist = nodeWidth + siblingSpacing;
+        const minDist = nodeWidth + siblingSpacing;
         
         if (dist < minDist) {
           // Chevauchement ! On pousse B vers la droite et A vers la gauche
@@ -165,7 +165,7 @@ class _SilsilaTreeViewerState extends State<SilsilaTreeViewer> {
       minScale: 0.1,
       maxScale: 2.0,
       constrained: false,
-      child: Container(
+      child: SizedBox(
         width: canvasWidth,
         height: totalHeight,
         child: Stack(
@@ -196,7 +196,7 @@ class _SilsilaTreeViewerState extends State<SilsilaTreeViewer> {
                 width: nodeWidth,
                 child: _buildGenealogicalNode(context, node),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -239,7 +239,7 @@ class _SilsilaTreeViewerState extends State<SilsilaTreeViewer> {
                       child: Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         ),
                         child: const Icon(
                           Icons.star_rounded,
@@ -276,7 +276,7 @@ class _SilsilaTreeViewerState extends State<SilsilaTreeViewer> {
                         image: node.image != null
                             ? DecorationImage(image: AssetImage(node.image!), fit: BoxFit.cover)
                             : null,
-                        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
                       ),
                       child: node.image == null
                           ? Icon(
@@ -317,7 +317,7 @@ class _SilsilaTreeViewerState extends State<SilsilaTreeViewer> {
         if (isRoot)
            Padding(
              padding: const EdgeInsets.only(top: 4.0),
-             child: Icon(Icons.star, size: 16, color: const Color(0xFFFFD700))
+             child: const Icon(Icons.star, size: 16, color: Color(0xFFFFD700))
                  .animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(0.8,0.8), end: const Offset(1.2,1.2)),
            ),
       ],
