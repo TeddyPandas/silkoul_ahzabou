@@ -105,3 +105,6 @@ Underlying technical services supporting the application.
     *   **Workflow:** App stores critical data locally when offline -> When online, app synchronizes local changes with the remote database and fetches updates.
 *   **Security & Moderation:** Policies and mechanisms for a safe environment.
     *   **Workflow:** Implemented at various layers: authentication, data validation, access control rules in the database, and potentially backend moderation tools.
+ 
+
+@MarkazTijani
