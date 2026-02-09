@@ -1,0 +1,47 @@
+# Tâche : Suppression Abjad & Déploiement Correctifs
+
+- [x] Suppression de la fonctionnalité Abjad <!-- id: 1 -->
+    - [x] Supprimer dépendances (`pubspec.yaml`)
+    - [x] Corriger compilation (Silsila, Admin)
+- [x] Correction CORS Backend <!-- id: 2 -->
+    - [x] Modifier `backend/server.js` pour accepter `localhost:*`
+- [x] Nettoyage du Code <!-- id: 5 -->
+    - [x] `dart fix --apply`
+    - [x] Supprimer fichiers inutilisés
+    - [x] Vérifier `.gitignore`
+- [x] Déploiement Fixes <!-- id: 3 -->
+    - [x] Commit & Push `fix/cors`
+    - [x] PR Merged
+    - [x] CI/CD Split (`deploy-frontend.yml` & `deploy-backend.yml`)
+- [x] Plan Déploiement Backoffice <!-- id: 6 -->
+    - [x] Analyser `nginx.conf` et `deploy.yml`
+    - [x] Proposer plan sécurisé (SSL, CI/CD)
+- [x] Déploiement Backoffice <!-- id: 7 -->
+    - [x] Configurer GitHub Actions
+    - [x] Configure Manual Trigger (workflow_dispatch)
+    - [x] Configurer Docker & Nginx
+    - [x] Vérifier Déploiement VPS
+    - [/] Debug Erreurs Production
+        - [x] Fix CORS pour IP VPS
+    - [/] SSL (Certbot)
+        - [x] Brainstorm Auto-Handling on VPS (See `infrastructure_brainstorm.md`)
+        - [ ] Implementation (Pending Review)
+- [/] Google Auth Setup <!-- id: 8 -->
+    - [x] Vérifier dépendances & Code
+    - [x] Fixer Redirect URL pour Web (`auth_service.dart`)
+    - [x] Configurer GCP & Supabase
+    - [ ] Configurer Android (SHA-1) & iOS (URL Scheme) (PAUSED)
+    - [/] Verification Mobile
+        - [x] Fix iOS Signing (Xcode)
+    - [x] Improve Error UX (Global ErrorHandler created)
+    - [x] Sanitize Logs (Strict Debug Mode)
+- [x] Apply ErrorHandler Project-Wide <!-- id: 9 -->
+    - [x] AuthProvider
+    - [x] CampaignProvider (Enhanced global handler)
+    - [x] MediaProvider (Skipped - no exposed error state)
+    - [x] NafahatProvider
+    - [x] UserProvider
+    - [x] WazifaProvider
+    - [x] TeachingsProvider (Skipped - errors rethrown to UI)
+- [x] UI Improvements <!-- id: 10 -->
+    - [x] Web Login Responsiveness (Centered, Max Width 500px)
