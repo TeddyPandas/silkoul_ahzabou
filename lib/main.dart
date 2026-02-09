@@ -32,6 +32,7 @@ import 'modules/admin/screens/admin_media_import_screen.dart'; // Media Import
 import 'modules/admin/screens/admin_teachings_screen.dart'; // Teachings Admin
 import 'modules/admin/screens/admin_silsila_list_screen.dart'; // Silsila Admin
 import 'modules/admin/screens/admin_campaigns_screen.dart'; // Campaigns Admin
+import 'modules/admin/screens/admin_settings_screen.dart'; // Settings Admin
 import 'config/app_theme.dart';
 
 void main() async {
@@ -244,6 +245,7 @@ class _MyAppState extends State<MyApp> {
           '/admin/videos': (context) => const AdminVideosScreen(),
           '/admin/videos/create': (context) => const AdminVideoCreateScreen(),
           '/admin/media/import': (context) => const AdminMediaImportScreen(),
+          '/admin/settings': (context) => const AdminSettingsScreen(),
         },
       ),
     );
