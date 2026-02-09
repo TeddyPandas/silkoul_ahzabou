@@ -17,13 +17,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Create assets/env
+      - name: Create .env
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > assets/env
-          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> assets/env
-          echo "APP_NAME=Silkoul Ahzabou Tidiani" >> assets/env
-          echo "APP_VERSION=1.0.0" >> assets/env
-          echo "API_BASE_URL=http://${{ secrets.VPS_HOST }}/api" >> assets/env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "APP_NAME=Silkoul Ahzabou Tidiani" >> .env
+          echo "APP_VERSION=1.0.0" >> .env
+          echo "API_BASE_URL=http://${{ secrets.VPS_HOST }}/api" >> .env
 
       - name: Build Web
         run: flutter build web --release --no-tree-shake-icons
