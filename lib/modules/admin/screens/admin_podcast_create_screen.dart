@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 import '../../teachings/models/teaching.dart';
 import '../../teachings/models/podcast_show.dart';
 import '../../teachings/models/author.dart';

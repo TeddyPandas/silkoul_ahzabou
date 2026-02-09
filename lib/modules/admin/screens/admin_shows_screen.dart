@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 import '../../teachings/models/podcast_show.dart';
 import '../../teachings/models/author.dart';
 import '../../teachings/models/category.dart';

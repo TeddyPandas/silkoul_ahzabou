@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../services/silsila_service.dart';
 import '../../../../models/silsila_node.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 
 class AdminSilsilaNodeDialog extends StatefulWidget {
   final SilsilaNode? node;

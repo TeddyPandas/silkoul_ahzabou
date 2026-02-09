@@ -10,7 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/campaign_provider.dart';
 import '../../providers/user_provider.dart';
 
-import '../../utils/app_theme.dart';
+import '../../config/app_theme.dart';
 import '../../widgets/custom_drawer.dart'; // Import CustomDrawer
 
 import '../campaigns/campaign_details_screen.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 import '../../../../services/campaign_service.dart';
 import '../../../../models/campaign.dart';
 

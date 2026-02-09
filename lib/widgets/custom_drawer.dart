@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:silkoul_ahzabou/screens/silsila/silsila_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../utils/app_theme.dart';
+import '../config/app_theme.dart';
 import '../screens/tasks/my_tasks_screen.dart';
 import '../screens/badges/badges_screen.dart';
 import '../screens/wazifa/wazifa_map_screen.dart';

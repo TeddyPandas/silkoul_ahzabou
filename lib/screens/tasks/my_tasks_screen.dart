@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../models/user_task.dart';
-import '../../utils/app_theme.dart';
+import '../../config/app_theme.dart';
 import '../campaigns/campaign_details_screen.dart';
 
 class MyTasksScreen extends StatefulWidget {

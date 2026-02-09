@@ -9,7 +9,7 @@ import '../services/teaching_service.dart';
 import 'player_screen.dart';
 import '../widgets/mini_player.dart';
 import '../../../services/supabase_service.dart';
-import '../../../utils/app_theme.dart';
+import '../../../config/app_theme.dart';
 
 class PodcastDetailsScreen extends StatefulWidget {
   final PodcastShow show;

@@ -10,7 +10,7 @@ import 'article_reader_screen.dart';
 import 'search_screen.dart';
 import '../widgets/mini_player.dart';
 import '../../../screens/nafahat/media_tab.dart'; // Import MediaTab
-import '../../../utils/app_theme.dart';
+import '../../../config/app_theme.dart';
 
 class TeachingsHomeScreen extends StatefulWidget {
   const TeachingsHomeScreen({super.key});

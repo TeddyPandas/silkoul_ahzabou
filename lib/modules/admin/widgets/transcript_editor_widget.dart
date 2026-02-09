@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../teachings/models/transcript_segment.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 
 class TranscriptEditorWidget extends StatefulWidget {
   final List<TranscriptSegment> initialSegments;

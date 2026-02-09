@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 import '../../teachings/models/author.dart';
 import '../../teachings/services/teaching_service.dart';
 import 'admin_scaffold.dart';
