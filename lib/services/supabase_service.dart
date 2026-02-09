@@ -34,7 +34,7 @@ class SupabaseService {
       authOptions: const FlutterAuthClientOptions(
         authFlowType: AuthFlowType.pkce,
       ),
-      debug: true, // Enable debug logging for OAuth troubleshooting
+      debug: kDebugMode, // Only enable debug logging in debug mode
     );
     _client = Supabase.instance.client;
   }

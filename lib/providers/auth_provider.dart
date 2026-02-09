@@ -39,16 +39,11 @@ class AuthProvider with ChangeNotifier {
       ErrorHandler.log('🔐 [AuthProvider] ======= AUTH EVENT RECEIVED =======');
       ErrorHandler.log('🔐 [AuthProvider] Event: $event');
       ErrorHandler.log('🔐 [AuthProvider] Session exists: ${session != null}');
-      if (session != null) {
-        ErrorHandler.log('🔐 [AuthProvider] User ID: ${session.user.id}');
-        ErrorHandler.log('🔐 [AuthProvider] User email: ${session.user.email}');
-      }
       ErrorHandler.log('🔐 [AuthProvider] ===================================');
 
       if (event == AuthChangeEvent.signedIn) {
         ErrorHandler.log('🔐 [AuthProvider] ✅ User signed in! Updating state...');
         _user = session?.user;
-        ErrorHandler.log('🔐 [AuthProvider] _user set to: ${_user?.id}');
         _loadProfile();
       } else if (event == AuthChangeEvent.signedOut) {
         ErrorHandler.log('🔐 [AuthProvider] User signed out');

@@ -1,7 +1,12 @@
 // lib/main.dart
 import 'dart:async';
 import 'package:app_links/app_links.dart';
+import 'package:flutter/foundation.dart'; // Pour kDebugMode et PlatformDispatcher
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'utils/error_handler.dart'; // Import ErrorHandler
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -37,81 +42,79 @@ import 'config/app_theme.dart';
 
 void main() async {
   // ✅ Initialisation Flutter
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  print('🚀 [main] ======== APP STARTING ========');
-  print('🚀 [main] Time: ${DateTime.now()}');
+    // Global Error Handling
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      ErrorHandler.log('🔴 Flutter Error: ${details.exception}');
+      ErrorHandler.log('🔴 Stack: ${details.stack}');
+    };
 
-  // ✅ CRITIQUE : Charger les variables d'environnement depuis .env
-  try {
-    await dotenv.load(fileName: ".env");
-    print('✅ Fichier .env chargé avec succès');
+    PlatformDispatcher.instance.onError = (error, stack) {
+      ErrorHandler.log('🔴 Platform Error: $error');
+      ErrorHandler.log('🔴 Stack: $stack');
+      return true;
+    };
 
-    // Vérifier que les variables critiques sont présentes
-    final apiBaseUrl = dotenv.env['API_BASE_URL'];
-    if (apiBaseUrl == null || apiBaseUrl.isEmpty) {
-      print('⚠️ ATTENTION : API_BASE_URL non définie dans .env');
-      print('   Créez un fichier .env à la racine du projet avec :');
-      print('   API_BASE_URL=http://VOTRE_IP:3000/api');
-    } else {
-      print('✅ API_BASE_URL configurée : $apiBaseUrl');
-    }
-  } catch (e) {
-    print('❌ ERREUR : Impossible de charger .env');
-    print('   Assurez-vous que le fichier .env existe à la racine du projet');
-    print('   Erreur : $e');
-  }
+    ErrorHandler.log('🚀 [main] ======== APP STARTING ========');
+    ErrorHandler.log('🚀 [main] Time: ${DateTime.now()}');
 
-  // ✅ Initialiser Supabase
-  try {
-    await SupabaseService.initialize();
-    print('✅ Supabase initialisé avec succès');
+    // ✅ CRITIQUE : Charger les variables d'environnement depuis .env
+    try {
+      await dotenv.load(fileName: ".env");
+      ErrorHandler.log('✅ Fichier .env chargé avec succès');
 
-    // Log initial auth state to help diagnose OAuth issues
-    final supabase = Supabase.instance.client;
-    final currentSession = supabase.auth.currentSession;
-    final currentUser = supabase.auth.currentUser;
-    print(
-        '🔐 [main] Initial session: ${currentSession != null ? "EXISTS" : "null"}');
-    print('🔐 [main] Initial user: ${currentUser?.id ?? "null"}');
-    if (currentSession != null) {
-      print('🔐 [main] Session expired: ${currentSession.isExpired}');
+      // Vérifier que les variables critiques sont présentes
+      final apiBaseUrl = dotenv.env['API_BASE_URL'];
+      if (apiBaseUrl == null || apiBaseUrl.isEmpty) {
+        ErrorHandler.log('⚠️ ATTENTION : API_BASE_URL non définie dans .env');
+      } else {
+        ErrorHandler.log('✅ API_BASE_URL configurée');
+      }
+    } catch (e) {
+      ErrorHandler.log('❌ ERREUR : Impossible de charger .env');
+      ErrorHandler.log('   Erreur : $e');
     }
 
-    // Add auth state change listener for debugging OAuth callbacks
-    supabase.auth.onAuthStateChange.listen(
-      (data) {
-        print('🔐 [main] ========== AUTH STATE CHANGED ==========');
-        print('🔐 [main] Event: ${data.event}');
-        print('🔐 [main] Session: ${data.session != null ? "EXISTS" : "null"}');
-        if (data.session != null) {
-          print('🔐 [main] User ID: ${data.session!.user.id}');
-          print(
-              '🔐 [main] Access Token: ${data.session!.accessToken.substring(0, 20)}...');
-        }
-        print('🔐 [main] ============================================');
-      },
-      onError: (error, stackTrace) {
-        print('❌ [main] AUTH STATE CHANGE ERROR: $error');
-        print('❌ [main] Stack trace: $stackTrace');
-      },
-    );
-  } catch (e) {
-    print('❌ ERREUR lors de l\'initialisation de Supabase : $e');
-  }
+    // ✅ Initialiser Supabase
+    try {
+      await SupabaseService.initialize();
+      ErrorHandler.log('✅ Supabase initialisé avec succès');
 
-  // ✅ Initialiser NotificationService
-  try {
-    await NotificationService().initialize();
-    print('✅ NotificationService initialisé avec succès');
-  } catch (e) {
-    print('❌ ERREUR lors de l\'initialisation de NotificationService : $e');
-  }
+      // Add auth state change listener (Sanitized)
+      Supabase.instance.client.auth.onAuthStateChange.listen(
+        (data) {
+          if (kDebugMode) {
+             print('🔐 [main] Auth State Changed: ${data.event}');
+             print('🔐 [main] Session Active: ${data.session != null}');
+          }
+        },
+        onError: (error, stackTrace) {
+          ErrorHandler.log('❌ [main] Auth Error: $error');
+        },
+      );
+    } catch (e) {
+      ErrorHandler.log('❌ ERREUR lors de l\'initialisation de Supabase : $e');
+    }
 
-  print('🚀 [main] ======== STARTING APP ========');
+    // ✅ Initialiser NotificationService
+    try {
+      await NotificationService().initialize();
+      ErrorHandler.log('✅ NotificationService initialisé avec succès');
+    } catch (e) {
+      ErrorHandler.log('❌ ERREUR lors de l\'initialisation de NotificationService : $e');
+    }
 
-  // ✅ Lancer l'application
-  runApp(const MyApp());
+    ErrorHandler.log('🚀 [main] ======== STARTING APP ========');
+
+    // ✅ Lancer l'application
+    runApp(const MyApp());
+  }, (error, stack) {
+     ErrorHandler.log('🔴 LOW-LEVEL ERROR: $error');
+     ErrorHandler.log('🔴 Stack: $stack');
+  });
 }
 
 class MyApp extends StatefulWidget {
@@ -145,21 +148,21 @@ class _MyAppState extends State<MyApp> {
     try {
       final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
-        print('🔗 [DeepLink] Initial link: $initialUri');
+        ErrorHandler.log('🔗 [DeepLink] Initial link: $initialUri');
         _handleDeepLink(initialUri);
       }
     } catch (e) {
-      print('❌ [DeepLink] Error getting initial link: $e');
+      ErrorHandler.log('❌ [DeepLink] Error getting initial link: $e');
     }
 
     // Handle links when app is already running (warm start)
     _linkSubscription = _appLinks.uriLinkStream.listen(
       (Uri uri) {
-        print('🔗 [DeepLink] Received link: $uri');
+        ErrorHandler.log('🔗 [DeepLink] Received link: $uri');
         _handleDeepLink(uri);
       },
       onError: (error) {
-        print('❌ [DeepLink] Stream error: $error');
+        ErrorHandler.log('❌ [DeepLink] Stream error: $error');
       },
     );
   }
@@ -170,7 +173,7 @@ class _MyAppState extends State<MyApp> {
       final pathSegments = uri.pathSegments;
       if (pathSegments.isNotEmpty) {
         final campaignId = pathSegments.first;
-        print('🔗 [DeepLink] Opening campaign: $campaignId');
+        ErrorHandler.log('🔗 [DeepLink] Opening campaign: $campaignId');
         
         // Navigate to campaign details screen
         // Use a small delay to ensure the app is fully initialized

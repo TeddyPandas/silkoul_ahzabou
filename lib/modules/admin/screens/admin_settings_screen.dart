@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../config/app_constants.dart';
 import '../../../../config/app_theme.dart';
 import '../../../../providers/auth_provider.dart';
-import '../../../../services/notification_service.dart';
-import 'admin_scaffold.dart';
+// import '../../../../services/notification_service.dart'; // Commented out for debugging
+import '../../../../utils/error_handler.dart';
 
 class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -20,6 +20,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ErrorHandler.log('🛠️ [AdminSettingsScreen] Building...'); // Debug Log
     return AdminScaffold(
       title: 'Paramètres',
       currentRoute: '/admin/settings',
@@ -43,83 +44,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       ),
     );
   }
-
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        color: Colors.grey[400],
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 1.2,
-      ),
-    );
-  }
-
-  Widget _buildInfoCard() {
-    return Card(
-      color: const Color(0xFF1E1E1E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          _buildListTile(
-            icon: Icons.info_outline,
-            title: 'Nom de l\'application',
-            subtitle: AppConstants.appName,
-          ),
-          _buildDivider(),
-          _buildListTile(
-            icon: Icons.verified_outlined,
-            title: 'Version',
-            subtitle: AppConstants.appVersion,
-          ),
-          _buildDivider(),
-          _buildListTile(
-            icon: Icons.build_circle_outlined,
-            title: 'Build Number',
-            subtitle: '100 (Production)',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLimitsCard() {
-    return Card(
-      color: const Color(0xFF1E1E1E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          _buildListTile(
-            icon: Icons.task_alt,
-            title: 'Max Tâches / Campagne',
-            subtitle: '${AppConstants.maxTasksPerCampaign}',
-          ),
-          _buildDivider(),
-          _buildListTile(
-            icon: Icons.timer_outlined,
-            title: 'Durée Max Campagne',
-            subtitle: '${AppConstants.maxCampaignDurationDays} jours',
-          ),
-          _buildDivider(),
-          _buildListTile(
-            icon: Icons.description_outlined,
-            title: 'Longueur Max Description',
-            subtitle: '${AppConstants.maxDescriptionLength} caractères',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToolsCard() {
-    final authProvider = Provider.of<AuthProvider>(context);
-
-    return Card(
-      color: const Color(0xFF1E1E1E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
+// ...
+// Inside _buildToolsCard
           // Notification Test
           ListTile(
             leading: const Icon(Icons.notifications_active_outlined,
@@ -129,7 +55,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               style: GoogleFonts.poppins(color: Colors.white),
             ),
             subtitle: Text(
-              'Envoyer une notification de test sur cet appareil',
+              'Fonctionnalité désactivée pour debug', // Changed text
               style: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 12),
             ),
             trailing: _isTestingNotification
@@ -140,6 +66,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                   )
                 : OutlinedButton(
                     onPressed: () async {
+                      // DISABLED FOR DEBUGGING
+                      /*
                       setState(() => _isTestingNotification = true);
                       await NotificationService().showInstantNotification();
                       setState(() => _isTestingNotification = false);
@@ -149,10 +77,14 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                               content: Text('Notification envoyée !')),
                         );
                       }
+                      */
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Test désactivé temporairement')),
+                      );
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.tealPrimary,
-                      side: const BorderSide(color: AppColors.tealPrimary),
+                      foregroundColor: Colors.grey, // Greyed out
+                      side: const BorderSide(color: Colors.grey),
                     ),
                     child: const Text('Tester'),
                   ),
