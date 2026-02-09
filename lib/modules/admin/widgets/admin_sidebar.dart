@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 
 class AdminSidebar extends StatelessWidget {
   final String currentRoute;
@@ -139,7 +139,7 @@ class AdminSidebar extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.tealPrimary.withValues(alpha: 0.15) : Colors.transparent,
+          color: isSelected ? AppColors.tealPrimary.withValues(alpha: 0.15) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
