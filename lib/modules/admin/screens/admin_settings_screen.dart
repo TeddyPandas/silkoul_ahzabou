@@ -6,6 +6,7 @@ import '../../../../config/app_theme.dart';
 import '../../../../providers/auth_provider.dart';
 // import '../../../../services/notification_service.dart'; // Commented out for debugging
 import '../../../../utils/error_handler.dart';
+import 'admin_scaffold.dart';
 
 class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -44,8 +45,83 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       ),
     );
   }
-// ...
-// Inside _buildToolsCard
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        color: Colors.grey[400],
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+
+  Widget _buildInfoCard() {
+    return Card(
+      color: const Color(0xFF1E1E1E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        children: [
+          _buildListTile(
+            icon: Icons.info_outline,
+            title: 'Nom de l\'application',
+            subtitle: AppConstants.appName,
+          ),
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.verified_outlined,
+            title: 'Version',
+            subtitle: AppConstants.appVersion,
+          ),
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.build_circle_outlined,
+            title: 'Build Number',
+            subtitle: '100 (Production)',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLimitsCard() {
+    return Card(
+      color: const Color(0xFF1E1E1E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        children: [
+          _buildListTile(
+            icon: Icons.task_alt,
+            title: 'Max Tâches / Campagne',
+            subtitle: '${AppConstants.maxTasksPerCampaign}',
+          ),
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.timer_outlined,
+            title: 'Durée Max Campagne',
+            subtitle: '${AppConstants.maxCampaignDurationDays} jours',
+          ),
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.description_outlined,
+            title: 'Longueur Max Description',
+            subtitle: '${AppConstants.maxDescriptionLength} caractères',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToolsCard() {
+    final authProvider = Provider.of<AuthProvider>(context);
+
+    return Card(
+      color: const Color(0xFF1E1E1E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        children: [
           // Notification Test
           ListTile(
             leading: const Icon(Icons.notifications_active_outlined,
@@ -55,7 +131,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               style: GoogleFonts.poppins(color: Colors.white),
             ),
             subtitle: Text(
-              'Fonctionnalité désactivée pour debug', // Changed text
+              'Fonctionnalité désactivée pour debug',
               style: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 12),
             ),
             trailing: _isTestingNotification
@@ -67,17 +143,6 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 : OutlinedButton(
                     onPressed: () async {
                       // DISABLED FOR DEBUGGING
-                      /*
-                      setState(() => _isTestingNotification = true);
-                      await NotificationService().showInstantNotification();
-                      setState(() => _isTestingNotification = false);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Notification envoyée !')),
-                        );
-                      }
-                      */
                       ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Test désactivé temporairement')),
                       );
@@ -150,9 +215,12 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 ),
               );
 
-              if (confirm == true && context.mounted) {
+              // Check if widget is still mounted
+              if (!mounted) return;
+
+              if (confirm == true) {
                 await authProvider.signOut();
-                if (context.mounted) {
+                if (mounted) {
                    Navigator.of(context).pushReplacementNamed('/login');
                 }
               }
