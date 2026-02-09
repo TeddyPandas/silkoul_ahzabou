@@ -79,7 +79,7 @@ class AdminScaffold extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (actions != null) ...actions!,
+                      if (actions != null) ...?actions,
                     ],
                   ),
                 ),
