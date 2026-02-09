@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../../models/media_models.dart';
-import '../../utils/app_theme.dart';
+import '../../config/app_theme.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final MediaVideo video;

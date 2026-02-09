@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 import '../../../../services/silsila_service.dart';
 import '../../../../models/silsila_node.dart';
 import '../screens/admin_scaffold.dart';

@@ -8,7 +8,7 @@ import '../models/teaching.dart';
 import '../widgets/transcript_view.dart';
 import '../services/teaching_service.dart';
 import '../providers/teachings_provider.dart';
-import '../../../utils/app_theme.dart';
+import '../../../config/app_theme.dart';
 
 class PlayerScreen extends StatefulWidget {
   final Teaching teaching;

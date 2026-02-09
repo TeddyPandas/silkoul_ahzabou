@@ -18,6 +18,11 @@ class AppColors {
   // Couleurs d'accentuation
   static const Color gold = Color(0xFFD4AF37);
   static const Color goldLight = Color(0xFFE5C158);
+  
+  // Compatibilité avec l'ancien thème (utils/app_theme.dart)
+  static const Color tealAccent = Color(0xFF6BC4B8);
+  static const Color goldPrimary = gold;
+  static const Color backgroundLight = Color(0xFFFAFAFA);
 
   // Couleurs texte
   static const Color textPrimary = Color(0xFF1A1A1A);

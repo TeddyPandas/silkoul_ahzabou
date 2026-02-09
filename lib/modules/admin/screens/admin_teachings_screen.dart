@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 import '../../teachings/providers/teachings_provider.dart';
 import '../screens/admin_scaffold.dart';
 import 'admin_teaching_editor_screen.dart';

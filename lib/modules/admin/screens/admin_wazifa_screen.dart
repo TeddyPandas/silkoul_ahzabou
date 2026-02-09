@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 import '../../../../services/wazifa_service.dart';
 import '../../../../models/wazifa_gathering.dart';
 import 'admin_scaffold.dart';

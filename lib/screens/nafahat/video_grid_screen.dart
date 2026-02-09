@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/media_models.dart';
 import '../../providers/media_provider.dart';
-import '../../utils/app_theme.dart';
+import '../../config/app_theme.dart';
 import 'video_player_screen.dart';
 
 class VideoGridScreen extends StatefulWidget {

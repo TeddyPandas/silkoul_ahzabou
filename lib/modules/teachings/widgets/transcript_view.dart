@@ -9,7 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/teachings_provider.dart';
 import '../models/transcript_segment.dart';
-import '../../../utils/app_theme.dart';
+import '../../../config/app_theme.dart';
 
 class TranscriptView extends StatefulWidget {
   final Future<List<TranscriptSegment>> Function() loadTranscript;

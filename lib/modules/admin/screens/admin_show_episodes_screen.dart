@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../config/app_theme.dart';
 import '../../teachings/models/teaching.dart';
 import '../../teachings/services/teaching_service.dart';
 import 'admin_scaffold.dart';
