@@ -28,12 +28,10 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
   Future<void> _fetchUsers() async {
     setState(() => _isLoading = true);
     try {
-      final response = await _client
-          .from('profiles')
-          .select()
-          .order('created_at', ascending: false);
+      // Use RPC to get secure data (including emails)
+      final response = await _client.rpc('get_admin_users');
       
-      final users = (response as List).map((json) => Profile.fromJson(json)).toList();
+      final users = (response as List).map((json) => Profile.fromRpc(json)).toList();
       setState(() {
         _users = users;
         _filteredUsers = users;

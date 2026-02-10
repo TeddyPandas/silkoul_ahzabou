@@ -166,17 +166,17 @@ class AuthService {
   /// Créer un profil utilisateur dans la table profiles
   Future<void> _createProfile({
     required String userId,
-    required String email,
+    required String email, // Kept in args for compatibility but NOT written to DB
     required String displayName,
-    String? phone,
+    String? phone, // Kept in args for compatibility but NOT written to DB
   }) async {
     try {
       final now = DateTime.now();
       await _supabase.from(SupabaseConfig.profilesTable).upsert({
         'id': userId,
-        'email': email,
+        // 'email': email, // REMOVED FOR SECURITY
         'display_name': displayName,
-        'phone': phone,
+        // 'phone': phone, // REMOVED FOR SECURITY
         'points': 0,
         'level': 1,
         'created_at': now.toIso8601String(),
@@ -207,14 +207,20 @@ class AuthService {
   Future<Profile?> getCurrentProfile() async {
     final user = _supabase.auth.currentUser;
     if (user == null) return null;
-    return _getProfile(user.id);
+    
+    final profile = await _getProfile(user.id);
+    if (profile != null) {
+      // Inject secure email from Auth User
+      return profile.copyWith(email: user.email);
+    }
+    return null;
   }
 
   /// Mettre à jour le profil
   Future<void> updateProfile({
     required String userId,
     String? displayName,
-    String? phone,
+    String? phone, // Deprecated argument
     String? address,
     DateTime? dateOfBirth,
     String? silsilaId,
@@ -226,7 +232,7 @@ class AuthService {
       };
 
       if (displayName != null) updates['display_name'] = displayName;
-      if (phone != null) updates['phone'] = phone;
+      // if (phone != null) updates['phone'] = phone; // REMOVED FOR SECURITY
       if (address != null) updates['address'] = address;
       if (dateOfBirth != null) {
         updates['date_of_birth'] = dateOfBirth.toIso8601String();
