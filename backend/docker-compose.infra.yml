@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # REV PROXY & SSL
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: always
+    ports:
+      - '80:80' # Public HTTP
+      - '443:443' # Public HTTPS
+      - '81:81' # NPM Admin UI
+    environment:
+      DB_SQLITE_FILE: "/data/database.sqlite"
+    volumes:
+      - ./infra_data/npm:/data
+      - ./infra_data/letsencrypt:/etc/letsencrypt
+    networks:
+      - silkoul-network
+
+  # MONITORING
+  uptime-kuma:
+    image: 'louislam/uptime-kuma:1'
+    restart: always
+    volumes:
+      - ./infra_data/uptime-kuma:/app/data
+    ports:
+      - '3001:3001' # Kuma Dashboard
+    networks:
+      - silkoul-network
+
+  # LOGS
+  dozzle:
+    image: amir20/dozzle:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - '8888:8080' # Dozzle Dashboard
+    networks:
+      - silkoul-network
+
+networks:
+  silkoul-network:
+    external: true

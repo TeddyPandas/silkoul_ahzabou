@@ -32,10 +32,24 @@ else
     echo "⚠️  Not a git repository. Skipping git pull."
 fi
 
-# Build and start containers
-echo "🏗️  Building and starting containers..."
-$DOCKER_COMPOSE_CMD down
-$DOCKER_COMPOSE_CMD up -d --build
+# Check if Docker network exists
+if ! docker network parse silkoul-network >/dev/null 2>&1; then
+    echo "🌐 Creating Docker network 'silkoul-network'..."
+    docker network create silkoul-network
+else
+    echo "✅ Network 'silkoul-network' already exists."
+fi
+
+# Deploy Infra Stack (NPM, Kuma, Dozzle)
+if [ -f "docker-compose.infra.yml" ]; then
+    echo "🏗️  Checking Infrastructure Stack..."
+    $DOCKER_COMPOSE_CMD -f docker-compose.infra.yml up -d
+fi
+
+# Build and start Application containers
+echo "🚀 Deploying Application Stack (API + Frontend)..."
+$DOCKER_COMPOSE_CMD -f docker-compose.yml down
+$DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build
 
 # Prune unused images to save space
 echo "🧹 Cleaning up unused Docker images..."

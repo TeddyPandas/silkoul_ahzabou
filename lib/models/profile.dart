@@ -34,7 +34,7 @@ class Profile {
     return Profile(
       id: json['id'] as String,
       displayName: json['display_name'] as String,
-      email: json['email'] as String,
+      email: json['email'] as String? ?? '', // Fallback empty if not provided (public profile)
       phone: json['phone'] as String?,
       address: json['address'] as String?,
       dateOfBirth: json['date_of_birth'] != null
@@ -46,8 +46,16 @@ class Profile {
       level: json['level'] as int? ?? 1,
       role: json['role'] as String? ?? 'USER',
       createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      // createdAt is TIMESTAMPTZ, so parse correctly
+      updatedAt: json['updated_at'] != null 
+          ? DateTime.parse(json['updated_at'] as String) 
+          : DateTime.parse(json['created_at'] as String),
     );
+  }
+
+  // Factory specific for the Admin RPC which returns flat structure
+  factory Profile.fromRpc(Map<String, dynamic> json) {
+    return Profile.fromJson(json); // RPC returns same structure
   }
 
   // Convertir en JSON pour Supabase
