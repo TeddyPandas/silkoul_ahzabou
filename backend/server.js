@@ -32,6 +32,8 @@ const allowedOrigins = [
   'http://localhost:8080',
   /^http:\/\/localhost:\d+$/, // Allow any localhost port for development
   /\.vercel\.app$/, // Example for web deployment
+  'https://admin.markaztijani.com',
+  'http://admin.markaztijani.com',
 ];
 
 app.use(cors({
