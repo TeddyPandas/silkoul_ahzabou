@@ -27,7 +27,7 @@ jobs:
           echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
           echo "APP_NAME=Silkoul Ahzabou Tidiani" >> .env
           echo "APP_VERSION=1.0.0" >> .env
-          echo "API_BASE_URL=http://${{ secrets.VPS_HOST }}/api" >> .env
+          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
 
       - name: Build Web
         run: flutter build web --release --no-tree-shake-icons
