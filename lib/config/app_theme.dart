@@ -21,8 +21,10 @@ class AppColors {
   
   // Compatibilité avec l'ancien thème (utils/app_theme.dart)
   static const Color tealAccent = Color(0xFF6BC4B8);
+  static const Color tealLight = Color(0xFF4A9B8E);
   static const Color goldPrimary = gold;
   static const Color backgroundLight = Color(0xFFFAFAFA);
+  static const Color gray = Color(0xFF757575);
 
   // Couleurs texte
   static const Color textPrimary = Color(0xFF1A1A1A);
