@@ -48,7 +48,7 @@ fi
 
 # Build and start Application containers
 echo "🚀 Deploying Application Stack (API + Frontend)..."
-$DOCKER_COMPOSE_CMD -f docker-compose.yml down --remove-orphans
+$DOCKER_COMPOSE_CMD -f docker-compose.yml down
 $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build
 
 # Prune unused images to save space
