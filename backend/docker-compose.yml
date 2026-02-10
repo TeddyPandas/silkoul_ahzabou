@@ -16,6 +16,16 @@ services:
     networks:
       - silkoul-network
 
+  frontend:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - ../../silkoul-frontend:/usr/share/nginx/html
+    expose:
+      - "80"
+    networks:
+      - silkoul-network
+
 networks:
   silkoul-network:
     external: true

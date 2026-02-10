@@ -47,7 +47,7 @@ if [ -f "docker-compose.infra.yml" ]; then
 fi
 
 # Build and start Application containers
-echo "🚀 Deploying Application Stack..."
+echo "🚀 Deploying Application Stack (API + Frontend)..."
 $DOCKER_COMPOSE_CMD down --remove-orphans
 $DOCKER_COMPOSE_CMD up -d --build
 
