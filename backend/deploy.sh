@@ -33,7 +33,7 @@ else
 fi
 
 # Check if Docker network exists
-if ! docker network parse silkoul-network >/dev/null 2>&1; then
+if ! docker network inspect silkoul-network >/dev/null 2>&1; then
     echo "🌐 Creating Docker network 'silkoul-network'..."
     docker network create silkoul-network
 else
