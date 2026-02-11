@@ -99,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFF5F5F5),
       drawer: const CustomDrawer(), // Add CustomDrawer here
       body: screens[_currentIndex],
@@ -419,7 +420,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 _buildQuickAction(
                     Icons.place, 'Wazifa Finder', AppColors.tealAccent,
                     onTap: () => widget.onTabChange(2)),
-                _buildQuickAction(Icons.emoji_events, 'Badges', Colors.amber),
+                // _buildQuickAction(Icons.emoji_events, 'Badges', Colors.amber),
               ],
             ),
           ],

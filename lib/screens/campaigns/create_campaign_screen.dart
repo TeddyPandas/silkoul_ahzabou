@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../providers/campaign_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/primary_app_bar.dart';
 
 class CreateCampaignScreen extends StatefulWidget {
   const CreateCampaignScreen({super.key});
@@ -194,15 +195,8 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text(
-          'Nouvelle Campagne',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        elevation: 0,
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
-        centerTitle: true,
+      appBar: const PrimaryAppBar(
+        title: 'Nouvelle Campagne',
       ),
       body: Form(
         key: _formKey,

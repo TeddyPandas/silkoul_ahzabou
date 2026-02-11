@@ -22,15 +22,43 @@ class AdminScaffold extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     
     // Protection basique : Redirection si non admin
+    // Protection basique : Ecran "Accès Interdit" au lieu de redirection (pour éviter la boucle infinie)
     if (!authProvider.isLoading && authProvider.isAuthenticated && !authProvider.isAdmin) {
-       // Wait for build to complete before redirecting
-       WidgetsBinding.instance.addPostFrameCallback((_) {
-         Navigator.of(context).pushReplacementNamed('/');
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text("Accès non autorisé aux administrateurs uniquement.")),
-         );
-       });
-       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+       return Scaffold(
+         body: Center(
+           child: Column(
+             mainAxisAlignment: MainAxisAlignment.center,
+             children: [
+               const Icon(Icons.lock_person, size: 80, color: Colors.redAccent),
+               const SizedBox(height: 24),
+               const Text(
+                 "Accès Refusé",
+                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+               ),
+               const SizedBox(height: 8),
+               const Text(
+                 "Votre compte n'a pas les droits d'administrateur.",
+                 style: TextStyle(color: Colors.grey),
+               ),
+               const SizedBox(height: 32),
+               ElevatedButton.icon(
+                 onPressed: () async {
+                    await authProvider.signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacementNamed('/login');
+                    }
+                 },
+                 icon: const Icon(Icons.logout),
+                 label: const Text("Se déconnecter"),
+                 style: ElevatedButton.styleFrom(
+                   backgroundColor: Colors.redAccent,
+                   foregroundColor: Colors.white,
+                 ),
+               ),
+             ],
+           ),
+         ),
+       );
     }
 
     // Only show sidebar on desktop (simplified for now)

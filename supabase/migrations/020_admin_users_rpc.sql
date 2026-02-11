@@ -22,8 +22,8 @@ BEGIN
   -- 1. Sécurité : Vérifier que l'utilisateur est ADMIN ou SUPER_ADMIN
   IF NOT EXISTS (
     SELECT 1 FROM public.profiles
-    WHERE id = auth.uid()
-    AND role IN ('ADMIN', 'SUPER_ADMIN')
+    WHERE public.profiles.id = auth.uid()
+    AND public.profiles.role IN ('ADMIN', 'SUPER_ADMIN')
   ) THEN
     RAISE EXCEPTION 'Access Denied: You are not an Admin';
   END IF;
@@ -31,18 +31,18 @@ BEGIN
   -- 2. Retourner la jointure
   RETURN QUERY
   SELECT 
-    p.id,
-    p.display_name,
-    u.email::VARCHAR,
-    COALESCE(u.phone, p.phone), -- Fallback to profile phone for now
-    p.role,
-    p.created_at,
-    p.avatar_url,
-    p.level,
-    p.points
-  FROM public.profiles p
-  JOIN auth.users u ON p.id = u.id
-  ORDER BY p.created_at DESC;
+    profiles.id,
+    profiles.display_name,
+    auth.users.email::VARCHAR,
+    auth.users.phone, -- Now strictly from auth.users
+    profiles.role,
+    profiles.created_at,
+    profiles.avatar_url,
+    profiles.level,
+    profiles.points
+  FROM public.profiles
+  JOIN auth.users ON public.profiles.id = auth.users.id
+  ORDER BY public.profiles.created_at DESC;
 END;
 $$ LANGUAGE plpgsql;
 

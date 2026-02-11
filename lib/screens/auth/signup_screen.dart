@@ -111,6 +111,14 @@ class _SignupScreenState extends State<SignupScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 24),
+            Center(
+              child: Image.asset(
+                'assets/images/app_logo_512.png',
+                height: 80,
+                width: 80,
+              ),
+            ),
+            const SizedBox(height: 24),
 
             const Text(
               'Rejoignez la communauté',

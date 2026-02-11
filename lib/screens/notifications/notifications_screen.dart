@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../providers/campaign_provider.dart';
+import '../../widgets/primary_app_bar.dart';
 
 import '../campaigns/campaign_details_screen.dart';
 
@@ -12,11 +13,8 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
-        elevation: 0,
+      appBar: const PrimaryAppBar(
+        title: 'Notifications',
       ),
       backgroundColor: const Color(0xFFF5F5F5),
       body: Consumer<CampaignProvider>(

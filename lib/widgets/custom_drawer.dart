@@ -45,7 +45,7 @@ class CustomDrawer extends StatelessWidget {
                         MaterialPageRoute(
                             builder: (_) => const SilsilaScreen())),
                   ),
-                  _buildMenuItem(
+                  /* _buildMenuItem(
                     context,
                     icon: Icons.emoji_events_rounded,
                     title: 'The Badges',
@@ -54,7 +54,7 @@ class CustomDrawer extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const BadgesScreen())),
-                  ),
+                  ), */
                   _buildMenuItem(
                     context,
                     icon: Icons.location_on_rounded,
@@ -127,16 +127,6 @@ class CustomDrawer extends StatelessWidget {
                       ],
                     ),
                   ),
-                  _buildDivider(),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.notifications_active_rounded,
-                    title: 'Test Notification',
-                    subtitle: 'Debug only',
-                    onTap: () {
-                      NotificationService().showInstantNotification();
-                    },
-                  ),
                 ],
               ),
             ),
@@ -185,10 +175,10 @@ class CustomDrawer extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.mosque_rounded,
-              color: AppColors.tealPrimary,
-              size: 32,
+            child: Image.asset(
+              'assets/images/app_logo_512.png',
+              height: 48,
+              width: 48,
             ),
           ),
           const SizedBox(height: 16),

@@ -20,7 +20,7 @@ class NafahatService {
     try {
       // Build query with filters first, then transform
       var baseQuery =
-          _supabase.from('tijani_articles').select().eq('status', 'published');
+          _supabase.from('articles').select().eq('status', 'published');
 
       // Apply optional filters
       if (category != null) {
@@ -49,7 +49,7 @@ class NafahatService {
   Future<NafahatArticle?> getArticleById(String id) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('id', id)
           .single();
@@ -65,7 +65,7 @@ class NafahatService {
   Future<List<NafahatArticle>> getFeaturedArticles({int limit = 5}) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('status', 'published')
           .eq('is_featured', true)
@@ -88,7 +88,7 @@ class NafahatService {
   }) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('status', 'published')
           .eq('category', category.value)
@@ -109,7 +109,7 @@ class NafahatService {
     try {
       // Search in title (French and Arabic) and content
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('status', 'published')
           .or('title.ilike.%$query%,title_ar.ilike.%$query%,content.ilike.%$query%,content_ar.ilike.%$query%')
@@ -129,7 +129,7 @@ class NafahatService {
   Future<List<NafahatArticle>> getArticlesByTag(String tag) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('status', 'published')
           .contains('tags', [tag])
@@ -155,7 +155,7 @@ class NafahatService {
       if (article.relatedArticleIds != null &&
           article.relatedArticleIds!.isNotEmpty) {
         final response = await _supabase
-            .from('tijani_articles')
+            .from('articles')
             .select()
             .inFilter('id', article.relatedArticleIds!)
             .eq('status', 'published')
@@ -172,7 +172,7 @@ class NafahatService {
 
       // Fall back to articles with similar tags or same category
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('status', 'published')
           .eq('category', article.category.value)
@@ -193,7 +193,7 @@ class NafahatService {
   Future<List<NafahatArticle>> getLatestArticles({int limit = 10}) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('status', 'published')
           .order('published_at', ascending: false)
@@ -212,7 +212,7 @@ class NafahatService {
   Future<List<NafahatArticle>> getPopularArticles({int limit = 10}) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('status', 'published')
           .order('view_count', ascending: false)
@@ -234,7 +234,7 @@ class NafahatService {
   }) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select()
           .eq('author_id', authorId)
           .eq('status', 'published')
@@ -336,7 +336,7 @@ class NafahatService {
   Future<NafahatArticle?> createArticle(NafahatArticle article) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .insert(article.toJson())
           .select()
           .single();
@@ -352,7 +352,7 @@ class NafahatService {
   Future<NafahatArticle?> updateArticle(NafahatArticle article) async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .update(article.toJson())
           .eq('id', article.id)
           .select()
@@ -368,7 +368,7 @@ class NafahatService {
   /// Delete article (admin only)
   Future<bool> deleteArticle(String articleId) async {
     try {
-      await _supabase.from('tijani_articles').delete().eq('id', articleId);
+      await _supabase.from('articles').delete().eq('id', articleId);
 
       return true;
     } catch (e) {
@@ -381,7 +381,7 @@ class NafahatService {
   Future<List<String>> getAllTags() async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select('tags')
           .eq('status', 'published');
 
@@ -403,7 +403,7 @@ class NafahatService {
   Future<Map<ArticleCategory, int>> getArticleCountByCategory() async {
     try {
       final response = await _supabase
-          .from('tijani_articles')
+          .from('articles')
           .select('category')
           .eq('status', 'published');
 

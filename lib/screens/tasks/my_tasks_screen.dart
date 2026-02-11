@@ -5,6 +5,7 @@ import '../../providers/user_provider.dart';
 import '../../models/user_task.dart';
 import '../../config/app_theme.dart';
 import '../campaigns/campaign_details_screen.dart';
+import '../../widgets/primary_app_bar.dart';
 
 class MyTasksScreen extends StatefulWidget {
   const MyTasksScreen({super.key});
@@ -40,18 +41,8 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text(
-          'Mes Tâches',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      appBar: const PrimaryAppBar(
+        title: 'Mes Tâches',
       ),
       body: Consumer<UserProvider>(
         builder: (context, provider, child) {
