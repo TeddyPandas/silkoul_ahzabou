@@ -94,5 +94,7 @@ class MediaVideo {
     );
   }
   
+  String get authorName => author?.name ?? 'Markaz';
+  
   String get thumbnailUrl => 'https://img.youtube.com/vi/$youtubeId/maxresdefault.jpg';
 }

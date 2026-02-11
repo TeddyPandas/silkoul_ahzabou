@@ -10,6 +10,7 @@ import 'package:silkoul_ahzabou/modules/teachings/models/article.dart';
 import 'package:silkoul_ahzabou/modules/teachings/models/author.dart';
 import 'package:silkoul_ahzabou/modules/teachings/models/category.dart';
 import 'package:silkoul_ahzabou/content/pole_biography.dart';
+import 'package:silkoul_ahzabou/widgets/primary_app_bar.dart';
 
 class SilsilaScreen extends StatefulWidget {
   const SilsilaScreen({super.key});
@@ -45,9 +46,8 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
     final profile = context.watch<AuthProvider>().profile;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ma Silsila'),
-        centerTitle: true,
+      appBar: PrimaryAppBar(
+        title: 'Ma Silsila',
         actions: [
           IconButton(
             icon: const Icon(Icons.share),

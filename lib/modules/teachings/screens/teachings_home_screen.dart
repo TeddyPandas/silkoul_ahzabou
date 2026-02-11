@@ -11,6 +11,7 @@ import 'search_screen.dart';
 import '../widgets/mini_player.dart';
 import '../../../screens/nafahat/media_tab.dart'; // Import MediaTab
 import '../../../config/app_theme.dart';
+import '../../../widgets/primary_app_bar.dart';
 
 class TeachingsHomeScreen extends StatefulWidget {
   const TeachingsHomeScreen({super.key});
@@ -41,26 +42,11 @@ class _TeachingsHomeScreenState extends State<TeachingsHomeScreen> with SingleTi
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: Text("Enseignements", style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
-        backgroundColor: AppColors.tealPrimary,
-        centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-          unselectedLabelStyle: GoogleFonts.poppins(),
-          indicatorColor: AppColors.tealAccent,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          tabs: const [
-            Tab(text: "Vidéos"),
-            Tab(text: "Podcasts"),
-            Tab(text: "Textes"),
-          ],
-        ),
+      appBar: PrimaryAppBar(
+        title: "Enseignements",
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
+            icon: const Icon(Icons.search),
             onPressed: () {
               Navigator.push(
                 context,
@@ -69,6 +55,20 @@ class _TeachingsHomeScreenState extends State<TeachingsHomeScreen> with SingleTi
             },
           )
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
+          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 13),
+          indicatorColor: AppColors.tealPrimary,
+          labelColor: AppColors.tealPrimary,
+          unselectedLabelColor: Colors.grey,
+          indicatorWeight: 3,
+          tabs: const [
+            Tab(text: "Vidéos"),
+            Tab(text: "Podcasts"),
+            Tab(text: "Textes"),
+          ],
+        ),
       ),
       body: Column(
         children: [

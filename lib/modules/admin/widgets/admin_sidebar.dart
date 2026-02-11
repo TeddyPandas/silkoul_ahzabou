@@ -29,7 +29,11 @@ class AdminSidebar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.shield, color: AppColors.tealPrimary, size: 28),
+                Image.asset(
+                  'assets/images/app_logo_512.png',
+                  height: 32,
+                  width: 32,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   "ADMIN",

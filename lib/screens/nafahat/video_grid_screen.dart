@@ -4,6 +4,7 @@ import '../../models/media_models.dart';
 import '../../providers/media_provider.dart';
 import '../../config/app_theme.dart';
 import 'video_player_screen.dart';
+import '../../widgets/primary_app_bar.dart';
 
 class VideoGridScreen extends StatefulWidget {
   final String title;
@@ -22,66 +23,82 @@ class VideoGridScreen extends StatefulWidget {
 }
 
 class _VideoGridScreenState extends State<VideoGridScreen> {
-  late Future<List<MediaVideo>> _videosFuture;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadVideos();
+    _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MediaProvider>().fetchFirstPage();
+    });
   }
 
-  void _loadVideos() {
-    final provider = context.read<MediaProvider>();
-    if (widget.categoryId != null) {
-      // Fetch more for the grid (e.g. 100)
-      // We might need to add a 'limit' param to provider methods or just use what's cached if enough.
-      // For now calling getVideosForCategory returns what's cached (50) or fetches.
-      // Ideally we want to force fetch more?
-      // Let's rely on the provider's logic for now.
-      _videosFuture = provider.getVideosForCategory(widget.categoryId!);
-    } else if (widget.authorId != null) {
-      _videosFuture = provider.getVideosForAuthor(widget.authorId!);
-    } else {
-      _videosFuture = Future.value([]);
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      context.read<MediaProvider>().fetchNextPage();
     }
   }
+
+  // No longer using FutureBuilder for pagination
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(color: Colors.white)),
-        backgroundColor: AppColors.tealPrimary,
-        iconTheme: const IconThemeData(color: Colors.white),
+      appBar: PrimaryAppBar(
+        title: widget.title,
       ),
-      body: FutureBuilder<List<MediaVideo>>(
-        future: _videosFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Erreur: ${snapshot.error}'));
+      body: Consumer<MediaProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading && provider.allVideos.isEmpty) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.tealPrimary));
           }
           
-          final videos = snapshot.data ?? [];
+          final videos = provider.allVideos;
           if (videos.isEmpty) {
             return const Center(child: Text('Aucune vidéo trouvée.'));
           }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.8, // Adjust based on card content
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
-            itemCount: videos.length,
-            itemBuilder: (context, index) {
-              return _buildGridCard(context, videos[index]);
-            },
+          return ListView(
+            controller: _scrollController,
+            children: [
+              GridView.builder(
+                padding: const EdgeInsets.all(16),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                itemCount: videos.length,
+                itemBuilder: (context, index) {
+                  return _buildGridCard(context, videos[index]);
+                },
+              ),
+              if (provider.isLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(child: CircularProgressIndicator(color: AppColors.tealPrimary)),
+                ),
+              if (!provider.hasMore && videos.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: Text(
+                      'Fin des vidéos',
+                      style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                    ),
+                  ),
+                ),
+            ],
           );
         },
       ),

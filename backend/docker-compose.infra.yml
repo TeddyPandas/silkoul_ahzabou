@@ -28,14 +28,15 @@ services:
     networks:
       - silkoul-network
 
-  # LOGS
-  dozzle:
-    image: amir20/dozzle:latest
+  # CONTAINER MANAGEMENT & LOGS
+  portainer:
+    image: portainer/portainer-ce:latest
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./infra_data/portainer:/data
     ports:
-      - '8888:8080' # Dozzle Dashboard
+      - '9000:9000' # Port HTTP local (à cacher derrière NPM)
     networks:
       - silkoul-network
 

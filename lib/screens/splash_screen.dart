@@ -63,17 +63,18 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: AppColors.primaryGradient,
+          color: AppColors.primary,
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo ou icône
-              const Icon(
-                Icons.mosque,
-                size: 100,
-                color: AppColors.white,
+              Image.asset(
+                'assets/images/splash-v2.png',
+                height: 200,
+                width: 200,
+                fit: BoxFit.contain,
               ),
               const SizedBox(height: 24),
 

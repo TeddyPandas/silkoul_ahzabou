@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_cache/flutter_map_cache.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/wazifa_provider.dart';
 import '../../models/wazifa_gathering.dart';
 import 'add_wazifa_screen.dart';
+import '../../widgets/primary_app_bar.dart';
 
 class WazifaMapScreen extends StatefulWidget {
   const WazifaMapScreen({super.key});
@@ -31,8 +34,8 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wazifa Finder 📍'),
+      appBar: PrimaryAppBar(
+        title: 'Wazifa Finder',
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -100,7 +103,10 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
                 children: [
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    // userAgentPackageName removed to test if it blocks requests
+                    userAgentPackageName: 'com.ousmanediane.silkoulAhzabou',
+                    tileProvider: CachedTileProvider(
+                      store: MemCacheStore(),
+                    ),
                   ),
                   MarkerLayer(
                     markers: [

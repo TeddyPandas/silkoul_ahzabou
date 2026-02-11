@@ -63,50 +63,36 @@ class _MediaTabState extends State<MediaTab> {
                   const SizedBox(height: 24),
                 ],
 
-                // 3. CATEGORIES RAIL (Dynamic)
-                // For each category, we fetch and show a preview
-                ...provider.categories.map((category) {
-                  return FutureBuilder<List<MediaVideo>>(
-                    future: provider.getVideosForCategory(category.id),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const SizedBox();
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSectionTitle(
-                            category.name,
-                            onSeeAll: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => VideoGridScreen(
-                                    title: category.name,
-                                    categoryId: category.id,
-                                  ),
-                                ),
-                              );
-                            },
+                // 3. RECENT VIDEOS (Vertical List)
+                if (provider.allVideos.isNotEmpty) ...[
+                  _buildSectionTitle(
+                    'Vidéos récentes',
+                    onSeeAll: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const VideoGridScreen(
+                            title: 'Toutes les vidéos',
                           ),
-                          SizedBox(
-                            height: 200, // Video thumbnail height
-                            child: ListView.separated(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              scrollDirection: Axis.horizontal,
-                              itemCount: snapshot.data!.length > 10 ? 10 : snapshot.data!.length,
-                              separatorBuilder: (_, __) => const SizedBox(width: 12),
-                              itemBuilder: (context, index) {
-                                return _buildVideoCard(snapshot.data![index]);
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
+                        ),
                       );
                     },
-                  );
-                }),
+                  ),
+                  ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: provider.allVideos.length > 5 ? 5 : provider.allVideos.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      return _buildVerticalVideoCard(provider.allVideos[index]);
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
+                // 4. FOOTER PADDING
+                const SizedBox(height: 50),
               ],
             ),
           ),
@@ -290,7 +276,78 @@ class _MediaTabState extends State<MediaTab> {
     );
   }
 
-  Widget _buildVideoCard(MediaVideo video) {
+  Widget _buildVerticalVideoCard(MediaVideo video) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => VideoPlayerScreen(video: video)),
+        );
+      },
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Thumbnail
+            ClipRRect(
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              child: Container(
+                width: 140,
+                height: 100,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(video.thumbnailUrl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(Icons.play_circle_fill, color: Colors.white, size: 32),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Info
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      video.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    const Spacer(),
+                    if (video.author != null)
+                      Text(
+                        video.author!.name,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoCard(MediaVideo video, {bool compact = false}) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -299,14 +356,14 @@ class _MediaTabState extends State<MediaTab> {
         );
       },
       child: Container(
-      width: 160,
+      width: compact ? 180 : 160,
       color: Colors.transparent, // Hit test
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Thumbnail
           Container(
-            height: 90,
+            height: compact ? 100 : 90,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               image: DecorationImage(
@@ -323,17 +380,8 @@ class _MediaTabState extends State<MediaTab> {
             video.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: compact ? 12 : 13),
           ),
-          if (video.author != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              video.author!.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.grey[600], fontSize: 11),
-            ),
-          ]
         ],
       ),
       ),

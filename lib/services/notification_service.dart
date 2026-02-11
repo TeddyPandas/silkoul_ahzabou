@@ -97,29 +97,6 @@ class NotificationService {
     }
   }
 
-  Future<void> showInstantNotification() async {
-    debugPrint('🔔 [NotificationService] showInstantNotification called');
-    try {
-      await flutterLocalNotificationsPlugin.show(
-        888, // Special ID for test notification
-        'Test Notification',
-        'Ceci est une notification de test pour vérifier que tout fonctionne !',
-        const fln.NotificationDetails(
-          android: fln.AndroidNotificationDetails(
-            'campaign_end_channel',
-            'Fin de Campagne',
-            channelDescription: 'Notifications pour la fin des campagnes',
-            importance: fln.Importance.high,
-            priority: fln.Priority.high,
-          ),
-          iOS: fln.DarwinNotificationDetails(),
-        ),
-      );
-      debugPrint('🔔 [NotificationService] Notification shown successfully');
-    } catch (e) {
-      debugPrint('❌ [NotificationService] Error showing notification: $e');
-    }
-  }
 
   Future<void> cancelNotification(String campaignId) async {
     await flutterLocalNotificationsPlugin.cancel(campaignId.hashCode);

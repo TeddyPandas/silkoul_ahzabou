@@ -249,10 +249,10 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             const SizedBox(height: 40),
 
             // Logo et titre
-            const Icon(
-              Icons.mosque,
-              size: 80,
-              color: AppColors.primary,
+            Image.asset(
+              'assets/images/app_logo_512.png',
+              height: 120,
+              width: 120,
             ),
             const SizedBox(height: 16),
 

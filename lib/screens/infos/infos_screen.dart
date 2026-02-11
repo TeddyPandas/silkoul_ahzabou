@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/primary_app_bar.dart';
 
 class InfosScreen extends StatelessWidget {
   const InfosScreen({super.key});
@@ -6,9 +7,8 @@ class InfosScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Infos"),
-        centerTitle: true,
+      appBar: const PrimaryAppBar(
+        title: 'Infos',
       ),
       body: const Center(
         child: Text("Coming Soon"),

@@ -6,6 +6,7 @@ import '../../models/wazifa_gathering.dart';
 import '../../providers/wazifa_provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'location_picker_screen.dart';
+import '../../widgets/primary_app_bar.dart';
 
 class AddWazifaScreen extends StatefulWidget {
   const AddWazifaScreen({super.key});
@@ -136,8 +137,8 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
     // mais ici on veut forcement la position *actuelle* précise pour l'ajout.
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajouter un lieu Wazifa'),
+      appBar: const PrimaryAppBar(
+        title: 'Ajouter un lieu Wazifa',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

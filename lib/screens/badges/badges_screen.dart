@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/primary_app_bar.dart';
 
 class BadgesScreen extends StatelessWidget {
   const BadgesScreen({super.key});
@@ -6,9 +7,8 @@ class BadgesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Badges"),
-        centerTitle: true,
+      appBar: const PrimaryAppBar(
+        title: 'Badges',
       ),
       body: const Center(
         child: Text("Coming Soon"),
