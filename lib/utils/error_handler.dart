@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ErrorHandler {
   /// Nettoie les messages d'erreur pour l'affichage utilisateur.
@@ -6,58 +7,62 @@ class ErrorHandler {
   /// En mode DEBUG : Retourne l'erreur complète pour faciliter le débogage.
   /// En mode RELEASE : Retourne un message convivial et générique.
   static String sanitize(dynamic error) {
-    // 1. En mode DEBUG, on affiche tout (sauf si on veut tester le comportement prod)
-    if (kDebugMode) {
-      return error.toString();
+    // 1. Log the full error internally
+    log('❌ Error caught: $error');
+
+    // 2. Specialized handling for PostgrestException (Supabase DB errors)
+    if (error is PostgrestException) {
+      log('📊 Database Error: ${error.message} (Code: ${error.code})');
+      
+      // Hide raw DB details even in debug if they contain sensitive schema info
+      // But for better dev UX, we show more in debug
+      if (!kDebugMode) {
+        // Common Postgres error codes
+        switch (error.code) {
+          case '23503': // foreign_key_violation
+            return "Cette opération ne peut pas être effectuée car l'élément est lié à d'autres données.";
+          case '23505': // unique_violation
+            return "Cet élément existe déjà.";
+          case '42P01': // undefined_table (Security risk to show)
+            return "Une erreur interne est survenue (Ressource indisponible).";
+          case 'PGRST301': // Row level security violation
+            return "Vous n'avez pas la permission d'effectuer cette action.";
+          default:
+            return "Une erreur de base de données est survenue. Veuillez réessayer.";
+        }
+      }
     }
 
-    // 2. En mode RELEASE, on filtre
+    // 3. AuthException (Supabase)
+    if (error is AuthException) {
+      String msg = error.message;
+      if (msg.contains("Invalid login credentials")) return "Email ou mot de passe incorrect.";
+      if (msg.contains("Email not confirmed")) return "Veuillez confirmer votre email.";
+      if (msg.contains("User already registered")) return "Cet email est déjà utilisé.";
+      return msg; // Auth messages are usually safe
+    }
+
+    // 4. Fallback for generic strings/exceptions
     String message = error.toString();
 
-    // Enlever le préfixe "Exception: "
+    // En mode RELEASE, on filtre les termes techniques
+    if (!kDebugMode) {
+      if (message.contains("PostgresException") || 
+          message.contains("SocketException") || 
+          message.contains("XMLHttpRequest") ||
+          message.contains("HandshakeException")) {
+        return "Problème de connexion au serveur. Veuillez vérifier votre internet.";
+      }
+      
+      // Generic fallback for release
+      return "Une erreur inattendue est survenue. L'équipe technique a été notifiée.";
+    }
+
+    // mode DEBUG : Retourne l'erreur complète
     if (message.startsWith("Exception: ")) {
       message = message.substring(11);
     }
-
-    // Traductions courantes (AuthException Supabase)
-    if (message.contains("Invalid login credentials")) {
-      return "Email ou mot de passe incorrect.";
-    }
-    if (message.contains("Email not confirmed")) {
-      return "Veuillez confirmer votre email avant de vous connecter.";
-    }
-    if (message.contains("User already registered")) {
-      return "Cet email est déjà utilisé.";
-    }
-    if (message.contains("Password should be at least")) {
-      return "Le mot de passe est trop court.";
-    }
-    if (message.contains("Network request failed") || message.contains("SocketException")) {
-      return "Erreur de connexion internet.";
-    }
-
-    // --- Patterns spécifiques Campagnes ---
-    if (message.contains('déjà abonné') || message.contains('already subscribed')) {
-      return 'Vous êtes déjà abonné à cette campagne.';
-    }
-    if (message.contains('Code d\'accès requis') || message.contains('Access code required')) {
-      return 'Un code d\'accès est requis pour accéder à cette campagne.';
-    }
-    if (message.contains('Code d\'accès invalide') || message.contains('Invalid access code') || message.contains('access code')) {
-      return 'Le code d\'accès est invalide.';
-    }
-    if (message.contains('Quantité') || message.contains('quantity')) {
-      return 'La quantité demandée n\'est plus disponible.';
-    }
-    if (message.contains('non authentifié') || message.contains('not authenticated')) {
-      return 'Vous devez être connecté pour effectuer cette action.';
-    }
-    if (message.contains('404')) {
-      return 'Ressource introuvable.';
-    }
-    
-    // Message par défaut pour les autres erreurs en prod
-    return "Une erreur inattendue est survenue. Veuillez réessayer.";
+    return message;
   }
 
   /// Log message safely (only in debug mode)

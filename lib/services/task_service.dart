@@ -530,6 +530,29 @@ class TaskService {
     }
   }
 
+  // Update user task progress (for Tasbih)
+  Future<void> updateUserTaskProgress(String userTaskId, int progress) async {
+    try {
+      final token = _supabase.auth.currentSession?.accessToken;
+      if (token == null) {
+        throw Exception('Utilisateur non authentifié');
+      }
+
+      // Logic: if there is no dedicated endpoint for partial update, we can try to reuse 'updateTaskProgress'
+      // which is already implemented above: Future<void> updateTaskProgress
+      // Let's just alias it or use it directly.
+      // Wait, let's look at `updateTaskProgress` implementation at line 217.
+      // It takes userTaskId and completedQuantity.
+      // So we can just use `updateTaskProgress`.
+      
+      await updateTaskProgress(userTaskId: userTaskId, completedQuantity: progress);
+
+    } catch (e) {
+      debugPrint('Error updating user task progress: $e');
+      rethrow;
+    }
+  }
+
   /// ══════════════════════════════════════════════════════════════════════════
   /// TERMINER UNE TÂCHE AVEC RETOUR DU RESTE AU POOL GLOBAL
   /// ══════════════════════════════════════════════════════════════════════════

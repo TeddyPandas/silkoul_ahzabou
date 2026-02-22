@@ -1,8 +1,8 @@
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
-
-
 
 import '../../models/campaign.dart';
 
@@ -11,12 +11,14 @@ import '../../providers/campaign_provider.dart';
 import '../../providers/user_provider.dart';
 
 import '../../config/app_theme.dart';
-import '../../widgets/custom_drawer.dart'; // Import CustomDrawer
+import '../../widgets/custom_drawer.dart';
 
 import '../campaigns/campaign_details_screen.dart';
 import '../campaigns/create_campaign_screen.dart';
 import '../wazifa/wazifa_map_screen.dart';
+import '../wazifa/add_wazifa_screen.dart';
 import '../nafahat/nafahat_screen.dart';
+import '../silsila/silsila_screen.dart';
 import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -29,19 +31,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   bool _showMyCampaignsOnTab = false;
+  bool _fabOpen = false;
 
-  // Method to refresh data, can be passed down or called after navigation
   Future<void> _refreshData() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userId = authProvider.user?.id;
-
-    debugPrint('🔄 [HomeScreen] _refreshData called. userId: $userId');
-
     if (userId != null) {
       final campaignProvider =
           Provider.of<CampaignProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-
       try {
         await Future.wait([
           campaignProvider.fetchCampaigns(),
@@ -49,99 +47,251 @@ class _HomeScreenState extends State<HomeScreen> {
           userProvider.loadAllUserTasks(userId: userId, onlyIncomplete: true),
           userProvider.loadUserStats(userId: userId),
         ]);
-        debugPrint(
-            '✅ [HomeScreen] Data refresh complete. Campaigns: ${campaignProvider.campaigns.length}, My Campaigns: ${campaignProvider.myCampaigns.length}');
       } catch (e) {
         debugPrint('❌ [HomeScreen] Error during data refresh: $e');
       }
-    } else {
-      debugPrint('⚠️ [HomeScreen] No userId found, skipping data refresh');
     }
   }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshData();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshData());
   }
 
   void _onTabChange(int index, {bool showMyCampaigns = false}) {
     setState(() {
       _currentIndex = index;
       _showMyCampaignsOnTab = showMyCampaigns;
+      _fabOpen = false; // Close Speed Dial when switching tabs
     });
   }
 
+  void _toggleFab() {
+    HapticFeedback.mediumImpact();
+    setState(() => _fabOpen = !_fabOpen);
+  }
+
+  void _closeFab() => setState(() => _fabOpen = false);
+
   void _navigateToCreateCampaign() async {
+    _closeFab();
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const CreateCampaignScreen()),
     );
-
-    // Refresh data after returning from create screen
     _refreshData();
+  }
+
+  void _navigateToAddWazifa() async {
+    _closeFab();
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AddWazifaScreen()),
+    );
+  }
+
+  static const _tabIcons = [
+    Icons.home_rounded,
+    Icons.auto_stories_rounded,
+    Icons.location_on_rounded,
+    Icons.article_rounded,
+  ];
+  static const _tabLabels = ['Accueil', 'Campagnes', 'Wazifa', 'Nafahat'];
+
+  // The CurvedNavigationBar uses 5 items: 4 tabs + center "+" button.
+  // Indices: 0=Accueil, 1=Campagnes, 2=FAB(+), 3=Wazifa, 4=Nafahat
+  // We map _currentIndex (0-3 for tabs) to the CurvedNavigationBar index (0,1,3,4)
+  int _toNavIndex(int tabIndex) {
+    if (tabIndex < 2) return tabIndex;      // 0->0, 1->1
+    return tabIndex + 1;                     // 2->3, 3->4
+  }
+
+  int _toTabIndex(int navIndex) {
+    if (navIndex < 2) return navIndex;       // 0->0, 1->1
+    if (navIndex > 2) return navIndex - 1;  // 3->2, 4->3
+    return _currentIndex; // 2 = FAB, keep current tab
   }
 
   @override
   Widget build(BuildContext context) {
-    // We build screens dynamically to access 'context' and pass methods
-    final List<Widget> screens = [
-      DashboardTab(
-        onTabChange: _onTabChange,
-        onRefresh: _refreshData,
-      ),
+    final screens = [
+      DashboardTab(onTabChange: _onTabChange, onRefresh: _refreshData),
       CampaignsTab(
-          key: ValueKey('campaigns_$_showMyCampaignsOnTab'),
-          showMyCampaigns: _showMyCampaignsOnTab),
-      const WazifaMapScreen(), // Wazifa Finder
-      const NafahatScreen(), // Nafahat
+        key: ValueKey('campaigns_$_showMyCampaignsOnTab'),
+        showMyCampaigns: _showMyCampaignsOnTab,
+      ),
+      const WazifaMapScreen(),
+      const NafahatScreen(),
     ];
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFF5F5F5),
-      drawer: const CustomDrawer(), // Add CustomDrawer here
-      body: screens[_currentIndex],
-      floatingActionButton: Container(
-        height: 64,
-        width: 64,
-        margin: const EdgeInsets.only(top: 30), // Adjust to sit nicely in notch
-        child: FloatingActionButton(
-          heroTag: 'create_campaign_fab',
-          onPressed: _navigateToCreateCampaign,
-          backgroundColor: AppColors.tealPrimary,
-          elevation: 4,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add_rounded, size: 32, color: Colors.white),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
+      drawer: const CustomDrawer(),
+      body: Stack(
+        children: [
+          // ── Main content ──
+          Positioned.fill(
+            child: screens[_currentIndex],
+          ),
+
+          // ── Backdrop (tap outside to close Speed Dial) ──
+          if (_fabOpen)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _closeFab,
+                child: Container(color: Colors.black45),
+              ),
             ),
-          ],
-        ),
-        child: BottomAppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          height: 70,
-          color: Colors.white,
-          shape: const CircularNotchedRectangle(),
-          notchMargin: 8.0,
-          clipBehavior: Clip.antiAlias,
+
+          // ── Speed Dial mini-buttons ──
+          if (_fabOpen)
+            Positioned(
+              bottom: 100,
+              left: 0,
+              right: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildSpeedDialItem(
+                    visible: true,
+                    delay: 0,
+                    icon: Icons.add_location_alt_rounded,
+                    label: 'Ajouter un lieu Wazifa',
+                    color: AppColors.secondary,
+                    onTap: _navigateToAddWazifa,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSpeedDialItem(
+                    visible: true,
+                    delay: 50,
+                    icon: Icons.campaign_rounded,
+                    label: 'Créer une campagne',
+                    color: AppColors.tealPrimary,
+                    onTap: _navigateToCreateCampaign,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
+
+      // ── CurvedNavigationBar: handles pill, notch, animation natively ──
+      bottomNavigationBar: CurvedNavigationBar(
+        index: _toNavIndex(_currentIndex),
+        height: 65,
+        backgroundColor: Colors.transparent,
+        color: Colors.white,
+        buttonBackgroundColor: _fabOpen ? AppColors.tealPrimary : Colors.white,
+        animationCurve: Curves.easeInOut,
+        animationDuration: const Duration(milliseconds: 400),
+        items: [
+          _buildNavIcon(0, _tabIcons[0]),    // Accueil
+          _buildNavIcon(1, _tabIcons[1]),    // Campagnes
+          // Center "+" button
+          AnimatedRotation(
+            duration: const Duration(milliseconds: 300),
+            turns: _fabOpen ? 0.125 : 0,
+            child: Icon(
+              Icons.add_rounded,
+              size: 30,
+              color: _fabOpen ? Colors.white : AppColors.tealPrimary,
+            ),
+          ),
+          _buildNavIcon(2, _tabIcons[2]),    // Wazifa
+          _buildNavIcon(3, _tabIcons[3]),    // Nafahat
+        ],
+        onTap: (navIndex) {
+          HapticFeedback.selectionClick();
+          if (navIndex == 2) {
+            // Center button = FAB toggle
+            _toggleFab();
+          } else {
+            _closeFab();
+            final tabIndex = _toTabIndex(navIndex);
+            setState(() => _currentIndex = tabIndex);
+            if (tabIndex == 1) {
+              final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
+              if (userId != null) {
+                Provider.of<CampaignProvider>(context, listen: false)
+                    .fetchMyCampaigns(userId: userId, onlyCreated: false);
+              }
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildNavIcon(int tabIndex, IconData icon) {
+    final isSelected = _currentIndex == tabIndex;
+    return Icon(
+      icon,
+      size: 24,
+      color: isSelected ? AppColors.tealPrimary : Colors.grey[400],
+    );
+  }
+
+  Widget _buildSpeedDialItem({
+    required bool visible,
+    required int delay,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return AnimatedSlide(
+      duration: Duration(milliseconds: visible ? 300 + delay : 200),
+      curve: visible ? Curves.easeOutBack : Curves.easeIn,
+      offset: visible ? Offset.zero : const Offset(0, 0.5),
+      child: AnimatedOpacity(
+        duration: Duration(milliseconds: visible ? 250 + delay : 150),
+        opacity: visible ? 1.0 : 0.0,
+        child: GestureDetector(
+          onTap: onTap,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              _buildNavItem(Icons.home_rounded, 'Accueil', 0),
-              _buildNavItem(Icons.auto_stories_rounded, 'Campagnes', 1),
-              const SizedBox(width: 48), // Spacer for FAB
-              _buildNavItem(Icons.search_rounded, 'Wazifa', 2),
-              _buildNavItem(Icons.article_rounded, 'Nafahat', 3),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.35),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
             ],
           ),
         ),
@@ -149,66 +299,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    final isSelected = _currentIndex == index;
-    return Expanded(
-      child: InkWell(
-        onTap: () async {
-          setState(() => _currentIndex = index);
-          // Refresh data when switching tabs to ensure up-to-date content
-          if (index == 1) {
-            // Campaigns tab
-            final authProvider =
-                Provider.of<AuthProvider>(context, listen: false);
-            final userId = authProvider.user?.id;
-            if (userId != null) {
-              Provider.of<CampaignProvider>(context, listen: false)
-                  .fetchMyCampaigns(userId: userId, onlyCreated: false);
-            }
-          }
-        },
-        customBorder: const CircleBorder(),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutBack,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.tealPrimary.withValues(alpha: 0.1)
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: isSelected ? AppColors.tealPrimary : Colors.grey[400],
-                size: isSelected ? 26 : 24,
-              ),
-            ),
-            if (isSelected)
-              AnimatedOpacity(
-                opacity: isSelected ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.tealPrimary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
-// ... DashboardTab remains mostly same ...
+} // end _HomeScreenState
+
+// ══════════════════════════════════════════════════════════════════════════
+
+
 class DashboardTab extends StatefulWidget {
   final Function(int, {bool showMyCampaigns}) onTabChange;
   final Future<void> Function() onRefresh;
@@ -416,7 +512,15 @@ class _DashboardTabState extends State<DashboardTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildQuickAction(Icons.link, 'Silsila', AppColors.tealPrimary),
+                _buildQuickAction(
+                    Icons.link, 
+                    'Silsila', 
+                    AppColors.tealPrimary,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SilsilaScreen())
+                    )
+                ),
                 _buildQuickAction(
                     Icons.place, 'Wazifa Finder', AppColors.tealAccent,
                     onTap: () => widget.onTabChange(2)),
@@ -1123,3 +1227,4 @@ class CommunityTab extends StatelessWidget {
     );
   }
 }
+

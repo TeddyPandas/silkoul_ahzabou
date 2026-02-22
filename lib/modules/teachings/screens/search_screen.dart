@@ -45,7 +45,7 @@ class _SearchScreenState extends State<SearchScreen> {
     } catch (e) {
       debugPrint("Search error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur lors de la recherche: $e")),
+        const SnackBar(content: Text("Une erreur est survenue lors de la recherche. Veuillez réessayer.")),
       );
     } finally {
       setState(() {

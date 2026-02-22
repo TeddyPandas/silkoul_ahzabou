@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,7 +19,7 @@ class StorageService {
   }) async {
     try {
       final String fullPath = path;
-      print('📂 Uploading to: $fullPath');
+      debugPrint('📂 Uploading to: $fullPath');
 
       // 1. Upload
       if (bytes != null) {
@@ -42,10 +43,10 @@ class StorageService {
       // 2. Get Public URL
       final String publicUrl = _client.storage.from('teachings').getPublicUrl(fullPath);
       
-      print('✅ Upload successful: $publicUrl');
+      debugPrint('✅ Upload successful: $publicUrl');
       return publicUrl;
     } catch (e) {
-      print('❌ Storage Upload Error: $e');
+      debugPrint('❌ Storage Upload Error: $e');
       rethrow;
     }
   }
@@ -55,7 +56,7 @@ class StorageService {
     try {
        await _client.storage.from('teachings').remove([path]);
     } catch (e) {
-      print('❌ Storage Delete Error: $e');
+      debugPrint('❌ Storage Delete Error: $e');
       // Non-critical, just log
     }
   }

@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/wazifa_gathering.dart';
 import '../services/supabase_service.dart';
@@ -28,7 +29,7 @@ class WazifaService {
 
       return response.map((json) => WazifaGathering.fromJson(json)).toList();
     } catch (e) {
-      print('❌ Erreur lors de la récupération des Wazifas: $e');
+      debugPrint('❌ Erreur lors de la récupération des Wazifas: $e');
       rethrow;
     }
   }
@@ -53,9 +54,9 @@ class WazifaService {
         'p_morning': scheduleMorning,
         'p_evening': scheduleEvening,
       });
-      print('✅ Lieu Wazifa créé avec succès');
+      debugPrint('✅ Lieu Wazifa créé avec succès');
     } catch (e) {
-      print('❌ Erreur lors de la création du Wazifa: $e');
+      debugPrint('❌ Erreur lors de la création du Wazifa: $e');
       rethrow;
     }
   }

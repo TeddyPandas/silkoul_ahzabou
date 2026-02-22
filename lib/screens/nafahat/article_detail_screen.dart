@@ -94,7 +94,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
 ${article.summary}
 
-📖 Lisez l'article complet sur Silkoul Ahzabou
+📖 Lisez l'article complet sur MarkazTijani
 ''';
 
     // Copy to clipboard and show feedback

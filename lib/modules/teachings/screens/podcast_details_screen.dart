@@ -69,7 +69,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
       if (mounted) {
         setState(() => _isFollowed = !_isFollowed);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur: $e")),
+          const SnackBar(content: Text("Une erreur est survenue. Veuillez réessayer.")),
         );
       }
     }
@@ -291,7 +291,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
               ),
               const SizedBox(width: 24),
               _buildSecondaryAction(Icons.share_outlined, "Partager", onTap: () {
-                final String text = "Découvrez l'émission ${widget.show.titleFr} sur Silkoul Ahzabou !\n\n${widget.show.descriptionFr ?? ''}";
+                final String text = "Découvrez l'émission ${widget.show.titleFr} sur MarkazTijani !\n\n${widget.show.descriptionFr ?? ''}";
                 Share.share(text);
               }),
               const SizedBox(width: 24),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/nafahat_article.dart';
 
@@ -40,7 +41,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching articles: $e');
+      debugPrint('Error fetching articles: $e');
       return [];
     }
   }
@@ -56,7 +57,7 @@ class NafahatService {
 
       return NafahatArticle.fromJson(response);
     } catch (e) {
-      print('Error fetching article: $e');
+      debugPrint('Error fetching article: $e');
       return null;
     }
   }
@@ -76,7 +77,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching featured articles: $e');
+      debugPrint('Error fetching featured articles: $e');
       return [];
     }
   }
@@ -99,7 +100,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching articles by category: $e');
+      debugPrint('Error fetching articles by category: $e');
       return [];
     }
   }
@@ -120,7 +121,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error searching articles: $e');
+      debugPrint('Error searching articles: $e');
       return [];
     }
   }
@@ -140,7 +141,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching articles by tag: $e');
+      debugPrint('Error fetching articles by tag: $e');
       return [];
     }
   }
@@ -184,7 +185,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching related articles: $e');
+      debugPrint('Error fetching related articles: $e');
       return [];
     }
   }
@@ -203,7 +204,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching latest articles: $e');
+      debugPrint('Error fetching latest articles: $e');
       return [];
     }
   }
@@ -222,7 +223,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching popular articles: $e');
+      debugPrint('Error fetching popular articles: $e');
       return [];
     }
   }
@@ -245,7 +246,7 @@ class NafahatService {
           .map((json) => NafahatArticle.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching articles by author: $e');
+      debugPrint('Error fetching articles by author: $e');
       return [];
     }
   }
@@ -257,7 +258,7 @@ class NafahatService {
         'article_id': articleId,
       });
     } catch (e) {
-      print('Error incrementing view count: $e');
+      debugPrint('Error incrementing view count: $e');
     }
   }
 
@@ -299,7 +300,7 @@ class NafahatService {
         return true; // Liked
       }
     } catch (e) {
-      print('Error liking article: $e');
+      debugPrint('Error liking article: $e');
       return false;
     }
   }
@@ -316,7 +317,7 @@ class NafahatService {
 
       return response != null;
     } catch (e) {
-      print('Error checking like status: $e');
+      debugPrint('Error checking like status: $e');
       return false;
     }
   }
@@ -328,7 +329,7 @@ class NafahatService {
         'article_id': articleId,
       });
     } catch (e) {
-      print('Error incrementing share count: $e');
+      debugPrint('Error incrementing share count: $e');
     }
   }
 
@@ -343,7 +344,7 @@ class NafahatService {
 
       return NafahatArticle.fromJson(response);
     } catch (e) {
-      print('Error creating article: $e');
+      debugPrint('Error creating article: $e');
       return null;
     }
   }
@@ -360,7 +361,7 @@ class NafahatService {
 
       return NafahatArticle.fromJson(response);
     } catch (e) {
-      print('Error updating article: $e');
+      debugPrint('Error updating article: $e');
       return null;
     }
   }
@@ -372,7 +373,7 @@ class NafahatService {
 
       return true;
     } catch (e) {
-      print('Error deleting article: $e');
+      debugPrint('Error deleting article: $e');
       return false;
     }
   }
@@ -394,7 +395,7 @@ class NafahatService {
 
       return allTags.toList()..sort();
     } catch (e) {
-      print('Error fetching tags: $e');
+      debugPrint('Error fetching tags: $e');
       return [];
     }
   }
@@ -416,7 +417,7 @@ class NafahatService {
 
       return counts;
     } catch (e) {
-      print('Error fetching category counts: $e');
+      debugPrint('Error fetching category counts: $e');
       return {};
     }
   }

@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../config/app_constants.dart';
 import '../../providers/auth_provider.dart';
 import '../home/home_screen.dart';
+import 'login_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class SignupScreen extends StatefulWidget {
@@ -51,16 +52,28 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Compte créé avec succès ! Bienvenue.'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      if (authProvider.isAuthenticated) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Compte créé avec succès ! Bienvenue.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.errorMessage ?? 'Inscription réussie. Veuillez vérifier vos emails.'),
+            backgroundColor: AppColors.primary,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

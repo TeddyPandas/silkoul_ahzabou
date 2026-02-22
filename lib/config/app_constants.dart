@@ -1,6 +1,6 @@
 class AppConstants {
   // Informations de l'application
-  static const String appName = 'Silkoul Ahzabou Tidiani';
+  static const String appName = 'MarkazTijani';
   static const String appVersion = '1.0.0';
   
   // Configuration des points et niveaux

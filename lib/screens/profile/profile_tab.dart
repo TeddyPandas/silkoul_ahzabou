@@ -53,7 +53,7 @@ class _ProfileTabState extends State<ProfileTab> {
         const SnackBar(content: Text('Profile updated successfully!')),
       );
       setState(() {
-        _isEditing = false;
+        _isEditing = false; 
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,7 +96,16 @@ class _ProfileTabState extends State<ProfileTab> {
           final user = authProvider.user;
 
           // Si pas de profil mais utilisateur connecté, on affiche au moins l'email et le bouton logout
-          if (profile == null && user == null) {
+          if (user == null) {
+            return const Center(
+              child: Text(
+                'Veuillez vous connecter pour voir votre profil.',
+                style: TextStyle(fontSize: 16),
+              ),
+            );
+          }
+
+          if (profile == null && authProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
