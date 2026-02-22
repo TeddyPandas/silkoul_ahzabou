@@ -43,7 +43,7 @@ class _TeachingsHomeScreenState extends State<TeachingsHomeScreen> with SingleTi
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: PrimaryAppBar(
-        title: "Enseignements",
+        title: "Ghanouniyat",
         actions: [
           IconButton(
             icon: const Icon(Icons.search),

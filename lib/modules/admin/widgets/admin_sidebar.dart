@@ -88,6 +88,11 @@ class AdminSidebar extends StatelessWidget {
                   Icons.account_tree_rounded,
                   '/admin/silsila',
                 ),
+                _buildMenuItem(
+                  " Quizz Islamique",
+                  Icons.quiz_rounded,
+                  '/admin/quizzes',
+                ),
                 _buildSectionHeader("COMMUNAUTÉ"),
                 _buildMenuItem(
                   " Wazifa Finder",

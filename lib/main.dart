@@ -23,6 +23,7 @@ import 'providers/wazifa_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'modules/quizzes/providers/quiz_provider.dart';
 import 'modules/teachings/providers/teachings_provider.dart';
 import 'modules/admin/screens/admin_dashboard_screen.dart';
 import 'modules/admin/screens/admin_authors_screen.dart';
@@ -38,6 +39,7 @@ import 'modules/admin/screens/admin_teachings_screen.dart'; // Teachings Admin
 import 'modules/admin/screens/admin_silsila_list_screen.dart'; // Silsila Admin
 import 'modules/admin/screens/admin_campaigns_screen.dart'; // Campaigns Admin
 import 'modules/admin/screens/admin_settings_screen.dart'; // Settings Admin
+import 'modules/admin/screens/admin_quiz_list_screen.dart'; // Quiz Admin Admin
 import 'config/app_theme.dart';
 
 void main() async {
@@ -210,6 +212,9 @@ class _MyAppState extends State<MyApp> {
         // ✅ Provider Teachings (Enseignements)
         ChangeNotifierProvider(create: (_) => TeachingsProvider()),
 
+        // ✅ Provider Quizzes
+        ChangeNotifierProvider(create: (_) => QuizProvider()),
+
         // ✅ Provider utilisateur
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (context) =>
@@ -220,7 +225,7 @@ class _MyAppState extends State<MyApp> {
       ],
       child: MaterialApp(
         navigatorKey: _navigatorKey,
-        title: 'Silkoul Ahzabou Tidiani',
+        title: 'MarkazTijani',
         debugShowCheckedModeBanner: false,
 
         // ✅ Thème de l'application (vert/blanc/mauve)
@@ -249,6 +254,7 @@ class _MyAppState extends State<MyApp> {
           '/admin/videos/create': (context) => const AdminVideoCreateScreen(),
           '/admin/media/import': (context) => const AdminMediaImportScreen(),
           '/admin/settings': (context) => const AdminSettingsScreen(),
+          '/admin/quizzes': (context) => const AdminQuizListScreen(),
         },
       ),
     );

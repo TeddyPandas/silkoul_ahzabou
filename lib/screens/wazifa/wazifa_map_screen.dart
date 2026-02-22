@@ -147,18 +147,6 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            heroTag: "add_wazifa",
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddWazifaScreen()),
-              );
-            },
-            backgroundColor: Theme.of(context).primaryColor,
-            child: const Icon(Icons.add_location_alt, color: Colors.white),
-          ),
-          const SizedBox(height: 16),
-          FloatingActionButton(
             heroTag: "manual_location",
             mini: true,
             onPressed: () {
@@ -176,15 +164,10 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
                     content: Text('📍 Actualisation de la position...'),
                     duration: Duration(milliseconds: 800)),
               );
-              
-              // Force le rafraîchissement de la position et des données
               final provider = Provider.of<WazifaProvider>(context, listen: false);
-              
-              // Si on fait un appui court, on tente de revenir au GPS
               provider.resetToGPS();
-              
               if (provider.currentPosition != null) {
-                print("📍 Centrage sur: ${provider.currentPosition}");
+                debugPrint('📍 Centrage sur: ${provider.currentPosition}');
                 _mapController.move(
                     LatLng(provider.currentPosition!.latitude,
                         provider.currentPosition!.longitude),

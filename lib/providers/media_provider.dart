@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/media_models.dart';
 import '../services/media_service.dart';
+import '../utils/error_handler.dart';
 
 class MediaProvider with ChangeNotifier {
   final MediaService _service = MediaService();
@@ -15,6 +16,7 @@ class MediaProvider with ChangeNotifier {
   final Map<String, List<MediaVideo>> _videosByAuthor = {};
 
   bool _isLoading = false;
+  String? _error;
   
   // Pagination management
   final List<MediaVideo> _allVideos = [];
@@ -26,6 +28,7 @@ class MediaProvider with ChangeNotifier {
   List<MediaCategory> get categories => _categories;
   MediaVideo? get featuredVideo => _featuredVideos.isNotEmpty ? _featuredVideos.first : null;
   bool get isLoading => _isLoading;
+  String? get error => _error;
   List<MediaVideo> get allVideos => _allVideos;
   bool get hasMore => _hasMore;
   int get totalCount => _totalCount;
@@ -49,7 +52,7 @@ class MediaProvider with ChangeNotifier {
       // Also fetch first page for "Recent Videos" list
       await fetchFirstPage();
     } catch (e) {
-      debugPrint('❌ Error loading media data: $e');
+      _error = ErrorHandler.sanitize(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -62,10 +65,15 @@ class MediaProvider with ChangeNotifier {
       return _videosByCategory[categoryId]!;
     }
 
-    final result = await _service.getVideos(categoryId: categoryId, limit: 12);
-    _videosByCategory[categoryId] = result.videos;
-    notifyListeners();
-    return result.videos;
+    try {
+      final result = await _service.getVideos(categoryId: categoryId, limit: 12);
+      _videosByCategory[categoryId] = result.videos;
+      notifyListeners();
+      return result.videos;
+    } catch (e) {
+      _error = ErrorHandler.sanitize(e);
+      return [];
+    }
   }
   
   /// Get videos for a specific author (with caching)
@@ -74,10 +82,15 @@ class MediaProvider with ChangeNotifier {
       return _videosByAuthor[authorId]!;
     }
 
-    final result = await _service.getVideos(authorId: authorId, limit: 12);
-    _videosByAuthor[authorId] = result.videos;
-    notifyListeners();
-    return result.videos;
+    try {
+      final result = await _service.getVideos(authorId: authorId, limit: 12);
+      _videosByAuthor[authorId] = result.videos;
+      notifyListeners();
+      return result.videos;
+    } catch (e) {
+      _error = ErrorHandler.sanitize(e);
+      return [];
+    }
   }
 
   /// Reset and fetch first page of all videos
@@ -86,6 +99,7 @@ class MediaProvider with ChangeNotifier {
     _allVideos.clear();
     _hasMore = true;
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
@@ -95,7 +109,7 @@ class MediaProvider with ChangeNotifier {
       _hasMore = _allVideos.length < _totalCount;
       _currentPage++;
     } catch (e) {
-      debugPrint('❌ Error fetching first page: $e');
+      _error = ErrorHandler.sanitize(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -116,7 +130,7 @@ class MediaProvider with ChangeNotifier {
       _hasMore = _allVideos.length < _totalCount;
       _currentPage++;
     } catch (e) {
-      debugPrint('❌ Error fetching next page: $e');
+      _error = ErrorHandler.sanitize(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -129,9 +143,13 @@ class MediaProvider with ChangeNotifier {
 
   Future<({List<MediaVideo> videos, int count})> getAllVideos({int? page, int limit = 20}) async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
     try {
       return await _service.getAllVideos(page: page, limit: limit);
+    } catch (e) {
+      _error = ErrorHandler.sanitize(e);
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -237,14 +237,8 @@ const signupWithEmail = async (req, res) => {
     throw new ValidationError(`Erreur lors de l'inscription: ${error.message}`);
   }
 
-  // Créer le profil
-  if (data.user) {
-    await supabase.from('profiles').insert({
-      id: data.user.id,
-      email: data.user.email,
-      display_name: display_name || email.split('@')[0]
-    });
-  }
+  // Le profil est créé automatiquement par le trigger Supabase `on_auth_user_created`
+  // Nous n'avons plus besoin de l'insérer manuellement ici pour éviter l'erreur de duplication ou de trigger.
 
   return createdResponse(res, 'Inscription réussie', {
     user: data.user,

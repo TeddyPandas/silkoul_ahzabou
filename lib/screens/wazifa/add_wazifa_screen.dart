@@ -43,7 +43,7 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur localisation: $e')),
+        const SnackBar(content: Text('Impossible d\'obtenir votre position. Vérifiez vos permissions de localisation.')),
       );
     } finally {
       if (mounted) setState(() => _isLocating = false);
@@ -55,7 +55,7 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
     final initialLat = _pickedPosition?.latitude ?? 14.6928;
     final initialLng = _pickedPosition?.longitude ?? -17.4467;
 
-    print("Navigating to LocationPickerScreen with lat: $initialLat, lng: $initialLng"); // Debug log
+    debugPrint("Navigating to LocationPickerScreen with lat: $initialLat, lng: $initialLng");
 
     final result = await Navigator.push<LatLng>(
       context,
@@ -68,7 +68,7 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
     );
 
     if (result != null && mounted) {
-      print("LocationPicker returned: ${result.latitude}, ${result.longitude}"); // Debug log
+      debugPrint("LocationPicker returned: ${result.latitude}, ${result.longitude}");
       setState(() {
         // On crée un objet Position "artificiel" pour le stocker
         _pickedPosition = Position(
@@ -116,7 +116,7 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
+            const SnackBar(content: Text('Impossible d\'ajouter le lieu. Veuillez réessayer.')),
           );
         }
       }

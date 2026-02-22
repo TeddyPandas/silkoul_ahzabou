@@ -9,6 +9,7 @@ import '../screens/wazifa/wazifa_map_screen.dart';
 
 import '../screens/profile/profile_tab.dart';
 import '../modules/teachings/screens/teachings_home_screen.dart';
+import '../modules/quizzes/screens/quiz_list_screen.dart';
 import '../services/notification_service.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -18,129 +19,73 @@ class CustomDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       child: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: ListView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                children: [
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.checklist_rounded,
-                    title: 'My tasks',
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const MyTasksScreen())),
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.link_rounded,
-                    title: 'The Silsila',
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const SilsilaScreen())),
-                  ),
-                  /* _buildMenuItem(
-                    context,
-                    icon: Icons.emoji_events_rounded,
-                    title: 'The Badges',
-                    subtitle: 'Coming soon',
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const BadgesScreen())),
-                  ), */
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.location_on_rounded,
-                    title: 'The Wazifa Finder',
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const WazifaMapScreen())),
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.play_lesson_rounded,
-                    title: 'Enseignements',
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const TeachingsHomeScreen())),
-                  ),
-
-                  _buildDivider(),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.person_rounded,
-                    title: 'Mon Profil',
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const ProfileTab())),
-                  ),
-                  _buildDivider(),
-                  // Social Media Icons Section
-                  const Padding(
-                    padding: EdgeInsets.only(left: 12, bottom: 8),
-                    child: Text(
-                      'Nous contacter',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black54,
-                      ),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.primary, // Teal
+              AppColors.primaryDark, // Darker Teal/Green
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  children: [
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.checklist_rounded,
+                      title: 'My tasks',
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const MyTasksScreen())),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildSocialIconFA(
-                          context,
-                          FontAwesomeIcons.instagram,
-                          'https://www.instagram.com/markazseyidtijani?igsh=MTY2cnQyYzJtaG8zNg==',
-                          const Color(0xFFE4405F), // Instagram pink
-                        ),
-                        _buildSocialIconFA(
-                          context,
-                          FontAwesomeIcons.xTwitter,
-                          'https://x.com/markaztijani',
-                          Colors.black, // X black
-                        ),
-                        _buildSocialIconFA(
-                          context,
-                          FontAwesomeIcons.whatsapp,
-                          'https://Wa.me/221781098017',
-                          const Color(0xFF25D366), // WhatsApp green
-                        ),
-                        _buildSocialIcon(
-                          context,
-                          'assets/icons/website.png',
-                          Icons.language_rounded,
-                          'https://www.markaztijani.com',
-                        ),
-                      ],
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.link_rounded,
+                      title: 'The Silsila',
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const SilsilaScreen())),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Text(
-                'Version 1.0.0',
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 12,
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.location_on_rounded,
+                      title: 'The Wazifa Finder',
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const WazifaMapScreen())),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.play_lesson_rounded,
+                      title: 'Ghanouniyat',
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const TeachingsHomeScreen())),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.quiz_rounded,
+                      title: 'Quizz Islamique',
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const QuizListScreen())),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.person_rounded,
+                      title: 'Mon Profil',
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const ProfileTab())),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              _buildFooter(context),
+            ],
+          ),
         ),
       ),
     );
@@ -148,54 +93,58 @@ class CustomDrawer extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 24,
-        bottom: 24,
-        left: 24,
-        right: 24,
-      ),
-      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       decoration: BoxDecoration(
-        color: AppColors.tealPrimary.withValues(alpha: 0.05),
-        border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
+        border: Border(
+          bottom: BorderSide(color: AppColors.gold.withOpacity(0.3), width: 1),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(3), // Gold border width
             decoration: BoxDecoration(
-              color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.tealPrimary.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+              border: Border.all(color: AppColors.gold, width: 2),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                'assets/images/app_logo_512.png',
+                height: 48,
+                width: 48,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ahzab',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontFamily: 'Playfair Display', // Elegant serif font if available, or fallback
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Votre compagnon spirituel',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.8),
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ],
-            ),
-            child: Image.asset(
-              'assets/images/app_logo_512.png',
-              height: 48,
-              width: 48,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Ahzab',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Votre compagnon spirituel',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
             ),
           ),
         ],
@@ -219,10 +168,10 @@ class CustomDrawer extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
           child: Row(
             children: [
-              Icon(icon, color: Colors.grey[700], size: 24),
+              Icon(icon, color: AppColors.gold, size: 24),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -233,21 +182,22 @@ class CustomDrawer extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black87,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
                       ),
                     ),
                     if (subtitle != null)
                       Text(
                         subtitle,
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.tealPrimary,
-                            fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
                       ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: Colors.grey[300]),
+              Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.3), size: 20),
             ],
           ),
         ),
@@ -255,10 +205,64 @@ class CustomDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Divider(color: Colors.grey[100], thickness: 1),
+  Widget _buildFooter(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: AppColors.gold.withOpacity(0.3), width: 1),
+        ),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Nous contacter',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white70,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildSocialIconFA(
+                context,
+                FontAwesomeIcons.instagram,
+                'https://www.instagram.com/markazseyidtijani?igsh=MTY2cnQyYzJtaG8zNg==',
+                Colors.white,
+              ),
+              _buildSocialIconFA(
+                context,
+                FontAwesomeIcons.xTwitter,
+                'https://x.com/markaztijani',
+                Colors.white,
+              ),
+              _buildSocialIconFA(
+                context,
+                FontAwesomeIcons.whatsapp,
+                'https://Wa.me/221781098017',
+                Colors.white,
+              ),
+              _buildSocialIcon(
+                context,
+                'assets/icons/website.png',
+                Icons.language_rounded,
+                'https://www.markaztijani.com',
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Version 1.0.0',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.4),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -276,15 +280,16 @@ class CustomDrawer extends StatelessWidget {
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: AppColors.tealPrimary.withValues(alpha: 0.1),
+          color: Colors.white.withOpacity(0.1),
           shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
         ),
         child: Icon(
           fallbackIcon,
-          color: AppColors.tealPrimary,
-          size: 24,
+          color: Colors.white,
+          size: 20,
         ),
       ),
     );
@@ -304,15 +309,16 @@ class CustomDrawer extends StatelessWidget {
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: iconColor.withValues(alpha: 0.1),
+          color: Colors.white.withOpacity(0.1),
           shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
         ),
         child: FaIcon(
           icon,
           color: iconColor,
-          size: 24,
+          size: 20,
         ),
       ),
     );

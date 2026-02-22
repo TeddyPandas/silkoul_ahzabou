@@ -12,6 +12,7 @@ import '../../widgets/finish_task_dialog.dart';
 import 'package:silkoul_ahzabou/widgets/task_card.dart';
 import 'subscribe_dialog.dart';
 import 'campaign_subscribers_screen.dart';
+import '../../modules/campaigns/screens/tasbih_screen.dart';
 
 class CampaignDetailsScreen extends StatefulWidget {
   final String campaignId;
@@ -399,6 +400,10 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                       // 3. Description
                       const SizedBox(height: 16),
                       _buildDescription(isDark),
+
+                      // 3.5. Tasbih Button (New)
+                      const SizedBox(height: 16),
+                      _buildTasbihButton(isDark),
 
                       // 4. Global Progress
                       const SizedBox(height: 20),
@@ -1035,11 +1040,11 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
 
 ${tasksInfo.toString()}
 📲 Pour rejoindre cette campagne:
-1. Téléchargez l'app "Silkoul Ahzabou" sur le Play Store / App Store
+1. Téléchargez l'app "MarkazTijani" sur le Play Store / App Store
 2. Recherchez la campagne "${_campaign!.name}"
 3. Inscrivez-vous et participez !
 
-#SilkoulAhzabou #Tijani
+#MarkazTijani #Tijani
 ''';
 
     Share.share(
@@ -1612,8 +1617,122 @@ ${tasksInfo.toString()}
       ),
     );
   }
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WIDGET: TASBIH BUTTON
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WIDGET: TASBIH BUTTON
+  // ═══════════════════════════════════════════════════════════════════════════
+  Widget _buildTasbihButton(bool isDark) {
+    if (!_isSubscribed || _myUserTasks.isEmpty) return const SizedBox.shrink();
 
-  // Helper pour les stats
+    // Check if there is any incomplete task
+    final hasIncompleteTask = _myUserTasks.any((t) {
+      final completed = t['completed_quantity'] ?? 0;
+      final subscribed = t['subscribed_quantity'] ?? 0;
+      return completed < subscribed;
+    });
+
+    if (!hasIncompleteTask) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.touch_app, color: Colors.black),
+        label: const Text("Ouvrir le Tasbih Électronique",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.gold,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        onPressed: () {
+          _showTasbihTaskSelection(context);
+        },
+      ),
+    );
+  }
+
+  void _showTasbihTaskSelection(BuildContext context) {
+    // Filter only incomplete tasks for the direct action? 
+    // Or users might want to continue Nafl on completed ones?
+    // User said: "button should not accept if task is finished".
+    // So let's filter to show only valid candidates for "Completion".
+    // But if they want to do Nafl?
+    // User requirement: "le bouton doit pas s'afficher si la tache est deja terminee".
+    // So we respect that strictly.
+
+    final incompleteTasks = _myUserTasks.where((t) {
+      final completed = t['completed_quantity'] ?? 0;
+      final subscribed = t['subscribed_quantity'] ?? 0;
+      return completed < subscribed;
+    }).toList();
+
+    if (incompleteTasks.isEmpty) return; // Should not happen due to check above
+
+    // If only one incomplete task, go directly
+    if (incompleteTasks.length == 1) {
+       final userTask = incompleteTasks.first;
+       _navigateToTasbih(userTask);
+       return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Choisir une tâche pour le Tasbih",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ...incompleteTasks.map((userTask) {
+              return ListTile(
+                title: Text(userTask['task_name'] ?? 'Tâche'),
+                subtitle: Text(
+                    "${userTask['completed_quantity']} / ${userTask['subscribed_quantity']}"),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToTasbih(userTask);
+                },
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _navigateToTasbih(Map<String, dynamic> userTask) async {
+      final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => TasbihScreen(
+                  campaignId: widget.campaignId,
+                  userTaskId: userTask['id'],
+                  taskName: userTask['task_name'] ?? 'Zikr',
+                  targetCount: userTask['subscribed_quantity'] ?? 0,
+                  initialCount: userTask['completed_quantity'] ?? 0,
+              )
+          )
+      );
+      
+      if (result != null) {
+          _loadCampaignDetails();
+      }
+  }
+
+
   Widget _buildStatItem(String label, String value, Color color) {
     return Column(
       children: [

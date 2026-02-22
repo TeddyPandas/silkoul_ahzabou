@@ -27,6 +27,7 @@ class AuthService {
         data: {
           'display_name': displayName,
         },
+        emailRedirectTo: kIsWeb ? null : SupabaseConfig.redirectUrl,
       );
 
       // 2. Le profil est créé automatiquement par le trigger Supabase (handle_new_user)
@@ -68,7 +69,7 @@ class AuthService {
         'session': response.session,
       };
     } catch (e) {
-      throw Exception('Erreur lors de la connexion: $e');
+      rethrow;
     }
   }
 
@@ -87,7 +88,7 @@ class AuthService {
       // via le trigger Supabase ou dans le AuthProvider
       return response;
     } catch (e) {
-      throw Exception('Erreur lors de la connexion Google: $e');
+      rethrow;
     }
   }
 
@@ -102,7 +103,7 @@ class AuthService {
         phone: phoneNumber,
       );
     } catch (e) {
-      throw Exception('Erreur lors de l\'envoi de l\'OTP: $e');
+      rethrow;
     }
   }
 
@@ -133,7 +134,7 @@ class AuthService {
 
       return response;
     } catch (e) {
-      throw Exception('Erreur lors de la vérification de l\'OTP: $e');
+      rethrow;
     }
   }
 
@@ -144,7 +145,7 @@ class AuthService {
     try {
       await _supabase.auth.resetPasswordForEmail(email);
     } catch (e) {
-      throw Exception('Erreur lors de la réinitialisation: $e');
+      rethrow;
     }
   }
 
@@ -155,7 +156,7 @@ class AuthService {
     try {
       await _supabase.auth.signOut();
     } catch (e) {
-      throw Exception('Erreur lors de la déconnexion: $e');
+      rethrow;
     }
   }
 
@@ -183,7 +184,7 @@ class AuthService {
         'updated_at': now.toIso8601String(),
       });
     } catch (e) {
-      throw Exception('Erreur lors de la création du profil: $e');
+      rethrow;
     }
   }
 
@@ -245,7 +246,7 @@ class AuthService {
           .update(updates)
           .eq('id', userId);
     } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du profil: $e');
+      rethrow;
     }
   }
 }

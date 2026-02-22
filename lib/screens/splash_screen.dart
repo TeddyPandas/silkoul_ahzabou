@@ -23,35 +23,34 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigate() async {
-    print('[SplashScreen] Starting navigation logic...');
+    debugPrint('[SplashScreen] Starting navigation logic...');
     // Attendre la durée de l'écran de démarrage ET laisser le temps aux services de s'initialiser.
     await Future.delayed(AppConstants.splashDuration);
 
     if (!mounted) {
-      print('[SplashScreen] Widget not mounted, aborting navigation.');
+      debugPrint('[SplashScreen] Widget not mounted, aborting navigation.');
       return;
     }
 
-    print('[SplashScreen] Getting AuthProvider...');
+    debugPrint('[SplashScreen] Getting AuthProvider...');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isAuthenticated = authProvider.isAuthenticated;
-    print(
-        '[SplashScreen] Auth state check: isAuthenticated = $isAuthenticated');
+    debugPrint('[SplashScreen] Auth state check: isAuthenticated = $isAuthenticated');
 
     if (isAuthenticated) {
       if (kIsWeb) {
-        print('[SplashScreen] Web detected: Navigating to AdminDashboardScreen...');
+        debugPrint('[SplashScreen] Web detected: Navigating to AdminDashboardScreen...');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
         );
       } else {
-        print('[SplashScreen] Navigating to HomeScreen...');
+        debugPrint('[SplashScreen] Navigating to HomeScreen...');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
     } else {
-      print('[SplashScreen] Navigating to LoginScreen...');
+      debugPrint('[SplashScreen] Navigating to LoginScreen...');
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
