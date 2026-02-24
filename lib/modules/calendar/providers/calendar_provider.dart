@@ -134,7 +134,41 @@ class CalendarProvider extends ChangeNotifier {
     }
   }
 
-  /// Delete a course
+  /// Update a course
+  Future<bool> updateCourse(String courseId, Map<String, dynamic> data, {String? oldStartTime}) async {
+    try {
+      final updated = await _service.updateCourse(courseId, data, oldStartTime: oldStartTime);
+      if (updated != null) {
+        final index = _courses.indexWhere((c) => c.id == courseId);
+        if (index != -1) {
+          _courses[index] = updated;
+        }
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Cancel a course (soft-delete + Telegram notification)
+  Future<bool> cancelCourse(String courseId) async {
+    try {
+      await _service.cancelCourse(courseId);
+      _courses.removeWhere((c) => c.id == courseId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Delete a course (no notification)
   Future<bool> deleteCourse(String courseId) async {
     try {
       await _service.deleteCourse(courseId);

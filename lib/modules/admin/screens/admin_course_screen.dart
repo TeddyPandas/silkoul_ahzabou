@@ -23,7 +23,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   int _durationMinutes = 60;
-  String _recurrence = 'once'; // 'once', 'weekly', 'daily'
+  String _recurrence = 'once';
   
   bool _isSaving = false;
 
@@ -95,9 +95,11 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cours créé avec succès', style: TextStyle(color: Colors.white)), backgroundColor: AppColors.success),
+          const SnackBar(
+            content: Text('✅ Cours créé + notification Telegram envoyée', style: TextStyle(color: Colors.white)),
+            backgroundColor: AppColors.success,
+          ),
         );
-        // Reset form
         _titleController.clear();
         _descController.clear();
         _teacherController.clear();
@@ -121,16 +123,326 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
     }
   }
 
+  // ═══════════════════════════════════════════════════
+  // EDIT / RESCHEDULE DIALOG
+  // ═══════════════════════════════════════════════════
+
+  Future<void> _showEditDialog(Course course) async {
+    final editTitleCtrl = TextEditingController(text: course.title);
+    final editDescCtrl = TextEditingController(text: course.description ?? '');
+    final editTeacherCtrl = TextEditingController(text: course.teacherName ?? '');
+    final editLinkCtrl = TextEditingController(text: course.telegramLink ?? '');
+    DateTime editDate = course.startTime;
+    TimeOfDay editTime = TimeOfDay(hour: course.startTime.hour, minute: course.startTime.minute);
+    int editDuration = course.durationMinutes;
+    String editRecurrence = course.recurrence;
+    final editFormKey = GlobalKey<FormState>();
+    final oldStartTime = course.startTime.toIso8601String();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.edit_calendar, color: AppColors.tealPrimary),
+              SizedBox(width: 8),
+              Text('Modifier / Reprogrammer'),
+            ],
+          ),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.5,
+            child: Form(
+              key: editFormKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: editTitleCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Titre du cours',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.title),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: editTeacherCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Professeur',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: editLinkCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Lien Telegram',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.link),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Date & Time row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: ctx,
+                                initialDate: editDate,
+                                firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                                lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+                              );
+                              if (picked != null) {
+                                setDialogState(() => editDate = picked);
+                              }
+                            },
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'Nouvelle date',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.calendar_today),
+                              ),
+                              child: Text(DateFormat('dd/MM/yyyy').format(editDate)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final picked = await showTimePicker(
+                                context: ctx,
+                                initialTime: editTime,
+                              );
+                              if (picked != null) {
+                                setDialogState(() => editTime = picked);
+                              }
+                            },
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'Nouvelle heure',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.access_time),
+                              ),
+                              child: Text('${editTime.hour.toString().padLeft(2, '0')}:${editTime.minute.toString().padLeft(2, '0')}'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: editRecurrence,
+                            decoration: const InputDecoration(
+                              labelText: 'Récurrence',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.repeat),
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: 'once', child: Text('Unique')),
+                              DropdownMenuItem(value: 'weekly', child: Text('Chaque semaine')),
+                              DropdownMenuItem(value: 'daily', child: Text('Chaque jour')),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) setDialogState(() => editRecurrence = val);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            initialValue: editDuration.toString(),
+                            decoration: const InputDecoration(
+                              labelText: 'Durée (min)',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.timer),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (v) {
+                              final parsed = int.tryParse(v);
+                              if (parsed != null) editDuration = parsed;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: editDescCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        border: OutlineInputBorder(),
+                        alignLabelWithHint: true,
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.tealPrimary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                if (!editFormKey.currentState!.validate()) return;
+                Navigator.pop(ctx, true);
+              },
+              icon: const Icon(Icons.save),
+              label: const Text('Enregistrer'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != true || !mounted) return;
+
+    // Build the update data
+    final newStartTime = DateTime(
+      editDate.year,
+      editDate.month,
+      editDate.day,
+      editTime.hour,
+      editTime.minute,
+    );
+
+    final updates = <String, dynamic>{
+      'title': editTitleCtrl.text.trim(),
+      'description': editDescCtrl.text.trim(),
+      'teacher_name': editTeacherCtrl.text.trim(),
+      'start_time': newStartTime.toIso8601String(),
+      'duration_minutes': editDuration,
+      'telegram_link': editLinkCtrl.text.trim(),
+      'recurrence': editRecurrence,
+      'recurrence_day': editRecurrence == 'weekly' ? newStartTime.weekday : null,
+    };
+
+    final success = await context.read<CalendarProvider>().updateCourse(
+      course.id,
+      updates,
+      oldStartTime: oldStartTime,
+    );
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🔄 Cours reprogrammé + notification Telegram envoyée', style: TextStyle(color: Colors.white)),
+          backgroundColor: AppColors.tealPrimary,
+        ),
+      );
+    }
+
+    editTitleCtrl.dispose();
+    editDescCtrl.dispose();
+    editTeacherCtrl.dispose();
+    editLinkCtrl.dispose();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // CANCEL COURSE (with Telegram notification)
+  // ═══════════════════════════════════════════════════
+
+  Future<void> _cancelCourse(Course course) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.cancel, color: AppColors.error),
+            SizedBox(width: 8),
+            Text('Annuler ce cours'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Voulez-vous annuler le cours "${course.title}" ?'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Une notification d\'annulation sera envoyée sur le canal Telegram.',
+                      style: TextStyle(fontSize: 13, color: Colors.orange),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Non, garder'),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            icon: const Icon(Icons.cancel),
+            label: const Text('Oui, annuler le cours'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      final success = await context.read<CalendarProvider>().cancelCourse(course.id);
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Cours annulé + notification Telegram envoyée', style: TextStyle(color: Colors.white)),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // DELETE COURSE (silent, no Telegram)
+  // ═══════════════════════════════════════════════════
+
   Future<void> _deleteCourse(Course course) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: Text('Voulez-vous vraiment supprimer "${course.title}" ?'),
+        title: const Text('Supprimer ce cours'),
+        content: Text('Voulez-vous supprimer "${course.title}" sans notifier le canal ?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: const Text('Non'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -150,6 +462,10 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
       }
     }
   }
+
+  // ═══════════════════════════════════════════════════
+  // BUILD UI
+  // ═══════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -298,16 +614,17 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
               maxLines: 3,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: _isSaving ? null : _saveCourse,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: _isSaving
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Créer le cours', style: TextStyle(fontSize: 16)),
+              icon: _isSaving
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.send),
+              label: const Text('Créer le cours + Notifier Telegram', style: TextStyle(fontSize: 15)),
             ),
           ],
         ),
@@ -322,11 +639,18 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final originalCourses = provider.courses; // Get all unique original courses
+        final originalCourses = provider.courses;
 
         if (originalCourses.isEmpty) {
           return const Center(
-            child: Text('Aucun cours n\'a été créé.', style: TextStyle(color: AppColors.textSecondary)),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.school_outlined, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text('Aucun cours n\'a été créé.', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+              ],
+            ),
           );
         }
 
@@ -337,18 +661,130 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
             final course = originalCourses[index];
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                title: Text(course.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Column(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${DateFormat('dd/MM/yyyy HH:mm').format(course.startTime)} (${course.recurrenceLabel})'),
-                    if (course.teacherName != null) Text('Prof: ${course.teacherName}'),
+                    // Title row
+                    Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.tealPrimary,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                course.title,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                              if (course.teacherName != null && course.teacherName!.isNotEmpty)
+                                Text(
+                                  '👨‍🏫 ${course.teacherName}',
+                                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                                ),
+                            ],
+                          ),
+                        ),
+                        // Recurrence badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: course.isRecurring ? Colors.blue.shade50 : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            course.recurrenceLabel,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: course.isRecurring ? Colors.blue.shade700 : Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Date & Duration
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        Text(
+                          DateFormat('EEEE dd/MM/yyyy', 'fr_FR').format(course.startTime),
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                        const SizedBox(width: 16),
+                        const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        Text(
+                          DateFormat('HH:mm').format(course.startTime),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '(${course.durationMinutes}min)',
+                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
+                    if (course.telegramLink != null && course.telegramLink!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.link, size: 16, color: Colors.blue),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              course.telegramLink!,
+                              style: const TextStyle(fontSize: 12, color: Colors.blue),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const Divider(height: 20),
+                    // Action buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // Edit / Reschedule
+                        TextButton.icon(
+                          onPressed: () => _showEditDialog(course),
+                          icon: const Icon(Icons.edit_calendar, size: 18),
+                          label: const Text('Modifier'),
+                          style: TextButton.styleFrom(foregroundColor: AppColors.tealPrimary),
+                        ),
+                        const SizedBox(width: 8),
+                        // Cancel (with Telegram notification)
+                        TextButton.icon(
+                          onPressed: () => _cancelCourse(course),
+                          icon: const Icon(Icons.cancel_outlined, size: 18),
+                          label: const Text('Annuler'),
+                          style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                        ),
+                        const SizedBox(width: 8),
+                        // Silent delete
+                        IconButton(
+                          onPressed: () => _deleteCourse(course),
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          color: Colors.red.shade300,
+                          tooltip: 'Supprimer (sans notification)',
+                        ),
+                      ],
+                    ),
                   ],
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: AppColors.error),
-                  onPressed: () => _deleteCourse(course),
                 ),
               ),
             );
