@@ -9,12 +9,14 @@ class SubscribeDialog extends StatefulWidget {
   final Campaign campaign;
   final VoidCallback onSubscriptionSuccess;
   final String? initialAccessCode;
+  final bool isAlreadySubscribed;
 
   const SubscribeDialog({
     super.key,
     required this.campaign,
     required this.onSubscriptionSuccess,
     this.initialAccessCode,
+    this.isAlreadySubscribed = false,
   });
 
   @override
@@ -54,7 +56,9 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Rejoindre ${widget.campaign.name}'),
+      title: Text(widget.isAlreadySubscribed
+          ? 'Prendre plus dans ${widget.campaign.name}'
+          : 'Rejoindre ${widget.campaign.name}'),
       content: SizedBox(
         width: double.maxFinite,
         child: SingleChildScrollView(
@@ -436,13 +440,22 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
 
     // ✅ APPEL API AVEC TRY-CATCH
     try {
-      final success = await campaignProvider.subscribeToCampaign(
-        userId: userId,
-        campaignId: widget.campaign.id,
-        accessCode:
-            widget.campaign.isPublic ? null : _accessCodeController.text,
-        selectedTasks: taskSubscriptions,
-      );
+      bool success;
+      if (widget.isAlreadySubscribed) {
+        // User already subscribed — use add-tasks endpoint
+        success = await campaignProvider.addTasksToSubscription(
+          campaignId: widget.campaign.id,
+          selectedTasks: taskSubscriptions,
+        );
+      } else {
+        success = await campaignProvider.subscribeToCampaign(
+          userId: userId,
+          campaignId: widget.campaign.id,
+          accessCode:
+              widget.campaign.isPublic ? null : _accessCodeController.text,
+          selectedTasks: taskSubscriptions,
+        );
+      }
 
       if (!mounted) return;
 
@@ -457,7 +470,7 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Abonnement réussi !'),
+                Text(widget.isAlreadySubscribed ? 'Tâches ajoutées avec succès !' : 'Abonnement réussi !'),
               ],
             ),
             backgroundColor: Colors.green,

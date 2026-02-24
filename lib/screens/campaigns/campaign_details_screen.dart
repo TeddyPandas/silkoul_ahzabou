@@ -1571,29 +1571,17 @@ ${tasksInfo.toString()}
       child: SafeArea(
         child: ElevatedButton(
           onPressed: () {
-            if (!_isSubscribed) {
-              showDialog(
-                context: context,
-                builder: (context) => SubscribeDialog(
-                  campaign: _campaign!,
-                  initialAccessCode: _accessCode,
-                  onSubscriptionSuccess: () {
-                    _loadCampaignDetails();
-                  },
-                ),
-              );
-            } else {
-              showDialog(
-                context: context,
-                builder: (context) => SubscribeDialog(
-                  campaign: _campaign!,
-                  initialAccessCode: _accessCode,
-                  onSubscriptionSuccess: () {
-                    _loadCampaignDetails();
-                  },
-                ),
-              );
-            }
+            showDialog(
+              context: context,
+              builder: (context) => SubscribeDialog(
+                campaign: _campaign!,
+                initialAccessCode: _accessCode,
+                isAlreadySubscribed: _isSubscribed,
+                onSubscriptionSuccess: () {
+                  _loadCampaignDetails();
+                },
+              ),
+            );
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
@@ -1607,7 +1595,7 @@ ${tasksInfo.toString()}
           ),
           child: Text(
             _isSubscribed
-                ? "Modifier ma souscription"
+                ? "Prendre un nombre supplémentaire"
                 : "Rejoindre la campagne",
             style: const TextStyle(
               fontSize: 18,
