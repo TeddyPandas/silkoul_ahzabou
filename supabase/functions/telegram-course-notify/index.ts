@@ -83,17 +83,28 @@ function buildMessage(event: string, course: any, oldStartTime?: string): string
   return greeting + header + body + footer;
 }
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 Deno.serve(async (req: Request) => {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
     if (req.method !== 'POST') {
-      return new Response('Method not allowed', { status: 405 });
+      return new Response('Method not allowed', { status: 405, headers: corsHeaders });
     }
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHANNEL_ID) {
       console.error("❌ Telegram credentials not configured");
       return new Response(
         JSON.stringify({ error: "Telegram credentials not configured. Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID in Edge Function secrets." }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -102,7 +113,7 @@ Deno.serve(async (req: Request) => {
     if (!event || !course) {
       return new Response(
         JSON.stringify({ error: "Missing 'event' or 'course' in request body" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -128,7 +139,7 @@ Deno.serve(async (req: Request) => {
       console.error(`❌ Telegram API error:`, result);
       return new Response(
         JSON.stringify({ success: false, error: result }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -136,14 +147,15 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ success: true, message_id: result.result?.message_id }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (err) {
-    console.error(`Edge Function Error: ${err.message}`);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`Edge Function Error: ${message}`);
     return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ error: message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
