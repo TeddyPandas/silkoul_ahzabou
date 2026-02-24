@@ -33,7 +33,7 @@ function recurrenceLabel(recurrence: string): string {
 }
 
 function buildMessage(event: string, course: any, oldStartTime?: string): string {
-  const greeting = `بسم الله الرحمن الرحيم\nالسلام عليكم ورحمة الله وبركاته\n\n`;
+  const greeting = `السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ\n\n`;
   
   let header = '';
   let body = '';
