@@ -1,28 +1,52 @@
-version: '3.8'
-
 services:
   api:
     build: .
-    restart: always
-    # Ports removed because NPM proxies to container name
+    restart: unless-stopped
     expose:
       - "3000"
     ports:
-      - "3000:3000" # Optional: Keep for direct access if needed, or remove for security
+      - "3000:3000"
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:3000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - silkoul-network
 
   frontend:
     image: nginx:alpine
-    restart: always
+    restart: unless-stopped
     volumes:
-      - ../../silkoul-frontend:/usr/share/nginx/html
+      - /var/www/silkoul-frontend:/usr/share/nginx/html:ro
     expose:
       - "80"
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:80" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
     networks:
       - silkoul-network
 

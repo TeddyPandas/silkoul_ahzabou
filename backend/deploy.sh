@@ -12,16 +12,10 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
-    echo "⚠️  docker-compose command not found. Trying 'docker compose'..."
-    if ! docker compose version &> /dev/null; then
-        echo "❌ Docker Compose could not be found. Please install Docker Compose first."
-        exit 1
-    fi
-    DOCKER_COMPOSE_CMD="docker compose"
-else
-    DOCKER_COMPOSE_CMD="docker-compose"
+# Ensure Docker Compose V2 plugin is available
+if ! docker compose version &> /dev/null; then
+    echo "❌ Docker Compose V2 plugin not found. Please install it."
+    exit 1
 fi
 
 # Pull latest changes (assuming git is used)
@@ -40,20 +34,61 @@ else
     echo "✅ Network 'silkoul-network' already exists."
 fi
 
-# Deploy Infra Stack (NPM, Kuma, Dozzle)
+# Deploy Infra Stack (NPM, Kuma, Portainer)
 if [ -f "docker-compose.infra.yml" ]; then
     echo "🏗️  Checking Infrastructure Stack..."
-    $DOCKER_COMPOSE_CMD -f docker-compose.infra.yml up -d
+    docker compose -f docker-compose.infra.yml up -d
 fi
 
-# Build and start Application containers (zero-downtime: no "down" step)
-# Docker Compose will recreate only containers whose config/image changed
-echo "🚀 Deploying Application Stack (API + Frontend)..."
-$DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build --force-recreate
+# ══════════════════════════════════════════════════════════════
+# ZERO-DOWNTIME DEPLOYMENT WITH ROLLBACK
+# ══════════════════════════════════════════════════════════════
 
-# Prune unused images to save space
+# Tag current image as backup before building new one
+echo "💾 Saving backup of current API image..."
+docker tag backend-api:latest backend-api:backup 2>/dev/null || echo "⚠️  No previous image to backup (first deploy?)"
+
+# Build and start Application containers (zero-downtime)
+echo "🚀 Deploying Application Stack (API + Frontend)..."
+docker compose -f docker-compose.yml up -d --build --force-recreate
+
+# Wait for container to be healthy
+echo "⏳ Waiting for API health check (30s timeout)..."
+HEALTH_OK=false
+for i in $(seq 1 15); do
+    sleep 2
+    HTTP_CODE=$(docker exec backend-api-1 wget -q -O /dev/null -S http://localhost:3000/health 2>&1 | grep "HTTP/" | awk '{print $2}' || echo "000")
+    
+    if [ "$HTTP_CODE" = "200" ]; then
+        HEALTH_OK=true
+        echo "✅ API health check passed after $((i*2))s"
+        break
+    fi
+    echo "   ⏳ Attempt $i/15 — waiting..."
+done
+
+# ROLLBACK if health check failed
+if [ "$HEALTH_OK" = false ]; then
+    echo "❌ Health check FAILED! Rolling back to previous version..."
+    
+    if docker image inspect backend-api:backup &>/dev/null; then
+        docker tag backend-api:backup backend-api:latest
+        docker compose -f docker-compose.yml up -d --force-recreate
+        echo "🔙 ROLLBACK completed. Previous version restored."
+    else
+        echo "⚠️  No backup image found. Cannot rollback. Manual intervention needed."
+    fi
+    
+    exit 1
+fi
+
+# Prune unused images to save space (keep backup)
 echo "🧹 Cleaning up unused Docker images..."
 docker image prune -f
 
-echo "✅ Deployment completed successfully!"
-$DOCKER_COMPOSE_CMD ps
+echo ""
+echo "══════════════════════════════════════════════════════"
+echo "  ✅ Deployment completed successfully!"
+echo "══════════════════════════════════════════════════════"
+docker compose -f docker-compose.yml ps
+docker compose -f docker-compose.infra.yml ps
