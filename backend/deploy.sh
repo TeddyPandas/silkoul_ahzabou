@@ -46,10 +46,10 @@ if [ -f "docker-compose.infra.yml" ]; then
     $DOCKER_COMPOSE_CMD -f docker-compose.infra.yml up -d
 fi
 
-# Build and start Application containers
+# Build and start Application containers (zero-downtime: no "down" step)
+# Docker Compose will recreate only containers whose config/image changed
 echo "🚀 Deploying Application Stack (API + Frontend)..."
-$DOCKER_COMPOSE_CMD -f docker-compose.yml down
-$DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build
+$DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build --force-recreate
 
 # Prune unused images to save space
 echo "🧹 Cleaning up unused Docker images..."
