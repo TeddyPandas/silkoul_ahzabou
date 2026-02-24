@@ -662,6 +662,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
+              color: const Color(0xFF2A2A2A),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -686,12 +687,12 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                             children: [
                               Text(
                                 course.title,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                               ),
                               if (course.teacherName != null && course.teacherName!.isNotEmpty)
                                 Text(
                                   '👨‍🏫 ${course.teacherName}',
-                                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                                  style: TextStyle(color: Colors.grey[400], fontSize: 13),
                                 ),
                             ],
                           ),
@@ -700,14 +701,14 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: course.isRecurring ? Colors.blue.shade50 : Colors.grey.shade100,
+                            color: course.isRecurring ? Colors.blue.shade900.withValues(alpha: 0.3) : Colors.grey.shade800,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             course.recurrenceLabel,
                             style: TextStyle(
                               fontSize: 11,
-                              color: course.isRecurring ? Colors.blue.shade700 : Colors.grey.shade600,
+                              color: course.isRecurring ? Colors.blue.shade200 : Colors.grey.shade400,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -718,18 +719,18 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                     // Date & Duration
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                        Icon(Icons.calendar_today, size: 16, color: Colors.grey[400]),
                         const SizedBox(width: 6),
                         Text(
                           DateFormat('EEEE dd/MM/yyyy', 'fr_FR').format(course.startTime),
-                          style: const TextStyle(fontSize: 13),
+                          style: TextStyle(fontSize: 13, color: Colors.grey[300]),
                         ),
                         const SizedBox(width: 16),
-                        const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                        Icon(Icons.access_time, size: 16, color: Colors.grey[400]),
                         const SizedBox(width: 6),
                         Text(
                           DateFormat('HH:mm').format(course.startTime),
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -742,19 +743,19 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.link, size: 16, color: Colors.blue),
+                          Icon(Icons.link, size: 16, color: Colors.blue[300]),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               course.telegramLink!,
-                              style: const TextStyle(fontSize: 12, color: Colors.blue),
+                              style: TextStyle(fontSize: 12, color: Colors.blue[300]),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
                     ],
-                    const Divider(height: 20),
+                    Divider(height: 20, color: Colors.grey[700]),
                     // Action buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
