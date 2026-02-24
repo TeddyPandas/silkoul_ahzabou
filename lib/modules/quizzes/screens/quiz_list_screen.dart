@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../config/app_theme.dart';
 import '../providers/quiz_provider.dart';
@@ -265,7 +266,12 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
               if (quiz.imageUrl != null)
                 quiz.imageUrl!.startsWith('assets/')
                     ? Image.asset(quiz.imageUrl!, fit: BoxFit.cover)
-                    : Image.network(quiz.imageUrl!, fit: BoxFit.cover)
+                    : CachedNetworkImage(
+                        imageUrl: quiz.imageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(color: AppColors.primary),
+                        errorWidget: (context, url, error) => Container(color: AppColors.primary),
+                      )
               else
                 Container(color: AppColors.primary),
 

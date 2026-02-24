@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../models/media_models.dart';
 import '../../providers/media_provider.dart';
@@ -50,8 +51,8 @@ class _AuthorProfileScreenState extends State<AuthorProfileScreen> {
                       border: Border.all(color: AppColors.tealPrimary, width: 3),
                       image: DecorationImage(
                         image: widget.author.avatarUrl != null
-                            ? NetworkImage(widget.author.avatarUrl!)
-                            : const NetworkImage('https://via.placeholder.com/100') as ImageProvider,
+                            ? CachedNetworkImageProvider(widget.author.avatarUrl!)
+                            : const CachedNetworkImageProvider('https://via.placeholder.com/100') as ImageProvider,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -150,10 +151,11 @@ class _AuthorProfileScreenState extends State<AuthorProfileScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.network(
-                      video.thumbnailUrl,
+                    CachedNetworkImage(
+                      imageUrl: video.thumbnailUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(color: Colors.grey[300]),
+                      placeholder: (context, url) => Container(color: Colors.grey[300]),
+                      errorWidget: (context, url, error) => Container(color: Colors.grey[300]),
                     ),
                     Center(
                       child: Container(

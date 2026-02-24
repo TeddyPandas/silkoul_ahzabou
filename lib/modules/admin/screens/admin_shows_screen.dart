@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../config/app_theme.dart';
 import '../../teachings/models/podcast_show.dart';
@@ -253,7 +254,12 @@ class _AdminShowsScreenState extends State<AdminShowsScreen> {
                     Expanded(
                       flex: 3,
                       child: show.imageUrl != null 
-                        ? Image.network(show.imageUrl!, fit: BoxFit.cover, errorBuilder: (_,__,___) => Container(color: Colors.grey[800], child: const Icon(Icons.broken_image, color: Colors.white54))) 
+                        ? CachedNetworkImage(
+                            imageUrl: show.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(color: Colors.grey[800]),
+                            errorWidget: (context, url, error) => Container(color: Colors.grey[800], child: const Icon(Icons.broken_image, color: Colors.white54)),
+                          )
                         : Container(color: Colors.blueGrey[800], child: const Icon(Icons.mic, color: Colors.white54, size: 48)),
                     ),
                     Expanded(
