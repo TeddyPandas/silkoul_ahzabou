@@ -89,7 +89,7 @@ class AdminSidebar extends StatelessWidget {
                   '/admin/silsila',
                 ),
                 _buildMenuItem(
-                  " Gestion Cours",
+                  "Cours",
                   Icons.calendar_month_rounded,
                   '/admin/calendar',
                 ),
