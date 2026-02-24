@@ -82,8 +82,10 @@ serve(async (req) => {
         const timeStr = courseStartTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }); 
         // Note: Timezone handling might need adjustment depending on your DB storage timezone vs users.
 
-        let message = `📚 **Rappel de Cours !**\n\n`;
+        let message = `السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ\n\n`;
+        message += `📚 **Rappel de Cours !**\n\n`;
         message += `Le cours **"${course.title}"** va commencer prochainement.\n\n`;
+        
         if (course.teacher_name) {
           message += `👨‍🏫 **Professeur:** ${course.teacher_name}\n`;
         }
