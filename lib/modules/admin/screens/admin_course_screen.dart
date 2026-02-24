@@ -753,7 +753,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                         Icon(Icons.calendar_today, size: 16, color: Colors.grey[400]),
                         const SizedBox(width: 6),
                         Text(
-                          DateFormat('EEEE dd/MM/yyyy', 'fr_FR').format(course.startTime),
+                          DateFormat('EEEE dd/MM/yyyy').format(course.startTime),
                           style: TextStyle(fontSize: 13, color: Colors.grey[300]),
                         ),
                         const SizedBox(width: 16),
