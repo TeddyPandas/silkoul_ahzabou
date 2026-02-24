@@ -1,10 +1,8 @@
-version: '3.8'
-
 services:
   # REV PROXY & SSL
   npm:
     image: 'jc21/nginx-proxy-manager:latest'
-    restart: always
+    restart: unless-stopped
     ports:
       - '80:80' # Public HTTP
       - '443:443' # Public HTTPS
@@ -14,29 +12,56 @@ services:
     volumes:
       - ./infra_data/npm:/data
       - ./infra_data/letsencrypt:/etc/letsencrypt
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:81" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - silkoul-network
 
   # MONITORING
   uptime-kuma:
     image: 'louislam/uptime-kuma:1'
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./infra_data/uptime-kuma:/app/data
     ports:
       - '3001:3001' # Kuma Dashboard
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:3001" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
     networks:
       - silkoul-network
 
   # CONTAINER MANAGEMENT & LOGS
   portainer:
     image: portainer/portainer-ce:latest
-    restart: always
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./infra_data/portainer:/data
     ports:
-      - '9000:9000' # Port HTTP local (à cacher derrière NPM)
+      - '9000:9000' # Port HTTP
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
     networks:
       - silkoul-network
 
