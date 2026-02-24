@@ -465,16 +465,16 @@ class _SubscribeDialogState extends State<SubscribeDialog> {
         Navigator.of(context).pop();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 8),
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
                 Text(widget.isAlreadySubscribed ? 'Tâches ajoutées avec succès !' : 'Abonnement réussi !'),
               ],
             ),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       } else {
