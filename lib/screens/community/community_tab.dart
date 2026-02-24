@@ -23,7 +23,7 @@ class _CommunityTabState extends State<CommunityTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Community'),
+        title: const Text('Communauté'),
       ),
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
@@ -44,27 +44,27 @@ class _CommunityTabState extends State<CommunityTab> {
             );
           }
 
-          return ListView.builder(
-            itemCount: userProvider.users.length,
-            itemBuilder: (context, index) {
-              final user = userProvider.users[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: user['avatar_url'] != null
-                        ? NetworkImage(user['avatar_url']) as ImageProvider
-                        : const AssetImage('assets/images/avatar_placeholder.png'), // Placeholder image
+          return RefreshIndicator(
+            onRefresh: () => userProvider.loadUsers(),
+            child: ListView.builder(
+              itemCount: userProvider.users.length,
+              itemBuilder: (context, index) {
+                final user = userProvider.users[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: user['avatar_url'] != null
+                          ? NetworkImage(user['avatar_url']) as ImageProvider
+                          : const AssetImage('assets/images/avatar_placeholder.png'),
+                    ),
+                    title: Text(user['display_name'] ?? 'Utilisateur'),
+                    subtitle: Text('Niveau : ${user['level'] ?? 1}, Points : ${user['points'] ?? 0}'),
+                    onTap: () {},
                   ),
-                  title: Text(user['display_name'] ?? 'Unknown User'),
-                  subtitle: Text('Level: ${user['level'] ?? 1}, Points: ${user['points'] ?? 0}'),
-                  // TODO: Add navigation to user profile or other community features
-                  onTap: () {
-                    // Handle tap, e.g., navigate to user profile
-                  },
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),
