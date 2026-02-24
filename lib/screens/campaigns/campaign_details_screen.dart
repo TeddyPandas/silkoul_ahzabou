@@ -401,9 +401,11 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                       const SizedBox(height: 16),
                       _buildDescription(isDark),
 
-                      // 3.5. Tasbih Button (New)
-                      const SizedBox(height: 16),
-                      _buildTasbihButton(isDark),
+                      // 3.5. Tasbih Button (Zikr campaigns only)
+                      if (_campaign!.category != 'Quran') ...[
+                        const SizedBox(height: 16),
+                        _buildTasbihButton(isDark),
+                      ],
 
                       // 4. Global Progress
                       const SizedBox(height: 20),
