@@ -521,11 +521,14 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
@@ -649,6 +652,8 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
               label: const Text('Créer le cours + Notifier Telegram', style: TextStyle(fontSize: 15)),
             ),
           ],
+            ),
+          ),
         ),
       ),
       ),
@@ -659,7 +664,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
     return Consumer<CalendarProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator(color: AppColors.tealPrimary));
         }
 
         final originalCourses = provider.courses;
@@ -671,17 +676,20 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
               children: [
                 Icon(Icons.school_outlined, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('Aucun cours n\'a été créé.', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                Text('Aucun cours n\'a été créé.', style: TextStyle(color: Colors.white70, fontSize: 16)),
               ],
             ),
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: originalCourses.length,
-          itemBuilder: (context, index) {
-            final course = originalCourses[index];
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: originalCourses.length,
+              itemBuilder: (context, index) {
+                final course = originalCourses[index];
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
@@ -812,7 +820,9 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                 ),
               ),
             );
-          },
+              },
+            ),
+          ),
         );
       },
     );
