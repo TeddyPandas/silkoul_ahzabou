@@ -39,7 +39,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not authenticated.')),
+        const SnackBar(content: Text('Utilisateur non authentifié.')),
       );
       return;
     }
@@ -51,14 +51,14 @@ class _ProfileTabState extends State<ProfileTab> {
         // avatarUrl: 'new_avatar_url', // TODO: Implement avatar upload
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
+        const SnackBar(content: Text('Profil mis à jour avec succès !')),
       );
       setState(() {
         _isEditing = false; 
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
+        SnackBar(content: Text('Échec de la mise à jour : $e')),
       );
     }
   }
@@ -76,7 +76,7 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Profil'),
         actions: [
           IconButton(
             icon: Icon(_isEditing ? Icons.save : Icons.edit),
@@ -110,8 +110,11 @@ class _ProfileTabState extends State<ProfileTab> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+          return RefreshIndicator(
+            onRefresh: () async => _loadProfileData(),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
@@ -141,7 +144,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 TextFormField(
                   controller: _displayNameController
                     ..text = profile?.displayName ?? '',
-                  decoration: const InputDecoration(labelText: 'Display Name'),
+                  decoration: const InputDecoration(labelText: 'Nom d\'affichage'),
                   readOnly: !_isEditing,
                 ),
                 const SizedBox(height: 16),
@@ -154,7 +157,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 if (profile != null) ...[
                   TextFormField(
                     initialValue: profile.level.toString(),
-                    decoration: const InputDecoration(labelText: 'Level'),
+                    decoration: const InputDecoration(labelText: 'Niveau'),
                     readOnly: true,
                   ),
                   const SizedBox(height: 16),
@@ -168,7 +171,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ElevatedButton.icon(
                   onPressed: _logout,
                   icon: const Icon(Icons.logout),
-                  label: const Text('Logout'),
+                  label: const Text('Déconnexion'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     foregroundColor: AppColors.white,
@@ -177,6 +180,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
               ],
             ),
+          ),
           );
         },
       ),

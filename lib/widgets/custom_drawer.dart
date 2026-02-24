@@ -49,21 +49,21 @@ class CustomDrawer extends StatelessWidget {
                     _buildMenuItem(
                       context,
                       icon: Icons.checklist_rounded,
-                      title: 'My tasks',
+                      title: 'Mes tâches',
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const MyTasksScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.link_rounded,
-                      title: 'The Silsila',
+                      title: 'La Silsila',
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const SilsilaScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.location_on_rounded,
-                      title: 'The Wazifa Finder',
+                      title: 'Trouver une Wazifa',
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const WazifaMapScreen())),
                     ),
@@ -81,13 +81,7 @@ class CustomDrawer extends StatelessWidget {
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const QuizListScreen())),
                     ),
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.calendar_month_rounded,
-                      title: 'Calendrier des Cours',
-                      onTap: () => Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => const CalendarScreen())),
-                    ),
+
                     _buildMenuItem(
                       context,
                       icon: Icons.person_rounded,

@@ -26,7 +26,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Discover Campaigns'),
+        title: const Text('Campagnes'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -46,38 +46,41 @@ class _CampaignsTabState extends State<CampaignsTab> {
           if (campaignProvider.errorMessage != null) {
             return Center(
               child: Text(
-                'Error: ${campaignProvider.errorMessage}',
+                'Erreur : ${campaignProvider.errorMessage}',
                 style: const TextStyle(color: AppColors.error),
               ),
             );
           }
           if (campaignProvider.campaigns.isEmpty) {
             return const Center(
-              child: Text('No public campaigns available.'),
+              child: Text('Aucune campagne publique disponible.'),
             );
           }
 
-          return ListView.builder(
-            itemCount: campaignProvider.campaigns.length,
-            itemBuilder: (context, index) {
-              final campaign = campaignProvider.campaigns[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: ListTile(
-                  title: Text(campaign.name),
-                  subtitle: Text(campaign.description ?? 'No description'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            CampaignDetailsScreen(campaignId: campaign.id),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
+          return RefreshIndicator(
+            onRefresh: () => campaignProvider.fetchCampaigns(),
+            child: ListView.builder(
+              itemCount: campaignProvider.campaigns.length,
+              itemBuilder: (context, index) {
+                final campaign = campaignProvider.campaigns[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    title: Text(campaign.name),
+                    subtitle: Text(campaign.description ?? 'Aucune description'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              CampaignDetailsScreen(campaignId: campaign.id),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           );
         },
       ),
@@ -87,7 +90,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
             MaterialPageRoute(builder: (_) => const CreateCampaignScreen()),
           );
         },
-        label: const Text('Create Campaign'),
+        label: const Text('Créer une campagne'),
         icon: const Icon(Icons.add),
         backgroundColor: AppColors.primary,
       ),
