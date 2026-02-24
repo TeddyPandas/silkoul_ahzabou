@@ -472,6 +472,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: const Color(0xFF121212),
         appBar: AppBar(
           title: const Text('Gestion des Cours'),
           backgroundColor: AppColors.primary,
@@ -497,13 +498,34 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
   }
 
   Widget _buildCreateForm() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    return Theme(
+      data: Theme.of(context).copyWith(
+        inputDecorationTheme: InputDecorationTheme(
+          labelStyle: TextStyle(color: Colors.grey[400]),
+          hintStyle: TextStyle(color: Colors.grey[600]),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey[600]!),
+          ),
+          focusedBorder: const OutlineInputBorder(
+            borderSide: BorderSide(color: AppColors.tealPrimary),
+          ),
+          prefixIconColor: Colors.grey[400],
+        ),
+        textTheme: Theme.of(context).textTheme.apply(
+          bodyColor: Colors.white,
+          displayColor: Colors.white,
+        ),
+        dropdownMenuTheme: DropdownMenuThemeData(
+          textStyle: const TextStyle(color: Colors.white),
+        ),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
@@ -628,6 +650,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
