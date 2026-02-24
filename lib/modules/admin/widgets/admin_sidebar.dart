@@ -100,7 +100,7 @@ class AdminSidebar extends StatelessWidget {
                 ),
                 _buildSectionHeader("COMMUNAUTÉ"),
                 _buildMenuItem(
-                  " Wazifa Finder",
+                  " Localisation Wazifa",
                   Icons.location_on_outlined,
                   '/admin/wazifa',
                 ),

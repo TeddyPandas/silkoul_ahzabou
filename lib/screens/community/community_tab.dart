@@ -33,14 +33,14 @@ class _CommunityTabState extends State<CommunityTab> {
           if (userProvider.errorMessage != null) {
             return Center(
               child: Text(
-                'Error: ${userProvider.errorMessage}',
+                'Erreur : ${userProvider.errorMessage}',
                 style: const TextStyle(color: AppColors.error),
               ),
             );
           }
           if (userProvider.users.isEmpty) {
             return const Center(
-              child: Text('No users found in the community.'),
+              child: Text('Aucun membre trouvé dans la communauté.'),
             );
           }
 

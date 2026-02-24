@@ -51,7 +51,7 @@ class _ProfileTabState extends State<ProfileTab> {
         // avatarUrl: 'new_avatar_url', // TODO: Implement avatar upload
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
+        const SnackBar(content: Text('Profil mis à jour avec succès !')),
       );
       setState(() {
         _isEditing = false; 
@@ -76,7 +76,7 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Profil'),
         actions: [
           IconButton(
             icon: Icon(_isEditing ? Icons.save : Icons.edit),
@@ -168,7 +168,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ElevatedButton.icon(
                   onPressed: _logout,
                   icon: const Icon(Icons.logout),
-                  label: const Text('Logout'),
+                  label: const Text('Déconnexion'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     foregroundColor: AppColors.white,

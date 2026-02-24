@@ -46,14 +46,14 @@ class _CampaignsTabState extends State<CampaignsTab> {
           if (campaignProvider.errorMessage != null) {
             return Center(
               child: Text(
-                'Error: ${campaignProvider.errorMessage}',
+                'Erreur : ${campaignProvider.errorMessage}',
                 style: const TextStyle(color: AppColors.error),
               ),
             );
           }
           if (campaignProvider.campaigns.isEmpty) {
             return const Center(
-              child: Text('No public campaigns available.'),
+              child: Text('Aucune campagne publique disponible.'),
             );
           }
 
@@ -65,7 +65,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
                   title: Text(campaign.name),
-                  subtitle: Text(campaign.description ?? 'No description'),
+                  subtitle: Text(campaign.description ?? 'Aucune description'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     Navigator.of(context).push(
