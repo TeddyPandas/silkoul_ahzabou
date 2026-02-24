@@ -83,6 +83,13 @@ class CustomDrawer extends StatelessWidget {
                     ),
                     _buildMenuItem(
                       context,
+                      icon: Icons.calendar_month_rounded,
+                      title: 'Calendrier des Cours',
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const CalendarScreen())),
+                    ),
+                    _buildMenuItem(
+                      context,
                       icon: Icons.person_rounded,
                       title: 'Mon Profil',
                       onTap: () => Navigator.push(
