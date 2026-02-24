@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../providers/auth_provider.dart';
@@ -120,11 +121,13 @@ class _ProfileTabState extends State<ProfileTab> {
                     backgroundColor: AppColors.primaryLight,
                     child: profile?.avatarUrl != null
                         ? ClipOval(
-                            child: Image.network(
-                              profile!.avatarUrl!,
+                            child: CachedNetworkImage(
+                              imageUrl: profile!.avatarUrl!,
                               fit: BoxFit.cover,
                               width: 120,
                               height: 120,
+                              placeholder: (context, url) => const Icon(Icons.person, size: 60, color: AppColors.white),
+                              errorWidget: (context, url, error) => const Icon(Icons.person, size: 60, color: AppColors.white),
                             ),
                           )
                         : const Icon(

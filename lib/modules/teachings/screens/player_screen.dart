@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui'; // For ImageFilter
@@ -94,9 +95,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
               // Background Image (Blurred)
               if (widget.teaching.thumbnailUrl != null)
                 Positioned.fill(
-                  child: Image.network(
-                    widget.teaching.thumbnailUrl!,
+                  child: CachedNetworkImage(
+                    imageUrl: widget.teaching.thumbnailUrl!,
                     fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(color: Colors.black),
+                    errorWidget: (context, url, error) => Container(color: Colors.black),
                   ),
                 ),
               // Blur Overlay
@@ -149,11 +152,23 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
                                 child: widget.teaching.thumbnailUrl != null
-                                    ? Image.network(
-                                        widget.teaching.thumbnailUrl!,
+                                    ? CachedNetworkImage(
+                                        imageUrl: widget.teaching.thumbnailUrl!,
                                         width: 300,
                                         height: 300,
                                         fit: BoxFit.cover,
+                                        placeholder: (context, url) => Container(
+                                          width: 300,
+                                          height: 300,
+                                          color: Colors.white.withOpacity(0.1),
+                                          child: const Icon(Icons.music_note, color: Colors.white, size: 80),
+                                        ),
+                                        errorWidget: (context, url, error) => Container(
+                                          width: 300,
+                                          height: 300,
+                                          color: Colors.white.withOpacity(0.1),
+                                          child: const Icon(Icons.music_note, color: Colors.white, size: 80),
+                                        ),
                                       )
                                     : Container(
                                         width: 300,

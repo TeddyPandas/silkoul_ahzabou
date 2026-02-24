@@ -24,6 +24,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'modules/quizzes/providers/quiz_provider.dart';
+import 'modules/calendar/providers/calendar_provider.dart';
 import 'modules/teachings/providers/teachings_provider.dart';
 import 'modules/admin/screens/admin_dashboard_screen.dart';
 import 'modules/admin/screens/admin_authors_screen.dart';
@@ -40,6 +41,7 @@ import 'modules/admin/screens/admin_silsila_list_screen.dart'; // Silsila Admin
 import 'modules/admin/screens/admin_campaigns_screen.dart'; // Campaigns Admin
 import 'modules/admin/screens/admin_settings_screen.dart'; // Settings Admin
 import 'modules/admin/screens/admin_quiz_list_screen.dart'; // Quiz Admin Admin
+import 'modules/admin/screens/admin_course_screen.dart'; // Courses Admin
 import 'config/app_theme.dart';
 
 void main() async {
@@ -215,6 +217,9 @@ class _MyAppState extends State<MyApp> {
         // ✅ Provider Quizzes
         ChangeNotifierProvider(create: (_) => QuizProvider()),
 
+        // ✅ Provider Calendrier
+        ChangeNotifierProvider(create: (_) => CalendarProvider()),
+
         // ✅ Provider utilisateur
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (context) =>
@@ -255,6 +260,7 @@ class _MyAppState extends State<MyApp> {
           '/admin/media/import': (context) => const AdminMediaImportScreen(),
           '/admin/settings': (context) => const AdminSettingsScreen(),
           '/admin/quizzes': (context) => const AdminQuizListScreen(),
+          '/admin/calendar': (context) => const AdminCourseScreen(), // Added route
         },
       ),
     );

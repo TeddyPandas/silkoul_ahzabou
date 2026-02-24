@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../models/nafahat_article.dart';
 import '../../providers/nafahat_provider.dart';
@@ -177,12 +178,18 @@ ${article.summary}
                       ),
                     ),
                     child: widget.article.imageUrl != null
-                        ? Image.network(
-                            widget.article.imageUrl!,
+                        ? CachedNetworkImage(
+                            imageUrl: widget.article.imageUrl!,
                             fit: BoxFit.cover,
                             color: Colors.black.withOpacity(0.3),
                             colorBlendMode: BlendMode.darken,
-                            errorBuilder: (_, __, ___) => Center(
+                            placeholder: (context, url) => Center(
+                              child: Text(
+                                widget.article.category.icon,
+                                style: const TextStyle(fontSize: 80),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Center(
                               child: Text(
                                 widget.article.category.icon,
                                 style: const TextStyle(fontSize: 80),

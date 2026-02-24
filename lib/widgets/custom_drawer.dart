@@ -11,6 +11,7 @@ import '../screens/profile/profile_tab.dart';
 import '../modules/teachings/screens/teachings_home_screen.dart';
 import '../modules/quizzes/screens/quiz_list_screen.dart';
 import '../services/notification_service.dart';
+import '../modules/calendar/screens/calendar_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -38,6 +39,13 @@ class CustomDrawer extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   children: [
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.calendar_month_rounded,
+                      title: 'Calendrier des cours',
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const CalendarScreen())),
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.checklist_rounded,

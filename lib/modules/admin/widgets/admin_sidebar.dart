@@ -89,6 +89,11 @@ class AdminSidebar extends StatelessWidget {
                   '/admin/silsila',
                 ),
                 _buildMenuItem(
+                  " Calendrier",
+                  Icons.calendar_month_rounded,
+                  '/admin/calendar',
+                ),
+                _buildMenuItem(
                   " Quizz Islamique",
                   Icons.quiz_rounded,
                   '/admin/quizzes',

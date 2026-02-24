@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/nafahat_article.dart';
 
 /// Widget Card for displaying an article preview
@@ -59,10 +60,11 @@ class ArticleCard extends StatelessWidget {
                     ),
                   ),
                   child: article.imageUrl != null
-                      ? Image.network(
-                          article.imageUrl!,
+                      ? CachedNetworkImage(
+                          imageUrl: article.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholderIcon(),
+                          placeholder: (context, url) => Container(color: Colors.black12),
+                          errorWidget: (context, url, error) => _buildPlaceholderIcon(),
                         )
                       : _buildPlaceholderIcon(),
                 ),
@@ -330,10 +332,11 @@ class ArticleCard extends StatelessWidget {
                 child: article.imageUrl != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          article.imageUrl!,
+                        child: CachedNetworkImage(
+                          imageUrl: article.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Center(
+                          placeholder: (context, url) => Container(color: Colors.black12),
+                          errorWidget: (context, url, error) => Center(
                             child: Text(
                               article.category.icon,
                               style: const TextStyle(fontSize: 28),
@@ -526,13 +529,14 @@ class FeaturedArticleCard extends StatelessWidget {
                   ),
                 ),
                 child: article.imageUrl != null
-                    ? Image.network(
-                        article.imageUrl!,
+                    ? CachedNetworkImage(
+                        imageUrl: article.imageUrl!,
                         fit: BoxFit.cover,
                         width: double.infinity,
                         color: Colors.black.withOpacity(0.2),
                         colorBlendMode: BlendMode.darken,
-                        errorBuilder: (_, __, ___) => const SizedBox(),
+                        placeholder: (context, url) => const SizedBox(),
+                        errorWidget: (context, url, error) => const SizedBox(),
                       )
                     : null,
               ),

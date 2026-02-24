@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../quizzes/providers/quiz_provider.dart';
 import '../../quizzes/models/quiz_models.dart';
@@ -103,7 +104,12 @@ class _AdminQuizListScreenState extends State<AdminQuizListScreen> {
                     )
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(quiz.imageUrl!, fit: BoxFit.cover),
+                      child: CachedNetworkImage(
+                        imageUrl: quiz.imageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(color: Colors.black12),
+                        errorWidget: (context, url, error) => Container(color: Colors.black12),
+                      ),
                     ))
               : const Icon(Icons.quiz, color: Colors.amber, size: 30),
         ),

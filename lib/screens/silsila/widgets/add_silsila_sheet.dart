@@ -143,9 +143,11 @@ class _AddSilsilaSheetState extends State<AddSilsilaSheet> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: BoxDecoration(
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -239,12 +241,13 @@ class _AddSilsilaSheetState extends State<AddSilsilaSheet> with SingleTickerProv
                 ),
                 
                 // TAB 2: CREATE NEW (Step by Step)
-                Padding(
+                SingleChildScrollView(
                   padding: const EdgeInsets.all(24.0),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.person_add_outlined, size: 48, color: Colors.grey),
                         const SizedBox(height: 16),
@@ -350,7 +353,7 @@ class _AddSilsilaSheetState extends State<AddSilsilaSheet> with SingleTickerProv
                           ),
                         ],
 
-                        const Spacer(),
+                        const SizedBox(height: 32),
                         SizedBox(
                           width: double.infinity,
                           child: FilledButton.icon(
@@ -371,6 +374,6 @@ class _AddSilsilaSheetState extends State<AddSilsilaSheet> with SingleTickerProv
           ),
         ],
       ),
-    );
+    ));
   }
 }

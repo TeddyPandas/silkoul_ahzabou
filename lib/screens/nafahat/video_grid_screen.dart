@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../models/media_models.dart';
 import '../../providers/media_provider.dart';
@@ -136,10 +137,11 @@ class _VideoGridScreenState extends State<VideoGridScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.network(
-                      video.thumbnailUrl,
+                    CachedNetworkImage(
+                      imageUrl: video.thumbnailUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(color: Colors.grey[300]),
+                      placeholder: (context, url) => Container(color: Colors.grey[300]),
+                      errorWidget: (context, url, error) => Container(color: Colors.grey[300]),
                     ),
                     Center(
                       child: Container(
