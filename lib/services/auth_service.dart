@@ -80,7 +80,7 @@ class AuthService {
     try {
       final response = await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: kIsWeb ? null : SupabaseConfig.redirectUrl,
+        redirectTo: kIsWeb ? Uri.base.origin : SupabaseConfig.redirectUrl,
         authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
       );
 
