@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../config/app_theme.dart';
 import '../../providers/campaign_provider.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'campaign_details_screen.dart'; // To be created
 import 'create_campaign_screen.dart'; // To be created
 
@@ -26,7 +26,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Campagnes'),
+        title: Text(AppLocalizations.of(context)!.campaigns),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -43,17 +43,15 @@ class _CampaignsTabState extends State<CampaignsTab> {
           if (campaignProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (campaignProvider.errorMessage != null) {
             return Center(
               child: Text(
-                'Erreur : ${campaignProvider.errorMessage}',
+                AppLocalizations.of(context)!.errorWithMessage(campaignProvider.errorMessage ?? ''),
                 style: const TextStyle(color: AppColors.error),
               ),
             );
-          }
           if (campaignProvider.campaigns.isEmpty) {
-            return const Center(
-              child: Text('Aucune campagne publique disponible.'),
+            return Center(
+              child: Text(AppLocalizations.of(context)!.noCampaignsAvailable),
             );
           }
 
@@ -67,7 +65,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
                     title: Text(campaign.name),
-                    subtitle: Text(campaign.description ?? 'Aucune description'),
+                    subtitle: Text(campaign.description ?? AppLocalizations.of(context)!.noDescription),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
                       Navigator.of(context).push(
@@ -90,7 +88,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
             MaterialPageRoute(builder: (_) => const CreateCampaignScreen()),
           );
         },
-        label: const Text('Créer une campagne'),
+        label: Text(AppLocalizations.of(context)!.createCampaign),
         icon: const Icon(Icons.add),
         backgroundColor: AppColors.primary,
       ),

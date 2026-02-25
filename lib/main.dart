@@ -14,6 +14,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/campaigns/campaign_details_screen.dart';
 import 'services/supabase_service.dart';
 import 'services/notification_service.dart';
+import 'l10n/generated/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'providers/locale_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/campaign_provider.dart';
 import 'providers/user_provider.dart';
@@ -196,6 +199,9 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // ✅ Provider de langue (i18n)
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
+
         // ✅ Provider d'authentification
         ChangeNotifierProvider(create: (_) => AuthProvider()),
 
@@ -228,39 +234,48 @@ class _MyAppState extends State<MyApp> {
               previousUserProvider!..update(auth),
         ),
       ],
-      child: MaterialApp(
-        navigatorKey: _navigatorKey,
-        title: 'MarkazTijani',
-        debugShowCheckedModeBanner: false,
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, child) {
+          return MaterialApp(
+            navigatorKey: _navigatorKey,
+            title: 'MarkazTijani',
+            debugShowCheckedModeBanner: false,
 
-        // ✅ Thème de l'application (vert/blanc/mauve)
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light, // Forcer le mode clair
+            // ✅ Configuration i18n
+            locale: localeProvider.locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
 
-        // ✅ Écran de démarrage
-        home: const SplashScreen(),
+            // ✅ Thème de l'application (vert/blanc/mauve)
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.light, // Forcer le mode clair
 
-        // ✅ Routes nommées
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/admin': (context) => const AdminDashboardScreen(),
-          '/admin/authors': (context) => const AdminAuthorsScreen(),
-          '/admin/shows': (context) => const AdminShowsScreen(),
-          '/admin/shows/episodes': (context) => const AdminShowEpisodesScreen(),
-          '/admin/wazifa': (context) => const AdminWazifaScreen(),
-          '/admin/users': (context) => const AdminUserManagementScreen(),
-          '/admin/podcasts/create': (context) => const AdminPodcastCreateScreen(),
-          '/admin/teachings': (context) => const AdminTeachingsScreen(),
-          '/admin/silsila': (context) => const AdminSilsilaListScreen(),
-          '/admin/campaigns': (context) => const AdminCampaignsScreen(),
-          '/admin/videos': (context) => const AdminVideosScreen(),
-          '/admin/videos/create': (context) => const AdminVideoCreateScreen(),
-          '/admin/media/import': (context) => const AdminMediaImportScreen(),
-          '/admin/settings': (context) => const AdminSettingsScreen(),
-          '/admin/quizzes': (context) => const AdminQuizListScreen(),
-          '/admin/calendar': (context) => const AdminCourseScreen(), // Added route
+            // ✅ Écran de démarrage
+            home: const SplashScreen(),
+
+            // ✅ Routes nommées
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/admin': (context) => const AdminDashboardScreen(),
+              '/admin/authors': (context) => const AdminAuthorsScreen(),
+              '/admin/shows': (context) => const AdminShowsScreen(),
+              '/admin/shows/episodes': (context) => const AdminShowEpisodesScreen(),
+              '/admin/wazifa': (context) => const AdminWazifaScreen(),
+              '/admin/users': (context) => const AdminUserManagementScreen(),
+              '/admin/podcasts/create': (context) => const AdminPodcastCreateScreen(),
+              '/admin/teachings': (context) => const AdminTeachingsScreen(),
+              '/admin/silsila': (context) => const AdminSilsilaListScreen(),
+              '/admin/campaigns': (context) => const AdminCampaignsScreen(),
+              '/admin/videos': (context) => const AdminVideosScreen(),
+              '/admin/videos/create': (context) => const AdminVideoCreateScreen(),
+              '/admin/media/import': (context) => const AdminMediaImportScreen(),
+              '/admin/settings': (context) => const AdminSettingsScreen(),
+              '/admin/quizzes': (context) => const AdminQuizListScreen(),
+              '/admin/calendar': (context) => const AdminCourseScreen(),
+            },
+          );
         },
       ),
     );

@@ -8,8 +8,11 @@ version: 1.0.1+2
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
+
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   provider: ^6.1.5+1 
   flutter_animate: ^4.5.0
@@ -126,6 +129,7 @@ flutter_native_splash:
     color: "#2D7A6E"
 
 flutter:
+  generate: true
   uses-material-design: true
   
   assets:
