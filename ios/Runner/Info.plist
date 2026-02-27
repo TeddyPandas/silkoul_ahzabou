@@ -59,6 +59,10 @@
 		<string>Cette application a besoin de votre position pour trouver les lieux de Wazifa à proximité.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
 		<string>Cette application a besoin de votre position pour trouver les lieux de Wazifa à proximité.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Cette application nécessite l'accès à votre caméra pour vous permettre de prendre une photo de profil.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Cette application nécessite l'accès à votre galerie pour vous permettre de choisir une photo de profil.</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>audio</string>

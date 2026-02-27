@@ -103,7 +103,7 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
                 children: [
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.ousmanediane.silkoulAhzabou',
+                    userAgentPackageName: 'com.app.markaztijani.ahzab',
                     tileProvider: CachedTileProvider(
                       store: MemCacheStore(),
                     ),

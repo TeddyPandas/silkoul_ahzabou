@@ -1,4 +1,4 @@
-package com.example.silkoul_ahzabou
+package com.app.markaztijani.ahzab
 
 import android.app.PictureInPictureParams
 import android.os.Build
@@ -8,7 +8,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.example.silkoul_ahzabou/pip"
+    private val CHANNEL = "com.app.markaztijani.ahzab/pip"
     private var isPipEnabled = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
