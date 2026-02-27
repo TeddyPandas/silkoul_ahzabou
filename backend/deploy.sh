@@ -48,6 +48,21 @@ fi
 echo "💾 Saving backup of current API image..."
 docker tag backend-api:latest backend-api:backup 2>/dev/null || echo "⚠️  No previous image to backup (first deploy?)"
 
+# Backup Frontend Files
+if [ -d "/var/www/silkoul-frontend" ]; then
+    echo "💾 Backing up frontend files..."
+    sudo rm -rf /var/www/silkoul-frontend_backup
+    sudo cp -r /var/www/silkoul-frontend /var/www/silkoul-frontend_backup
+fi
+
+# DATABASE SNAPSHOT (Optional - requires pg_dump or access to Supabase DB)
+if [ -n "$DATABASE_URL" ]; then
+    echo "🗄️  Taking database snapshot..."
+    # You would need pg_dump installed on the VPS or running via docker
+    # docker exec some-db-container pg_dump -U user dbname > pre_deploy_snapshot.sql
+    echo "⚠️  Database snapshot skipping - configure pg_dump if needed."
+fi
+
 # Build and start Application containers (zero-downtime)
 echo "🚀 Deploying Application Stack (API + Frontend)..."
 docker compose -f docker-compose.yml up -d --build --force-recreate
