@@ -9,7 +9,7 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'MarkazTijani';
+  String get appTitle => 'MarkazSeyidTijani';
 
   @override
   String get campaigns => 'Campagnes';
@@ -193,4 +193,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noCampaigns => 'Aucune campagne';
+
+  @override
+  String get continueAsGuest => 'Continuer en tant qu\'invité';
+
+  @override
+  String get guestModeMessage => 'Vous explorez en mode invité. Connectez-vous pour accéder à toutes les fonctionnalités.';
+
+  @override
+  String get signInToAccess => 'Se connecter';
 }

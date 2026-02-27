@@ -6,6 +6,7 @@ import '../../models/user_task.dart';
 import '../../config/app_theme.dart';
 import '../campaigns/campaign_details_screen.dart';
 import '../../widgets/primary_app_bar.dart';
+import '../../widgets/guest_gate_banner.dart';
 
 class MyTasksScreen extends StatefulWidget {
   const MyTasksScreen({super.key});
@@ -44,42 +45,47 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
       appBar: const PrimaryAppBar(
         title: 'Mes Tâches',
       ),
-      body: Consumer<UserProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.tealPrimary),
-            );
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          if (authProvider.isGuest || authProvider.user == null) {
+            return const GuestGateBanner();
           }
-
-          if (provider.userTasks.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.task_alt, size: 80, color: Colors.grey[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Vous n'avez pas encore de tâches.",
-                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
+          return Consumer<UserProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.tealPrimary),
+                );
+              }
+              if (provider.userTasks.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.task_alt, size: 80, color: Colors.grey[300]),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Vous n'avez pas encore de tâches.",
+                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: _loadTasks,
-            color: AppColors.tealPrimary,
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: provider.userTasks.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final task = provider.userTasks[index];
-                return _buildTaskCard(task);
-              },
-            ),
+                );
+              }
+              return RefreshIndicator(
+                onRefresh: _loadTasks,
+                color: AppColors.tealPrimary,
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: provider.userTasks.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final task = provider.userTasks[index];
+                    return _buildTaskCard(task);
+                  },
+                ),
+              );
+            },
           );
         },
       ),

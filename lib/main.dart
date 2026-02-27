@@ -238,7 +238,7 @@ class _MyAppState extends State<MyApp> {
         builder: (context, localeProvider, child) {
           return MaterialApp(
             navigatorKey: _navigatorKey,
-            title: 'MarkazTijani',
+            title: 'MarkazSeyidTijani',
             debugShowCheckedModeBanner: false,
 
             // ✅ Configuration i18n

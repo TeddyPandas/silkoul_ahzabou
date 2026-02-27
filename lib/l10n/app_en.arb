@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
 
-  "appTitle": "MarkazTijani",
+  "appTitle": "MarkazSeyidTijani",
 
   "campaigns": "Campaigns",
   "createCampaign": "Create Campaign",
@@ -68,5 +68,9 @@
   "discovered": "Discover",
   "by": "By {author}",
   "unknownAuthor": "Unknown",
-  "noCampaigns": "No campaigns"
+  "noCampaigns": "No campaigns",
+
+  "continueAsGuest": "Continue as guest",
+  "guestModeMessage": "You're browsing as a guest. Sign in to access all features.",
+  "signInToAccess": "Sign in"
 }

@@ -98,7 +98,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In fr, this message translates to:
-  /// **'MarkazTijani'**
+  /// **'MarkazSeyidTijani'**
   String get appTitle;
 
   /// No description provided for @campaigns.
@@ -454,6 +454,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucune campagne'**
   String get noCampaigns;
+
+  /// No description provided for @continueAsGuest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer en tant qu\'invité'**
+  String get continueAsGuest;
+
+  /// No description provided for @guestModeMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous explorez en mode invité. Connectez-vous pour accéder à toutes les fonctionnalités.'**
+  String get guestModeMessage;
+
+  /// No description provided for @signInToAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get signInToAccess;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

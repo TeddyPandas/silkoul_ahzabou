@@ -124,6 +124,8 @@ class _HomeScreenState extends State<HomeScreen> {
       const NafahatScreen(),
     ];
 
+    final isGuest = context.watch<AuthProvider>().isGuest;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFF5F5F5),
@@ -144,8 +146,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-          // ── Speed Dial mini-buttons ──
-          if (_fabOpen)
+          // ── Speed Dial mini-buttons (hidden for guests) ──
+          if (_fabOpen && !isGuest)
             Positioned(
               bottom: 100,
               left: 0,

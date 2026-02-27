@@ -4,23 +4,39 @@ import 'package:silkoul_ahzabou/screens/silsila/silsila_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/app_theme.dart';
 import '../screens/tasks/my_tasks_screen.dart';
-import '../screens/badges/badges_screen.dart';
 import '../screens/wazifa/wazifa_map_screen.dart';
-
 import '../screens/profile/profile_tab.dart';
 import '../modules/teachings/screens/teachings_home_screen.dart';
 import '../modules/quizzes/screens/quiz_list_screen.dart';
-import '../services/notification_service.dart';
 import '../modules/calendar/screens/calendar_screen.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../providers/locale_provider.dart';
+import '../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
 
+  void _showGuestSnackBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    Navigator.pop(context); // close drawer
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.guestModeMessage),
+        action: SnackBarAction(
+          label: l10n.signInToAccess,
+          onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false),
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isGuest = context.watch<AuthProvider>().isGuest;
+    final l10n = AppLocalizations.of(context)!;
+
     return Drawer(
       child: Container(
         decoration: const BoxDecoration(
@@ -28,8 +44,8 @@ class CustomDrawer extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primary, // Teal
-              AppColors.primaryDark, // Darker Teal/Green
+              AppColors.primary,
+              AppColors.primaryDark,
             ],
           ),
         ),
@@ -45,52 +61,55 @@ class CustomDrawer extends StatelessWidget {
                     _buildMenuItem(
                       context,
                       icon: Icons.calendar_month_rounded,
-                      title: AppLocalizations.of(context)!.courseCalendar,
+                      title: l10n.courseCalendar,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const CalendarScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.checklist_rounded,
-                      title: AppLocalizations.of(context)!.myTasks,
-                      onTap: () => Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => const MyTasksScreen())),
+                      title: l10n.myTasks,
+                      onTap: isGuest
+                          ? () => _showGuestSnackBar(context)
+                          : () => Navigator.push(
+                              context, MaterialPageRoute(builder: (_) => const MyTasksScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.link_rounded,
-                      title: AppLocalizations.of(context)!.theSilsila,
+                      title: l10n.theSilsila,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const SilsilaScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.location_on_rounded,
-                      title: AppLocalizations.of(context)!.findWazifa,
+                      title: l10n.findWazifa,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const WazifaMapScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.play_lesson_rounded,
-                      title: AppLocalizations.of(context)!.teachings,
+                      title: l10n.teachings,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const TeachingsHomeScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.quiz_rounded,
-                      title: AppLocalizations.of(context)!.quizzes,
+                      title: l10n.quizzes,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const QuizListScreen())),
                     ),
-
                     _buildMenuItem(
                       context,
                       icon: Icons.person_rounded,
-                      title: AppLocalizations.of(context)!.profile,
-                      onTap: () => Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => const ProfileTab())),
+                      title: l10n.profile,
+                      onTap: isGuest
+                          ? () => _showGuestSnackBar(context)
+                          : () => Navigator.push(
+                              context, MaterialPageRoute(builder: (_) => const ProfileTab())),
                     ),
                   ],
                 ),

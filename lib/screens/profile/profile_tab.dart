@@ -5,6 +5,7 @@ import '../../config/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../widgets/guest_gate_banner.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -97,14 +98,9 @@ class _ProfileTabState extends State<ProfileTab> {
           final profile = authProvider.profile;
           final user = authProvider.user;
 
-          // Si pas de profil mais utilisateur connecté, on affiche au moins l'email et le bouton logout
-          if (user == null) {
-            return Center(
-              child: Text(
-                AppLocalizations.of(context)!.loginRequired,
-                style: const TextStyle(fontSize: 16),
-              ),
-            );
+          // Invité ou non connecté : afficher le banner de connexion
+          if (authProvider.isGuest || user == null) {
+            return const GuestGateBanner();
           }
 
           if (profile == null && authProvider.isLoading) {

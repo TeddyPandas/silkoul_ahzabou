@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile.dart';
 import '../services/auth_service.dart';
 import '../services/supabase_service.dart';
 import '../utils/error_handler.dart';
+
+const String _kGuestModeKey = 'is_guest_mode';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -13,13 +16,15 @@ class AuthProvider with ChangeNotifier {
   Profile? _profile;
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isGuest = false;
 
   User? get user => _user;
   Profile? get profile => _profile;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _user != null;
-  
+  bool get isGuest => _isGuest;
+
   // Role Check Helpers
   bool get isAdmin => _profile?.role == 'ADMIN' || _profile?.role == 'SUPER_ADMIN';
   bool get isSuperAdmin => _profile?.role == 'SUPER_ADMIN';
@@ -44,11 +49,21 @@ class AuthProvider with ChangeNotifier {
       if (event == AuthChangeEvent.signedIn) {
         ErrorHandler.log('🔐 [AuthProvider] ✅ User signed in! Updating state...');
         _user = session?.user;
+        if (kDebugMode && kIsWeb) {
+          print('🔐 [AuthProvider] Web Session: ${session?.accessToken.substring(0, 10)}...');
+          print('🔐 [AuthProvider] Web User: ${_user?.id}');
+        }
+        _isGuest = false;
+        SharedPreferences.getInstance()
+            .then((p) => p.remove(_kGuestModeKey));
         _loadProfile();
       } else if (event == AuthChangeEvent.signedOut) {
         ErrorHandler.log('🔐 [AuthProvider] User signed out');
         _user = null;
         _profile = null;
+        _isGuest = false;
+        SharedPreferences.getInstance()
+            .then((p) => p.remove(_kGuestModeKey));
         notifyListeners();
       } else if (event == AuthChangeEvent.tokenRefreshed) {
         ErrorHandler.log('🔐 [AuthProvider] Token refreshed');
@@ -58,7 +73,14 @@ class AuthProvider with ChangeNotifier {
         ErrorHandler.log('🔐 [AuthProvider] Initial session event');
         _user = session?.user;
         if (_user != null) {
+          _isGuest = false;
           _loadProfile();
+        } else {
+          // Restore guest mode if user previously chose it
+          SharedPreferences.getInstance().then((p) {
+            _isGuest = p.getBool(_kGuestModeKey) ?? false;
+            notifyListeners();
+          });
         }
         notifyListeners();
       }
@@ -177,12 +199,25 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Entrer en mode invité (sans compte)
+  Future<void> enterGuestMode() async {
+    _isGuest = true;
+    _user = null;
+    _profile = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kGuestModeKey, true);
+    notifyListeners();
+  }
+
   /// Déconnexion
   Future<void> signOut() async {
     try {
       await _authService.signOut();
       _user = null;
       _profile = null;
+      _isGuest = false;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_kGuestModeKey);
       notifyListeners();
     } catch (e) {
       _errorMessage = ErrorHandler.sanitize(e);

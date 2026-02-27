@@ -558,7 +558,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 onPressed: () {
                   final url = widget.teaching.mediaUrl;
                   final title = widget.teaching.titleFr;
-                  Share.share("Écoutez '$title' sur MarkazTijani:\n$url");
+                  Share.share("Écoutez '$title' sur MarkazSeyidTijani:\n$url");
                 },
               ),
             ],

@@ -1,7 +1,7 @@
 {
   "@@locale": "fr",
 
-  "appTitle": "MarkazTijani",
+  "appTitle": "MarkazSeyidTijani",
 
   "campaigns": "Campagnes",
   "createCampaign": "Créer une campagne",
@@ -83,5 +83,9 @@
     }
   },
   "unknownAuthor": "Inconnu",
-  "noCampaigns": "Aucune campagne"
+  "noCampaigns": "Aucune campagne",
+
+  "continueAsGuest": "Continuer en tant qu'invité",
+  "guestModeMessage": "Vous explorez en mode invité. Connectez-vous pour accéder à toutes les fonctionnalités.",
+  "signInToAccess": "Se connecter"
 }

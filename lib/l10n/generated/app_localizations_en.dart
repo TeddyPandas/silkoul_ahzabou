@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'MarkazTijani';
+  String get appTitle => 'MarkazSeyidTijani';
 
   @override
   String get campaigns => 'Campaigns';
@@ -193,4 +193,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noCampaigns => 'No campaigns';
+
+  @override
+  String get continueAsGuest => 'Continue as guest';
+
+  @override
+  String get guestModeMessage => 'You\'re browsing as a guest. Sign in to access all features.';
+
+  @override
+  String get signInToAccess => 'Sign in';
 }
