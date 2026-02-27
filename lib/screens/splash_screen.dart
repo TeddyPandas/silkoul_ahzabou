@@ -34,8 +34,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
     debugPrint('[SplashScreen] Getting AuthProvider...');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // On web, we might need a little extra time if we're coming back from an OAuth redirect
+    // because Supabase needs to process the URL fragment.
+    if (kIsWeb) {
+      debugPrint('[SplashScreen] Web detected, allowing extra time for session restoration...');
+      await Future.delayed(const Duration(milliseconds: 1500));
+    }
+
     final isAuthenticated = authProvider.isAuthenticated;
-    debugPrint('[SplashScreen] Auth state check: isAuthenticated = $isAuthenticated');
+    final isGuest = authProvider.isGuest;
+    debugPrint('[SplashScreen] Auth state check: isAuthenticated = $isAuthenticated, isGuest = $isGuest');
 
     if (isAuthenticated) {
       if (kIsWeb) {
@@ -49,8 +58,21 @@ class _SplashScreenState extends State<SplashScreen> {
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
+    } else if (isGuest) {
+      debugPrint('[SplashScreen] Guest mode: Navigating to HomeScreen...');
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } else {
       debugPrint('[SplashScreen] Navigating to LoginScreen...');
+      // Final check: if we're still on web and just finished the delay, check currentUser again
+      if (kIsWeb && Supabase.instance.client.auth.currentUser != null) {
+        debugPrint('[SplashScreen] Late auth detection on web, redirecting to Admin...');
+         Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+        );
+        return;
+      }
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );

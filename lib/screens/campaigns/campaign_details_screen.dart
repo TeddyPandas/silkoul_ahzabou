@@ -1042,11 +1042,11 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
 
 ${tasksInfo.toString()}
 📲 Pour rejoindre cette campagne:
-1. Téléchargez l'app "MarkazTijani" sur le Play Store / App Store
+1. Téléchargez l'app "MarkazSeyidTijani" sur le Play Store / App Store
 2. Recherchez la campagne "${_campaign!.name}"
 3. Inscrivez-vous et participez !
 
-#MarkazTijani #Tijani
+#MarkazSeyidTijani #Tijani
 ''';
 
     Share.share(
@@ -1544,17 +1544,20 @@ ${tasksInfo.toString()}
   }
 
   Widget _buildBottomBar(BuildContext context, bool isDark) {
-    // ⚡️ CORAN MODE EXCEPTION: 
+    // ⚡️ CORAN MODE EXCEPTION:
     // Subscription is handled INLINE in the body.
     // We hide this bottom bar to prevent showing the redundant "Join" dialog.
     if (_campaign?.category == 'Quran') {
       return const SizedBox.shrink();
     }
-    
+
     // Si terminée, on n'affiche plus rien dans la bottom bar (c'est géré dans le body)
     if (_campaign?.isFinished == true) {
       return const SizedBox.shrink();
     }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final isGuest = authProvider.isGuest || authProvider.user == null;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1570,19 +1573,32 @@ ${tasksInfo.toString()}
       ),
       child: SafeArea(
         child: ElevatedButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => SubscribeDialog(
-                campaign: _campaign!,
-                initialAccessCode: _accessCode,
-                isAlreadySubscribed: _isSubscribed,
-                onSubscriptionSuccess: () {
-                  _loadCampaignDetails();
+          onPressed: isGuest
+              ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Connectez-vous pour rejoindre cette campagne.'),
+                      action: SnackBarAction(
+                        label: 'Se connecter',
+                        onPressed: () => Navigator.of(context)
+                            .pushNamedAndRemoveUntil('/login', (route) => false),
+                      ),
+                    ),
+                  );
+                }
+              : () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => SubscribeDialog(
+                      campaign: _campaign!,
+                      initialAccessCode: _accessCode,
+                      isAlreadySubscribed: _isSubscribed,
+                      onSubscriptionSuccess: () {
+                        _loadCampaignDetails();
+                      },
+                    ),
+                  );
                 },
-              ),
-            );
-          },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,

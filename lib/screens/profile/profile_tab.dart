@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../l10n/generated/app_localizations.dart';
+import '../../widgets/guest_gate_banner.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -39,7 +41,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Utilisateur non authentifié.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.userNotAuthenticated)),
       );
       return;
     }
@@ -51,14 +53,14 @@ class _ProfileTabState extends State<ProfileTab> {
         // avatarUrl: 'new_avatar_url', // TODO: Implement avatar upload
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profil mis à jour avec succès !')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdatedSuccess)),
       );
       setState(() {
         _isEditing = false; 
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Échec de la mise à jour : $e')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdateFailed(e.toString()))),
       );
     }
   }
@@ -76,7 +78,7 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil'),
+        title: Text(AppLocalizations.of(context)!.profile),
         actions: [
           IconButton(
             icon: Icon(_isEditing ? Icons.save : Icons.edit),
@@ -96,14 +98,9 @@ class _ProfileTabState extends State<ProfileTab> {
           final profile = authProvider.profile;
           final user = authProvider.user;
 
-          // Si pas de profil mais utilisateur connecté, on affiche au moins l'email et le bouton logout
-          if (user == null) {
-            return const Center(
-              child: Text(
-                'Veuillez vous connecter pour voir votre profil.',
-                style: TextStyle(fontSize: 16),
-              ),
-            );
+          // Invité ou non connecté : afficher le banner de connexion
+          if (authProvider.isGuest || user == null) {
+            return const GuestGateBanner();
           }
 
           if (profile == null && authProvider.isLoading) {
@@ -144,26 +141,26 @@ class _ProfileTabState extends State<ProfileTab> {
                 TextFormField(
                   controller: _displayNameController
                     ..text = profile?.displayName ?? '',
-                  decoration: const InputDecoration(labelText: 'Nom d\'affichage'),
+                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.displayName),
                   readOnly: !_isEditing,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController..text = user?.email ?? '',
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.email),
                   readOnly: true,
                 ),
                 const SizedBox(height: 16),
                 if (profile != null) ...[
                   TextFormField(
                     initialValue: profile.level.toString(),
-                    decoration: const InputDecoration(labelText: 'Niveau'),
+                    decoration: InputDecoration(labelText: AppLocalizations.of(context)!.level),
                     readOnly: true,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     initialValue: profile.points.toString(),
-                    decoration: const InputDecoration(labelText: 'Points'),
+                    decoration: InputDecoration(labelText: AppLocalizations.of(context)!.points),
                     readOnly: true,
                   ),
                   const SizedBox(height: 32),
@@ -171,7 +168,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ElevatedButton.icon(
                   onPressed: _logout,
                   icon: const Icon(Icons.logout),
-                  label: const Text('Déconnexion'),
+                  label: Text(AppLocalizations.of(context)!.logout),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     foregroundColor: AppColors.white,

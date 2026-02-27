@@ -20,6 +20,7 @@ import '../wazifa/add_wazifa_screen.dart';
 import '../nafahat/nafahat_screen.dart';
 import '../silsila/silsila_screen.dart';
 import '../notifications/notifications_screen.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -95,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Icons.location_on_rounded,
     Icons.article_rounded,
   ];
-  static const _tabLabels = ['Accueil', 'Campagnes', 'Wazifa', 'Nafahat'];
+  // Replaced static _tabLabels with dynamic labels in build()
 
   // The CurvedNavigationBar uses 5 items: 4 tabs + center "+" button.
   // Indices: 0=Accueil, 1=Campagnes, 2=FAB(+), 3=Wazifa, 4=Nafahat
@@ -123,6 +124,8 @@ class _HomeScreenState extends State<HomeScreen> {
       const NafahatScreen(),
     ];
 
+    final isGuest = context.watch<AuthProvider>().isGuest;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFF5F5F5),
@@ -143,8 +146,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-          // ── Speed Dial mini-buttons ──
-          if (_fabOpen)
+          // ── Speed Dial mini-buttons (hidden for guests) ──
+          if (_fabOpen && !isGuest)
             Positioned(
               bottom: 100,
               left: 0,
@@ -156,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     visible: true,
                     delay: 0,
                     icon: Icons.add_location_alt_rounded,
-                    label: 'Ajouter un lieu Wazifa',
+                    label: AppLocalizations.of(context)!.findWazifa,
                     color: AppColors.secondary,
                     onTap: _navigateToAddWazifa,
                   ),
@@ -165,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     visible: true,
                     delay: 50,
                     icon: Icons.campaign_rounded,
-                    label: 'Créer une campagne',
+                    label: AppLocalizations.of(context)!.createCampaign,
                     color: AppColors.tealPrimary,
                     onTap: _navigateToCreateCampaign,
                   ),
@@ -344,9 +347,9 @@ class _DashboardTabState extends State<DashboardTab> {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Mes Campagnes',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.myTasks,
+                      style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87),
@@ -355,7 +358,7 @@ class _DashboardTabState extends State<DashboardTab> {
                       TextButton(
                         onPressed: () =>
                             widget.onTabChange(1, showMyCampaigns: true),
-                        child: const Text('Voir tout'),
+                        child: Text(AppLocalizations.of(context)!.viewAll ?? 'Voir tout'),
                       ),
                   ],
                 );
@@ -369,8 +372,8 @@ class _DashboardTabState extends State<DashboardTab> {
                     height: 180,
                     child: _buildHeroCard(
                       context: context,
-                      title: 'Bienvenue sur Ahzab',
-                      subtitle: 'Rejoignez votre première campagne !',
+                      title: AppLocalizations.of(context)!.welcome,
+                      subtitle: AppLocalizations.of(context)!.joinFirstCampaign,
                       subscribersCount: 0,
                       imageUrl:
                           'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=200&auto=format&fit=crop',
@@ -403,7 +406,9 @@ class _DashboardTabState extends State<DashboardTab> {
                         subscribersCount: campaign.subscribersCount,
                         imageUrl:
                             'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=800&auto=format&fit=crop',
-                        tag: campaign.isWeekly ? 'Hebdomadaire' : 'Ponctuelle',
+                        tag: campaign.isWeekly 
+                            ? AppLocalizations.of(context)!.weekly 
+                            : AppLocalizations.of(context)!.oneTime,
                       );
                     },
                   ),
@@ -438,9 +443,9 @@ class _DashboardTabState extends State<DashboardTab> {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Campagnes Recommandées',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.recommendedCampaigns,
+                      style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87),
@@ -448,7 +453,7 @@ class _DashboardTabState extends State<DashboardTab> {
                     if (provider.campaigns.length > 5)
                       TextButton(
                         onPressed: () => widget.onTabChange(1),
-                        child: const Text('Voir tout'),
+                        child: Text(AppLocalizations.of(context)!.viewAll ?? 'Voir tout'),
                       ),
                   ],
                 );
@@ -469,9 +474,9 @@ class _DashboardTabState extends State<DashboardTab> {
                 return Consumer<CampaignProvider>(
                   builder: (context, provider, _) {
                     if (provider.campaigns.isEmpty) {
-                      return const SizedBox(
+                      return SizedBox(
                           height: 100,
-                          child: Center(child: Text("Aucune campagne")));
+                          child: Center(child: Text(AppLocalizations.of(context)!.noCampaigns)));
                     }
                     return SizedBox(
                       height: containerHeight,
@@ -484,7 +489,7 @@ class _DashboardTabState extends State<DashboardTab> {
                           final campaign = provider.campaigns[index];
                           return _buildCampaignThumbnail(
                             campaign.name,
-                            'Par ${campaign.createdByName ?? "Inconnu"}',
+                            AppLocalizations.of(context)!.by(campaign.createdByName ?? AppLocalizations.of(context)!.unknownAuthor),
                             null,
                             thumbnailWidth,
                             imageHeight,
@@ -514,7 +519,7 @@ class _DashboardTabState extends State<DashboardTab> {
               children: [
                 _buildQuickAction(
                     Icons.link, 
-                    'Silsila', 
+                    AppLocalizations.of(context)!.theSilsila, 
                     AppColors.tealPrimary,
                     onTap: () => Navigator.push(
                         context,
@@ -522,7 +527,7 @@ class _DashboardTabState extends State<DashboardTab> {
                     )
                 ),
                 _buildQuickAction(
-                    Icons.place, 'Wazifa Finder', AppColors.tealAccent,
+                    Icons.place, AppLocalizations.of(context)!.findWazifa, AppColors.tealAccent,
                     onTap: () => widget.onTabChange(2)),
                 // _buildQuickAction(Icons.emoji_events, 'Badges', Colors.amber),
               ],
@@ -545,9 +550,9 @@ class _DashboardTabState extends State<DashboardTab> {
           style: IconButton.styleFrom(
               backgroundColor: Colors.white, padding: EdgeInsets.zero),
         ),
-        const Text(
-          'Découvrir',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context)!.appTitle,
+          style: const TextStyle(
               fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         Consumer<CampaignProvider>(

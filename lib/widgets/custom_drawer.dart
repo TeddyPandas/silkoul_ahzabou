@@ -4,20 +4,39 @@ import 'package:silkoul_ahzabou/screens/silsila/silsila_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/app_theme.dart';
 import '../screens/tasks/my_tasks_screen.dart';
-import '../screens/badges/badges_screen.dart';
 import '../screens/wazifa/wazifa_map_screen.dart';
-
 import '../screens/profile/profile_tab.dart';
 import '../modules/teachings/screens/teachings_home_screen.dart';
 import '../modules/quizzes/screens/quiz_list_screen.dart';
-import '../services/notification_service.dart';
 import '../modules/calendar/screens/calendar_screen.dart';
+import '../l10n/generated/app_localizations.dart';
+import '../providers/locale_provider.dart';
+import '../providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
 
+  void _showGuestSnackBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    Navigator.pop(context); // close drawer
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.guestModeMessage),
+        action: SnackBarAction(
+          label: l10n.signInToAccess,
+          onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false),
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isGuest = context.watch<AuthProvider>().isGuest;
+    final l10n = AppLocalizations.of(context)!;
+
     return Drawer(
       child: Container(
         decoration: const BoxDecoration(
@@ -25,8 +44,8 @@ class CustomDrawer extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primary, // Teal
-              AppColors.primaryDark, // Darker Teal/Green
+              AppColors.primary,
+              AppColors.primaryDark,
             ],
           ),
         ),
@@ -42,52 +61,55 @@ class CustomDrawer extends StatelessWidget {
                     _buildMenuItem(
                       context,
                       icon: Icons.calendar_month_rounded,
-                      title: 'Calendrier des cours',
+                      title: l10n.courseCalendar,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const CalendarScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.checklist_rounded,
-                      title: 'Mes tâches',
-                      onTap: () => Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => const MyTasksScreen())),
+                      title: l10n.myTasks,
+                      onTap: isGuest
+                          ? () => _showGuestSnackBar(context)
+                          : () => Navigator.push(
+                              context, MaterialPageRoute(builder: (_) => const MyTasksScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.link_rounded,
-                      title: 'La Silsila',
+                      title: l10n.theSilsila,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const SilsilaScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.location_on_rounded,
-                      title: 'Trouver une Wazifa',
+                      title: l10n.findWazifa,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const WazifaMapScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.play_lesson_rounded,
-                      title: 'Ghanouniyat',
+                      title: l10n.teachings,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const TeachingsHomeScreen())),
                     ),
                     _buildMenuItem(
                       context,
                       icon: Icons.quiz_rounded,
-                      title: 'Quizz Islamique',
+                      title: l10n.quizzes,
                       onTap: () => Navigator.push(
                           context, MaterialPageRoute(builder: (_) => const QuizListScreen())),
                     ),
-
                     _buildMenuItem(
                       context,
                       icon: Icons.person_rounded,
-                      title: 'Mon Profil',
-                      onTap: () => Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => const ProfileTab())),
+                      title: l10n.profile,
+                      onTap: isGuest
+                          ? () => _showGuestSnackBar(context)
+                          : () => Navigator.push(
+                              context, MaterialPageRoute(builder: (_) => const ProfileTab())),
                     ),
                   ],
                 ),
@@ -224,6 +246,51 @@ class CustomDrawer extends StatelessWidget {
       ),
       child: Column(
         children: [
+          Text(
+            AppLocalizations.of(context)!.language,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white70,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Consumer<LocaleProvider>(
+            builder: (context, localeProvider, child) {
+              return InkWell(
+                onTap: () => localeProvider.toggleLocale(),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        localeProvider.currentFlag,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        localeProvider.currentLanguageName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.sync, color: Colors.white70, size: 14),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 24),
           const Text(
             'Nous contacter',
             style: TextStyle(

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../config/app_theme.dart';
 import '../../providers/campaign_provider.dart';
-import 'campaign_details_screen.dart'; // To be created
-import 'create_campaign_screen.dart'; // To be created
+import '../../providers/auth_provider.dart';
+import '../../config/app_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
+import 'campaign_details_screen.dart';
+import 'create_campaign_screen.dart';
 
 class CampaignsTab extends StatefulWidget {
-  const CampaignsTab({super.key});
+  final bool showMyCampaigns;
+
+  const CampaignsTab({super.key, this.showMyCampaigns = false});
 
   @override
   State<CampaignsTab> createState() => _CampaignsTabState();
@@ -16,26 +20,31 @@ class _CampaignsTabState extends State<CampaignsTab> {
   @override
   void initState() {
     super.initState();
-    // Load public campaigns when the tab is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<CampaignProvider>(context, listen: false).fetchCampaigns();
     });
   }
 
+  void _openCreateCampaign() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const CreateCampaignScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isGuest = context.watch<AuthProvider>().isGuest;
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Campagnes'),
+        title: Text(l10n.campaigns),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CreateCampaignScreen()),
-              );
-            },
-          ),
+          if (!isGuest)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _openCreateCampaign,
+            ),
         ],
       ),
       body: Consumer<CampaignProvider>(
@@ -46,15 +55,13 @@ class _CampaignsTabState extends State<CampaignsTab> {
           if (campaignProvider.errorMessage != null) {
             return Center(
               child: Text(
-                'Erreur : ${campaignProvider.errorMessage}',
+                l10n.errorWithMessage(campaignProvider.errorMessage ?? ''),
                 style: const TextStyle(color: AppColors.error),
               ),
             );
           }
           if (campaignProvider.campaigns.isEmpty) {
-            return const Center(
-              child: Text('Aucune campagne publique disponible.'),
-            );
+            return Center(child: Text(l10n.noCampaignsAvailable));
           }
 
           return RefreshIndicator(
@@ -67,13 +74,12 @@ class _CampaignsTabState extends State<CampaignsTab> {
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
                     title: Text(campaign.name),
-                    subtitle: Text(campaign.description ?? 'Aucune description'),
+                    subtitle: Text(campaign.description ?? l10n.noDescription),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) =>
-                              CampaignDetailsScreen(campaignId: campaign.id),
+                          builder: (_) => CampaignDetailsScreen(campaignId: campaign.id),
                         ),
                       );
                     },
@@ -84,16 +90,14 @@ class _CampaignsTabState extends State<CampaignsTab> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const CreateCampaignScreen()),
-          );
-        },
-        label: const Text('Créer une campagne'),
-        icon: const Icon(Icons.add),
-        backgroundColor: AppColors.primary,
-      ),
+      floatingActionButton: isGuest
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _openCreateCampaign,
+              label: Text(l10n.createCampaign),
+              icon: const Icon(Icons.add),
+              backgroundColor: AppColors.primary,
+            ),
     );
   }
 }

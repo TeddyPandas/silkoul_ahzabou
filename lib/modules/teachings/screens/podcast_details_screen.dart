@@ -291,7 +291,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
               ),
               const SizedBox(width: 24),
               _buildSecondaryAction(Icons.share_outlined, "Partager", onTap: () {
-                final String text = "Découvrez l'émission ${widget.show.titleFr} sur MarkazTijani !\n\n${widget.show.descriptionFr ?? ''}";
+                final String text = "Découvrez l'émission ${widget.show.titleFr} sur MarkazSeyidTijani !\n\n${widget.show.descriptionFr ?? ''}";
                 Share.share(text);
               }),
               const SizedBox(width: 24),

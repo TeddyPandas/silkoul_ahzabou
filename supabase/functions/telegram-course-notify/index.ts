@@ -72,7 +72,7 @@ function buildMessage(event: string, course: any, oldStartTime?: string): string
       if (course.teacher_name) body += `👨‍🏫 *Professeur :* ${course.teacher_name}\n`;
       body += `📅 *Date prévue :* ${formatDate(course.start_time)} à ${formatTime(course.start_time)}\n`;
       body += `\n⚠️ Ce cours a été annulé. Nous vous tiendrons informés d'une éventuelle reprogrammation.\n`;
-      footer = `\nإنا لله وإنا إليه راجعون\nبارك الله فيكم`;
+      footer = `\nبارك الله فيكم`;
       break;
 
     default:

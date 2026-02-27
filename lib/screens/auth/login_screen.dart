@@ -7,6 +7,7 @@ import 'signup_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../modules/admin/screens/admin_dashboard_screen.dart';
 import '../home/home_screen.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -430,9 +431,28 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+
+            // Continuer en mode invité
+            TextButton(
+              onPressed: _isLoading ? null : _handleContinueAsGuest,
+              child: Text(
+                AppLocalizations.of(context)!.continueAsGuest,
+                style: const TextStyle(color: AppColors.textLight),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _handleContinueAsGuest() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.enterGuestMode();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
   }
 }

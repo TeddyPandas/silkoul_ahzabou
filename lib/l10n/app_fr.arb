@@ -1,0 +1,91 @@
+{
+  "@@locale": "fr",
+
+  "appTitle": "MarkazSeyidTijani",
+
+  "campaigns": "Campagnes",
+  "createCampaign": "Créer une campagne",
+  "noCampaignsAvailable": "Aucune campagne publique disponible.",
+  "noDescription": "Aucune description",
+  "joinCampaign": "Rejoindre la campagne",
+  "takeMoreNumbers": "Prendre un nombre supplémentaire",
+  "subscriptionSuccess": "Abonnement réussi !",
+  "tasksAddedSuccess": "Tâches ajoutées avec succès !",
+
+  "community": "Communauté",
+  "noUsersFound": "Aucun membre trouvé dans la communauté.",
+  "user": "Utilisateur",
+  "level": "Niveau",
+  "points": "Points",
+
+  "profile": "Profil",
+  "displayName": "Nom d'affichage",
+  "email": "Email",
+  "logout": "Déconnexion",
+  "profileUpdatedSuccess": "Profil mis à jour avec succès !",
+  "profileUpdateFailed": "Échec de la mise à jour : {error}",
+  "@profileUpdateFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "userNotAuthenticated": "Utilisateur non authentifié.",
+  "loginRequired": "Veuillez vous connecter pour voir votre profil.",
+
+  "myTasks": "Mes tâches",
+  "theSilsila": "La Silsila",
+  "findWazifa": "Trouver une Wazifa",
+  "courseCalendar": "Calendrier des Cours",
+  "teachings": "Enseignements",
+  "quizzes": "Quiz",
+  "home": "Accueil",
+
+  "error": "Erreur",
+  "errorWithMessage": "Erreur : {message}",
+  "@errorWithMessage": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "cancel": "Annuler",
+  "validate": "Valider",
+  "save": "Enregistrer",
+  "delete": "Supprimer",
+  "edit": "Modifier",
+  "loading": "Chargement...",
+  "retry": "Réessayer",
+  "yes": "Oui",
+  "no": "Non",
+  "close": "Fermer",
+  "search": "Rechercher",
+  "settings": "Paramètres",
+
+  "language": "Langue",
+  "french": "Français",
+  "english": "English",
+  "changeLanguage": "Changer de langue",
+
+  "openTasbih": "Ouvrir le Tasbih Électronique",
+  "chooseTasbihTask": "Choisir une tâche pour le Tasbih",
+  "task": "Tâche",
+
+  "viewAll": "Voir tout",
+  "welcome": "Bienvenue sur Ahzab",
+  "joinFirstCampaign": "Rejoignez votre première campagne !",
+  "weekly": "Hebdomadaire",
+  "oneTime": "Ponctuelle",
+  "recommendedCampaigns": "Campagnes Recommandées",
+  "discovered": "Découvrir",
+  "by": "Par {author}",
+  "@by": {
+    "placeholders": {
+      "author": { "type": "String" }
+    }
+  },
+  "unknownAuthor": "Inconnu",
+  "noCampaigns": "Aucune campagne",
+
+  "continueAsGuest": "Continuer en tant qu'invité",
+  "guestModeMessage": "Vous explorez en mode invité. Connectez-vous pour accéder à toutes les fonctionnalités.",
+  "signInToAccess": "Se connecter"
+}
