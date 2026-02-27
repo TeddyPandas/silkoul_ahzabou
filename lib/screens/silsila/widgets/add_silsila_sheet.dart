@@ -365,7 +365,7 @@ class _AddSilsilaSheetState extends State<AddSilsilaSheet> with SingleTickerProv
                           ),
                         ),
                         const SizedBox(height: 16),
-                      ],
+                      ]
                     ),
                   ),
                 ),
