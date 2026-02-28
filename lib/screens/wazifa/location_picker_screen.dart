@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../utils/l10n_extensions.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   final double initialLat;
@@ -43,19 +44,19 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        throw 'Service de localisation désactivé';
+        throw context.l10n.locationServiceDisabled;
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          throw 'Permission refusée';
+          throw context.l10n.permissionDenied;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        throw 'Permission refusée définitivement';
+        throw context.l10n.permissionDeniedForever;
       }
 
       final position = await Geolocator.getCurrentPosition();
@@ -69,7 +70,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text("${context.l10n.errorOccurred('')} $e")),
         );
       }
     } finally {
@@ -85,7 +86,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Choisir la position'),
+        title: Text(context.l10n.chooseLocation),
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
@@ -133,9 +134,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 color: Colors.black87,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
-                'Bougez la carte pour placer le repère sur le lieu exact',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+              child: Text(
+                context.l10n.moveMapInstruction,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
                 textAlign: TextAlign.center,
               ),
             ),

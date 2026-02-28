@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import '../../../config/app_theme.dart';
 import '../models/course.dart';
 import '../providers/calendar_provider.dart';
+import '../../../utils/l10n_extensions.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -26,8 +27,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _selectedDay = _focusedDay;
     _selectedCourses = ValueNotifier(_getCoursesForDay(_selectedDay!));
     
-    // Initialiser les dates en français pour le calendrier
-    initializeDateFormatting('fr_FR', null).then((_) {
+    // Initialiser les dates pour le calendrier
+    final locale = Localizations.localeOf(context).languageCode;
+    initializeDateFormatting('${locale}_${locale.toUpperCase()}', null).then((_) {
       if (mounted) setState(() {});
     });
 
@@ -68,7 +70,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible d\'ouvrir le lien Telegram')),
+          SnackBar(content: Text(context.l10n.errOpenTelegram)),
         );
       }
     }
@@ -79,7 +81,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Calendrier des Cours'),
+        title: Text(context.l10n.courseCalendar),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
       ),
@@ -124,7 +126,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             calendarFormat: CalendarFormat.month,
-            locale: 'fr_FR',
+            locale: Localizations.localeOf(context).toString(),
             startingDayOfWeek: StartingDayOfWeek.monday,
             eventLoader: _getCoursesForDay,
             onDaySelected: _onDaySelected,
@@ -162,15 +164,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
       valueListenable: _selectedCourses,
       builder: (context, courses, _) {
         if (courses.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.event_busy, size: 48, color: AppColors.textLight),
-                SizedBox(height: 16),
+                const Icon(Icons.event_busy, size: 48, color: AppColors.textLight),
+                const SizedBox(height: 16),
                 Text(
-                  'Aucun cours ce jour-là',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                  context.l10n.noCoursesDay,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 16),
                 ),
               ],
             ),
@@ -182,8 +184,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           itemCount: courses.length,
           itemBuilder: (context, index) {
             final course = courses[index];
-            final startTimeStr = DateFormat('HH:mm').format(course.startTime);
-            final endTimeStr = DateFormat('HH:mm').format(course.endTime);
+            final localeStr = Localizations.localeOf(context).languageCode;
+            final startTimeStr = DateFormat('HH:mm', localeStr).format(course.startTime);
+            final endTimeStr = DateFormat('HH:mm', localeStr).format(course.endTime);
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12.0),
@@ -283,16 +286,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.telegram),
-                        label: const Text(
-                          'Rejoindre le canal Telegram',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        label: Text(
+                          context.l10n.joinTelegramChannel,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         onPressed: () {
                           if (course.telegramLink != null && course.telegramLink!.isNotEmpty) {
                             _launchTelegram(course.telegramLink!);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Aucun lien disponible')),
+                              SnackBar(content: Text(context.l10n.noLinkAvailable)),
                             );
                           }
                         },

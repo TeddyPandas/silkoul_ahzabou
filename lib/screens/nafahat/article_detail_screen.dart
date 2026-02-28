@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/nafahat_article.dart';
 import '../../providers/nafahat_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/l10n_extensions.dart';
 
 /// Screen for displaying full article content
 class ArticleDetailScreen extends StatefulWidget {
@@ -77,8 +78,8 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     final userId = context.read<AuthProvider>().user?.id;
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Connectez-vous pour aimer les articles'),
+        SnackBar(
+          content: Text(context.l10n.loginToLike),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -102,10 +103,10 @@ ${article.summary}
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Texte copié ! Vous pouvez le coller pour partager.'),
+        SnackBar(
+          content: Text(context.l10n.textCopied),
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       await context.read<NafahatProvider>().shareArticle(article.id);
@@ -366,8 +367,8 @@ ${article.summary}
                                     color: Colors.green.shade600,
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    'Vérifié',
+                                   Text(
+                                    context.l10n.verified,
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: Colors.green.shade600,
@@ -386,20 +387,20 @@ ${article.summary}
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStatItem(
+                           _buildStatItem(
                             Icons.visibility_outlined,
                             '${widget.article.viewCount}',
-                            'Vues',
+                            context.l10n.views,
                           ),
                           _buildStatItem(
                             Icons.favorite_outline,
                             '${widget.article.likeCount}',
-                            'Likes',
+                            context.l10n.likes,
                           ),
                           _buildStatItem(
                             Icons.access_time,
                             '${widget.article.estimatedReadTime}',
-                            'minutes',
+                            context.l10n.minutes,
                           ),
                           if (widget.article.difficultyLevel != null)
                             _buildStatItem(
@@ -483,7 +484,7 @@ ${article.summary}
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Source: ${_showArabic && widget.article.sourceAr != null ? widget.article.sourceAr : widget.article.source}',
+                              context.l10n.source(_showArabic && widget.article.sourceAr != null ? widget.article.sourceAr! : widget.article.source!),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey.shade700,
@@ -511,7 +512,7 @@ ${article.summary}
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            'Articles similaires',
+                            context.l10n.relatedArticles,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -577,8 +578,8 @@ ${article.summary}
                       isLiked ? Icons.favorite : Icons.favorite_outline,
                       color: isLiked ? Colors.red : Colors.grey.shade600,
                     ),
-                    label: Text(
-                      isLiked ? 'Aimé' : 'J\'aime',
+                     label: Text(
+                      isLiked ? context.l10n.likes : context.l10n.yes, // Fallback if no specific "Liked" state key
                       style: TextStyle(
                         color: isLiked ? Colors.red : Colors.grey.shade700,
                       ),
@@ -606,8 +607,8 @@ ${article.summary}
                       Icons.share_outlined,
                       color: primaryColor,
                     ),
-                    label: Text(
-                      'Partager',
+                     label: Text(
+                      context.l10n.share,
                       style: TextStyle(color: primaryColor),
                     ),
                     style: ElevatedButton.styleFrom(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../config/app_theme.dart';
+import '../../../../utils/l10n_extensions.dart';
 
 class AdminSidebar extends StatelessWidget {
   final String currentRoute;
@@ -36,7 +37,7 @@ class AdminSidebar extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  "ADMIN",
+                  context.l10n.adminTitle,
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 20,
@@ -56,62 +57,62 @@ class AdminSidebar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
                 _buildMenuItem(
-                  " Tableau de bord",
+                  context.l10n.dashboard,
                   Icons.dashboard_rounded,
                   '/admin',
                 ),
-                _buildSectionHeader("CONTENU"),
+                _buildSectionHeader(context.l10n.contentSection),
                 _buildMenuItem(
-                  " Campagnes",
+                  context.l10n.campaigns,
                   Icons.campaign_rounded,
                   '/admin/campaigns',
                 ),
                 _buildMenuItem(
-                  " Auteurs",
+                  context.l10n.authors,
                   Icons.person_outline_rounded,
                   '/admin/authors',
                 ),
                 _buildMenuItem(
-                  " Podcasts (Séries)",
+                  context.l10n.podcasts,
                   Icons.podcasts_rounded,
                   '/admin/shows',
                 ),
                 _buildMenuItem(
-                  " Enseignements",
+                  context.l10n.teachings,
                   Icons.mic_none_rounded,
                   '/admin/teachings',
                 ),
-                _buildMenuItem(" Vidéos", Icons.video_library, "/admin/videos"),
-                _buildMenuItem(" Import YouTube", Icons.cloud_download, "/admin/media/import"),
+                _buildMenuItem(context.l10n.videos, Icons.video_library, "/admin/videos"),
+                _buildMenuItem(context.l10n.importYouTube, Icons.cloud_download, "/admin/media/import"),
                 _buildMenuItem(
-                  " Silsilas",
+                  context.l10n.silsilas,
                   Icons.account_tree_rounded,
                   '/admin/silsila',
                 ),
                 _buildMenuItem(
-                  " Cours",
+                  context.l10n.courses,
                   Icons.calendar_month_rounded,
                   '/admin/calendar',
                 ),
                 _buildMenuItem(
-                  " Quizz Islamique",
+                  context.l10n.islamicQuiz,
                   Icons.quiz_rounded,
                   '/admin/quizzes',
                 ),
-                _buildSectionHeader("COMMUNAUTÉ"),
+                _buildSectionHeader(context.l10n.communitySection),
                 _buildMenuItem(
-                  " Localisation Wazifa",
+                  context.l10n.wazifaLoc,
                   Icons.location_on_outlined,
                   '/admin/wazifa',
                 ),
                  _buildMenuItem(
-                  " Utilisateurs",
+                  context.l10n.users,
                   Icons.people_outline,
                   '/admin/users',
                 ),
-                 _buildSectionHeader("SYSTÈME"),
+                 _buildSectionHeader(context.l10n.systemSection),
                 _buildMenuItem(
-                  " Paramètres",
+                  context.l10n.adminSettings,
                   Icons.settings_outlined,
                   '/admin/settings',
                 ),

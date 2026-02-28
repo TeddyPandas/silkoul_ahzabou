@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../config/app_theme.dart';
 import '../models/quiz_models.dart';
 import '../providers/quiz_provider.dart';
+import '../../../utils/l10n_extensions.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final Quiz quiz;
@@ -78,13 +79,13 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                isVictory ? "Félicitations !" : "C'est fini !",
+                isVictory ? context.l10n.congratulations : context.l10n.gameOver,
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               Text(
-                "Vous avez obtenu",
+                context.l10n.youObtained,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18, color: Colors.grey[600]),
               ),
@@ -108,7 +109,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                   ),
                   child: Column(
                     children: [
-                      Text(widget.isPracticeMode ? "MODE ENTRAÎNEMENT" : "RÉCOMPENSE", 
+                      Text(widget.isPracticeMode ? context.l10n.practiceMode : context.l10n.reward, 
                         style: TextStyle(fontWeight: FontWeight.bold, color: widget.isPracticeMode ? Colors.blue : Colors.orange)),
                       const SizedBox(height: 8),
                       Row(
@@ -118,7 +119,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                             color: widget.isPracticeMode ? Colors.blue : AppColors.gold, size: 30),
                           const SizedBox(width: 12),
                           Text(
-                            widget.isPracticeMode ? "Quiz révisé" : "+$_xpEarned XP",
+                            widget.isPracticeMode ? context.l10n.quizReviewed : "+$_xpEarned XP",
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -136,7 +137,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text("MENU PRINCIPAL", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text(context.l10n.backToHome, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ],
           ),

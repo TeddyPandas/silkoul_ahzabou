@@ -20,7 +20,7 @@ import '../wazifa/add_wazifa_screen.dart';
 import '../nafahat/nafahat_screen.dart';
 import '../silsila/silsila_screen.dart';
 import '../notifications/notifications_screen.dart';
-import '../../l10n/generated/app_localizations.dart';
+import '../../utils/l10n_extensions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     visible: true,
                     delay: 0,
                     icon: Icons.add_location_alt_rounded,
-                    label: AppLocalizations.of(context)!.findWazifa,
+                    label: context.l10n.findWazifa,
                     color: AppColors.secondary,
                     onTap: _navigateToAddWazifa,
                   ),
@@ -168,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     visible: true,
                     delay: 50,
                     icon: Icons.campaign_rounded,
-                    label: AppLocalizations.of(context)!.createCampaign,
+                    label: context.l10n.createCampaign,
                     color: AppColors.tealPrimary,
                     onTap: _navigateToCreateCampaign,
                   ),
@@ -348,7 +348,7 @@ class _DashboardTabState extends State<DashboardTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.myTasks,
+                      context.l10n.myTasks,
                       style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -358,7 +358,7 @@ class _DashboardTabState extends State<DashboardTab> {
                       TextButton(
                         onPressed: () =>
                             widget.onTabChange(1, showMyCampaigns: true),
-                        child: Text(AppLocalizations.of(context)!.viewAll ?? 'Voir tout'),
+                        child: Text(context.l10n.viewAll),
                       ),
                   ],
                 );
@@ -372,8 +372,8 @@ class _DashboardTabState extends State<DashboardTab> {
                     height: 180,
                     child: _buildHeroCard(
                       context: context,
-                      title: AppLocalizations.of(context)!.welcome,
-                      subtitle: AppLocalizations.of(context)!.joinFirstCampaign,
+                      title: context.l10n.welcome,
+                      subtitle: context.l10n.joinFirstCampaign,
                       subscribersCount: 0,
                       imageUrl:
                           'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=200&auto=format&fit=crop',
@@ -402,13 +402,13 @@ class _DashboardTabState extends State<DashboardTab> {
                         context: context,
                         campaignId: campaign.id,
                         title: campaign.name,
-                        subtitle: campaign.description ?? 'Campagne Zikr',
+                        subtitle: campaign.description ?? context.l10n.zikrCampaign,
                         subscribersCount: campaign.subscribersCount,
                         imageUrl:
                             'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=800&auto=format&fit=crop',
                         tag: campaign.isWeekly 
-                            ? AppLocalizations.of(context)!.weekly 
-                            : AppLocalizations.of(context)!.oneTime,
+                            ? context.l10n.weekly 
+                            : context.l10n.oneTime,
                       );
                     },
                   ),
@@ -444,7 +444,7 @@ class _DashboardTabState extends State<DashboardTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.recommendedCampaigns,
+                      context.l10n.recommendedCampaigns,
                       style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -453,7 +453,7 @@ class _DashboardTabState extends State<DashboardTab> {
                     if (provider.campaigns.length > 5)
                       TextButton(
                         onPressed: () => widget.onTabChange(1),
-                        child: Text(AppLocalizations.of(context)!.viewAll ?? 'Voir tout'),
+                        child: Text(context.l10n.viewAll),
                       ),
                   ],
                 );
@@ -475,8 +475,8 @@ class _DashboardTabState extends State<DashboardTab> {
                   builder: (context, provider, _) {
                     if (provider.campaigns.isEmpty) {
                       return SizedBox(
-                          height: 100,
-                          child: Center(child: Text(AppLocalizations.of(context)!.noCampaigns)));
+                        height: 100,
+                        child: Center(child: Text(context.l10n.noCampaignsFound)));
                     }
                     return SizedBox(
                       height: containerHeight,
@@ -487,9 +487,9 @@ class _DashboardTabState extends State<DashboardTab> {
                             : provider.campaigns.length,
                         itemBuilder: (context, index) {
                           final campaign = provider.campaigns[index];
-                          return _buildCampaignThumbnail(
+                      return _buildCampaignThumbnail(
                             campaign.name,
-                            AppLocalizations.of(context)!.by(campaign.createdByName ?? AppLocalizations.of(context)!.unknownAuthor),
+                            context.l10n.by(campaign.createdByName ?? context.l10n.unknownAuthor),
                             null,
                             thumbnailWidth,
                             imageHeight,
@@ -518,8 +518,8 @@ class _DashboardTabState extends State<DashboardTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildQuickAction(
-                    Icons.link, 
-                    AppLocalizations.of(context)!.theSilsila, 
+                    Icons.link,
+                    context.l10n.silsila,
                     AppColors.tealPrimary,
                     onTap: () => Navigator.push(
                         context,
@@ -527,7 +527,7 @@ class _DashboardTabState extends State<DashboardTab> {
                     )
                 ),
                 _buildQuickAction(
-                    Icons.place, AppLocalizations.of(context)!.findWazifa, AppColors.tealAccent,
+                    Icons.place, context.l10n.findWazifa, AppColors.tealAccent,
                     onTap: () => widget.onTabChange(2)),
                 // _buildQuickAction(Icons.emoji_events, 'Badges', Colors.amber),
               ],
@@ -551,7 +551,7 @@ class _DashboardTabState extends State<DashboardTab> {
               backgroundColor: Colors.white, padding: EdgeInsets.zero),
         ),
         Text(
-          AppLocalizations.of(context)!.appTitle,
+          context.l10n.appTitle,
           style: const TextStyle(
               fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
@@ -743,10 +743,10 @@ class _DashboardTabState extends State<DashboardTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Section d'information",
+                Text(context.l10n.infoSection,
                     style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text("Cliquez pour voir plus de détails.",
+                        const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(context.l10n.clickForDetails,
                     style: TextStyle(color: Colors.grey[600], fontSize: 12)),
               ],
             ),
@@ -1168,7 +1168,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
                             decoration: BoxDecoration(
                                 color: Colors.green[50],
                                 borderRadius: BorderRadius.circular(4)),
-                            child: Text('Public',
+                            child: Text(context.l10n.public,
                                 style: TextStyle(
                                     color: Colors.green[800], fontSize: 10)),
                           )
@@ -1179,7 +1179,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
                             decoration: BoxDecoration(
                                 color: Colors.amber[50],
                                 borderRadius: BorderRadius.circular(4)),
-                            child: Text('Privé',
+                            child: Text(context.l10n.private,
                                 style: TextStyle(
                                     color: Colors.amber[800], fontSize: 10)),
                           ),
@@ -1191,7 +1191,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
                             decoration: BoxDecoration(
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(4)),
-                            child: Text('Terminée',
+                            child: Text(context.l10n.completed,
                                 style: TextStyle(
                                     color: Colors.grey[800], fontSize: 10)),
                           )
@@ -1202,7 +1202,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
                             decoration: BoxDecoration(
                                 color: Colors.blue[50],
                                 borderRadius: BorderRadius.circular(4)),
-                            child: Text('En cours',
+                            child: Text(context.l10n.ongoing,
                                 style: TextStyle(
                                     color: Colors.blue[800], fontSize: 10)),
                           ),

@@ -12,6 +12,7 @@ import '../widgets/mini_player.dart';
 import '../../../screens/nafahat/media_tab.dart'; // Import MediaTab
 import '../../../config/app_theme.dart';
 import '../../../widgets/primary_app_bar.dart';
+import '../../../utils/l10n_extensions.dart';
 
 class TeachingsHomeScreen extends StatefulWidget {
   const TeachingsHomeScreen({super.key});
@@ -63,10 +64,10 @@ class _TeachingsHomeScreenState extends State<TeachingsHomeScreen> with SingleTi
           labelColor: AppColors.tealPrimary,
           unselectedLabelColor: Colors.grey,
           indicatorWeight: 3,
-          tabs: const [
-            Tab(text: "Vidéos"),
-            Tab(text: "Podcasts"),
-            Tab(text: "Textes"),
+          tabs: [
+            Tab(text: context.l10n.videos),
+            Tab(text: context.l10n.podcasts),
+            Tab(text: context.l10n.articles),
           ],
         ),
       ),
@@ -108,7 +109,7 @@ class _TeachingsHomeScreenState extends State<TeachingsHomeScreen> with SingleTi
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
-                label: const Text("Tous"),
+                label: Text(context.l10n.all),
                 selected: isSelected,
                 selectedColor: AppColors.tealPrimary.withOpacity(0.2),
                 checkmarkColor: AppColors.tealPrimary,
@@ -179,7 +180,7 @@ class _PodcastTab extends StatelessWidget {
              Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                "À la une",
+                "À la une", // Keeping this as "Featured" or "Spotlight" might be better in l10n, using featured
                 style: GoogleFonts.poppins(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -218,7 +219,7 @@ class _PodcastTab extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Émissions",
+                    context.l10n.podcasts,
                     style: GoogleFonts.poppins(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -248,7 +249,7 @@ class _PodcastTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              "Nouveautés",
+              context.l10n.recentArticles, // Reusing recent articles or adding recent teachings
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -314,7 +315,7 @@ class _PodcastTab extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "NOUVEL ÉPISODE",
+                      context.l10n.newRelease,
                        style: GoogleFonts.poppins(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -336,7 +337,7 @@ class _PodcastTab extends StatelessWidget {
                     ),
                     const Spacer(),
                      Text(
-                      item.author?.name ?? "Inconnu",
+                      item.author?.name ?? context.l10n.unknown,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
@@ -496,9 +497,7 @@ class _TeachingsList extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (list.isEmpty) {
-      return Center(child: Text("Aucun contenu", style: GoogleFonts.poppins()));
-    }
+      return Center(child: Text(context.l10n.noTeachingsFound, style: GoogleFonts.poppins()));
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -552,7 +551,7 @@ class _TeachingsList extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        item.author?.name ?? "Inconnu",
+                        item.author?.name ?? context.l10n.unknown,
                         style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
@@ -578,9 +577,7 @@ class _ArticlesList extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (provider.articles.isEmpty) {
-      return Center(child: Text("Aucun article", style: GoogleFonts.poppins()));
-    }
+      return Center(child: Text(context.l10n.noArticlesFound, style: GoogleFonts.poppins()));
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -593,7 +590,7 @@ class _ArticlesList extends StatelessWidget {
             contentPadding: const EdgeInsets.all(12),
             leading: const Icon(Icons.article, size: 40, color: AppColors.tealPrimary),
             title: Text(article.titleFr, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-            subtitle: Text("${article.readTimeMinutes} min de lecture", style: GoogleFonts.poppins(fontSize: 12)),
+            subtitle: Text("${article.readTimeMinutes} ${context.l10n.minutes}", style: GoogleFonts.poppins(fontSize: 12)),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.gray),
             onTap: () {
               Navigator.push(

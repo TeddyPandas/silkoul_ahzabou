@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../l10n/generated/app_localizations.dart';
+import '../../providers/locale_provider.dart';
+import '../../utils/l10n_extensions.dart';
 import '../../widgets/guest_gate_banner.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -41,7 +43,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.userNotAuthenticated)),
+        SnackBar(content: Text(context.l10n.userNotAuthenticated)),
       );
       return;
     }
@@ -50,17 +52,16 @@ class _ProfileTabState extends State<ProfileTab> {
       await userProvider.updateUserProfile(
         userId: userId,
         displayName: _displayNameController.text,
-        // avatarUrl: 'new_avatar_url', // TODO: Implement avatar upload
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdatedSuccess)),
+        SnackBar(content: Text(context.l10n.profileUpdatedSuccess)),
       );
       setState(() {
         _isEditing = false; 
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdateFailed(e.toString()))),
+        SnackBar(content: Text(context.l10n.profileUpdateFailed(e.toString()))),
       );
     }
   }
@@ -141,38 +142,87 @@ class _ProfileTabState extends State<ProfileTab> {
                 TextFormField(
                   controller: _displayNameController
                     ..text = profile?.displayName ?? '',
-                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.displayName),
+                  decoration: InputDecoration(labelText: context.l10n.displayName),
                   readOnly: !_isEditing,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController..text = user?.email ?? '',
-                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.email),
+                  decoration: InputDecoration(labelText: context.l10n.email),
                   readOnly: true,
                 ),
                 const SizedBox(height: 16),
                 if (profile != null) ...[
                   TextFormField(
                     initialValue: profile.level.toString(),
-                    decoration: InputDecoration(labelText: AppLocalizations.of(context)!.level),
+                    decoration: InputDecoration(labelText: context.l10n.level),
                     readOnly: true,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     initialValue: profile.points.toString(),
-                    decoration: InputDecoration(labelText: AppLocalizations.of(context)!.points),
+                    decoration: InputDecoration(labelText: context.l10n.points),
                     readOnly: true,
                   ),
-                  const SizedBox(height: 32),
                 ],
+                const SizedBox(height: 32),
+                
+                // --- Language Settings Section ---
+                const Divider(),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    context.l10n.settings,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Consumer<LocaleProvider>(
+                  builder: (context, localeProvider, child) {
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.language, color: AppColors.primary),
+                      ),
+                      title: Text(context.l10n.language),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "${localeProvider.currentFlag} ${localeProvider.currentLanguageName}",
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
+                      onTap: () => localeProvider.toggleLocale(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+                
                 ElevatedButton.icon(
                   onPressed: _logout,
                   icon: const Icon(Icons.logout),
-                  label: Text(AppLocalizations.of(context)!.logout),
+                  label: Text(context.l10n.logout),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     foregroundColor: AppColors.white,
                     minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ],

@@ -6,6 +6,8 @@ import '../../providers/auth_provider.dart';
 import '../home/home_screen.dart';
 import 'login_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../utils/l10n_extensions.dart';
+import 'package:email_validator/email_validator.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -57,8 +59,8 @@ class _SignupScreenState extends State<SignupScreen> {
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Compte créé avec succès ! Bienvenue.'),
+          SnackBar(
+            content: Text(context.l10n.signupSuccess),
             backgroundColor: AppColors.success,
           ),
         );
@@ -68,7 +70,7 @@ class _SignupScreenState extends State<SignupScreen> {
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Inscription réussie. Veuillez vérifier vos emails.'),
+            content: Text(authProvider.errorMessage ?? context.l10n.signupVerifyEmail),
             backgroundColor: AppColors.primary,
             duration: const Duration(seconds: 5),
           ),
@@ -78,7 +80,7 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage ?? AppConstants.authErrorMessage,
+            authProvider.errorMessage ?? context.l10n.authFailed,
           ),
           backgroundColor: AppColors.error,
         ),
@@ -90,7 +92,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Créer un compte'),
+        title: Text(context.l10n.createAccount),
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.primary,
         elevation: 0,
@@ -133,9 +135,9 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             const SizedBox(height: 24),
 
-            const Text(
-              'Rejoignez la communauté',
-              style: TextStyle(
+            Text(
+              context.l10n.joinCommunity,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
@@ -144,9 +146,9 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             const SizedBox(height: 8),
 
-            const Text(
-              'Créez votre compte pour commencer',
-              style: TextStyle(
+            Text(
+              context.l10n.createAccountToStart,
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -158,17 +160,17 @@ class _SignupScreenState extends State<SignupScreen> {
             TextFormField(
               controller: _nameController,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                labelText: 'Nom complet',
-                hintText: 'Mohamed Ali',
-                prefixIcon: Icon(Icons.person_outline),
+              decoration: InputDecoration(
+                labelText: context.l10n.fullName,
+                hintText: context.l10n.fullNameHint,
+                prefixIcon: const Icon(Icons.person_outline),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer votre nom';
+                  return context.l10n.fullNameRequired;
                 }
                 if (value.length < 3) {
-                  return 'Le nom doit contenir au moins 3 caractères';
+                  return context.l10n.fullNameTooShort;
                 }
                 return null;
               },
@@ -179,17 +181,17 @@ class _SignupScreenState extends State<SignupScreen> {
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'votre.email@exemple.com',
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: context.l10n.email,
+                hintText: context.l10n.emailHint,
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer votre email';
+                  return context.l10n.emailRequired;
                 }
-                if (!value.contains('@') || !value.contains('.')) {
-                  return 'Email invalide';
+                if (!EmailValidator.validate(value.trim())) {
+                  return context.l10n.emailInvalid;
                 }
                 return null;
               },
@@ -201,7 +203,7 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: _passwordController,
               obscureText: !_isPasswordVisible,
               decoration: InputDecoration(
-                labelText: 'Mot de passe',
+                labelText: context.l10n.password,
                 hintText: '••••••••',
                 prefixIcon: const Icon(Icons.lock_outline),
                 suffixIcon: IconButton(
@@ -219,10 +221,10 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer un mot de passe';
+                  return context.l10n.passwordRequired;
                 }
-                if (value.length < 6) {
-                  return 'Le mot de passe doit contenir au moins 6 caractères';
+                if (value.length < 8) {
+                  return context.l10n.passwordTooShort;
                 }
                 return null;
               },
@@ -234,7 +236,7 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: _confirmPasswordController,
               obscureText: !_isConfirmPasswordVisible,
               decoration: InputDecoration(
-                labelText: 'Confirmer le mot de passe',
+                labelText: context.l10n.confirmPassword,
                 hintText: '••••••••',
                 prefixIcon: const Icon(Icons.lock_outline),
                 suffixIcon: IconButton(
@@ -253,10 +255,10 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez confirmer votre mot de passe';
+                  return context.l10n.confirmPasswordRequired;
                 }
                 if (value != _passwordController.text) {
-                  return 'Les mots de passe ne correspondent pas';
+                  return context.l10n.passwordsDoNotMatch;
                 }
                 return null;
               },
@@ -281,17 +283,17 @@ class _SignupScreenState extends State<SignupScreen> {
                         color: AppColors.white,
                       ),
                     )
-                  : const Text(
-                      'S\'inscrire',
-                      style: TextStyle(fontSize: 16),
+                  : Text(
+                      context.l10n.signup,
+                      style: const TextStyle(fontSize: 16),
                     ),
             ),
             const SizedBox(height: 16),
 
             // Conditions d'utilisation
-            const Text(
-              'En créant un compte, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité',
-              style: TextStyle(
+            Text(
+              context.l10n.termsAndPrivacy,
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textLight,
               ),

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/app_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../models/nafahat_article.dart';
 import '../../providers/nafahat_provider.dart';
+import '../../utils/l10n_extensions.dart';
 import '../../widgets/nafahat/article_card.dart';
 import 'article_detail_screen.dart';
 
@@ -154,9 +156,9 @@ class _NafahatScreenState extends State<NafahatScreen> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Text(
-                              '⭐ À la une',
-                              style: TextStyle(
+                             Text(
+                              '⭐ ${context.l10n.featured}',
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -205,9 +207,9 @@ class _NafahatScreenState extends State<NafahatScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text(
-                            '📂 Catégories',
-                            style: TextStyle(
+                           Text(
+                            '📂 ${context.l10n.categories}',
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -222,8 +224,8 @@ class _NafahatScreenState extends State<NafahatScreen> {
                       child: Row(
                         children: [
                           // All categories chip
-                          _buildCategoryChip(
-                            label: 'Tous',
+                           _buildCategoryChip(
+                            label: context.l10n.all,
                             icon: '📚',
                             isSelected: _selectedCategory == null,
                             onTap: () => _onCategorySelected(null),
@@ -262,9 +264,9 @@ class _NafahatScreenState extends State<NafahatScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _selectedCategory != null
+                       _selectedCategory != null
                           ? '${_selectedCategory!.icon} ${_selectedCategory!.label}'
-                          : '📰 Articles récents',
+                          : '📰 ${context.l10n.recentArticles}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -274,7 +276,7 @@ class _NafahatScreenState extends State<NafahatScreen> {
                     Consumer<NafahatProvider>(
                       builder: (context, provider, child) {
                         return Text(
-                          '${provider.allArticles.length} articles',
+                          context.l10n.articlesCount(provider.allArticles.length),
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey.shade600,
@@ -310,8 +312,8 @@ class _NafahatScreenState extends State<NafahatScreen> {
                             color: Colors.grey.shade400,
                           ),
                           const SizedBox(height: 16),
-                          Text(
-                            'Erreur de chargement',
+                           Text(
+                            context.l10n.loadError,
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey.shade600,
@@ -320,7 +322,7 @@ class _NafahatScreenState extends State<NafahatScreen> {
                           const SizedBox(height: 8),
                           ElevatedButton(
                             onPressed: _onRefresh,
-                            child: const Text('Réessayer'),
+                            child: Text(context.l10n.retry),
                           ),
                         ],
                       ),
@@ -339,8 +341,8 @@ class _NafahatScreenState extends State<NafahatScreen> {
                             style: TextStyle(fontSize: 48),
                           ),
                           const SizedBox(height: 16),
-                          Text(
-                            'Aucun article trouvé',
+                           Text(
+                            context.l10n.noArticlesFound,
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey.shade600,
@@ -350,7 +352,7 @@ class _NafahatScreenState extends State<NafahatScreen> {
                             const SizedBox(height: 8),
                             TextButton(
                               onPressed: () => _onCategorySelected(null),
-                              child: const Text('Voir tous les articles'),
+                              child: Text(context.l10n.viewAllArticles),
                             ),
                           ],
                         ],
@@ -446,11 +448,14 @@ class _NafahatScreenState extends State<NafahatScreen> {
 
 /// Search Delegate for Articles
 class _ArticleSearchDelegate extends SearchDelegate<NafahatArticle?> {
-  @override
-  String get searchFieldLabel => 'Rechercher un article...';
+   @override
+  String get searchFieldLabel => l10n?.searchArticle ?? 'Rechercher un article...';
+
+  AppLocalizations? l10n;
 
   @override
   List<Widget>? buildActions(BuildContext context) {
+    l10n ??= context.l10n;
     return [
       if (query.isNotEmpty)
         IconButton(
@@ -490,8 +495,8 @@ class _ArticleSearchDelegate extends SearchDelegate<NafahatArticle?> {
               color: Colors.grey.shade300,
             ),
             const SizedBox(height: 16),
-            Text(
-              'Recherchez en français ou en arabe',
+             Text(
+              context.l10n.searchHint,
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey.shade600,
@@ -499,7 +504,7 @@ class _ArticleSearchDelegate extends SearchDelegate<NafahatArticle?> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Exemple: tariqa, ورد, dhikr...',
+              context.l10n.searchExample,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade500,
@@ -538,8 +543,8 @@ class _ArticleSearchDelegate extends SearchDelegate<NafahatArticle?> {
                   color: Colors.grey.shade300,
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  'Aucun résultat pour "$query"',
+                 Text(
+                  context.l10n.noResultsFor(query),
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade600,

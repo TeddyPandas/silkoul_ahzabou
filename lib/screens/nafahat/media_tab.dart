@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/media_provider.dart';
 import '../../models/media_models.dart';
 import '../../config/app_theme.dart';
+import '../../utils/l10n_extensions.dart';
 import 'video_player_screen.dart';
 import 'video_grid_screen.dart';
 import 'author_profile_screen.dart';
@@ -47,7 +48,7 @@ class _MediaTabState extends State<MediaTab> {
 
                 // 2. AUTHORS RAIL
                 if (provider.authors.isNotEmpty) ...[
-                  _buildSectionTitle('Guides & Conférenciers'),
+                  _buildSectionTitle(context.l10n.guidesAndSpeakers),
                   SizedBox(
                     height: 140,
                     child: ListView.separated(
@@ -66,13 +67,13 @@ class _MediaTabState extends State<MediaTab> {
                 // 3. RECENT VIDEOS (Vertical List)
                 if (provider.allVideos.isNotEmpty) ...[
                   _buildSectionTitle(
-                    'Vidéos récentes',
+                    context.l10n.recentVideos,
                     onSeeAll: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const VideoGridScreen(
-                            title: 'Toutes les vidéos',
+                          builder: (_) => VideoGridScreen(
+                            title: context.l10n.allVideos,
                           ),
                         ),
                       );
@@ -147,7 +148,7 @@ class _MediaTabState extends State<MediaTab> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      video.category?.name ?? 'Nouveauté',
+                      video.category?.name ?? context.l10n.newRelease,
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -183,7 +184,7 @@ class _MediaTabState extends State<MediaTab> {
                       );
                     },
                     icon: const Icon(Icons.play_arrow),
-                    label: const Text("Regarder maintenant"),
+                    label: Text(context.l10n.watchNow),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
@@ -222,9 +223,9 @@ class _MediaTabState extends State<MediaTab> {
                 minimumSize: const Size(50, 30),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text(
-                'Tout voir',
-                style: TextStyle(
+              child: Text(
+                context.l10n.seeAll,
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.tealPrimary,

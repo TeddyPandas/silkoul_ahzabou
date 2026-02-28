@@ -7,6 +7,8 @@ import '../../../../providers/auth_provider.dart';
 // import '../../../../services/notification_service.dart'; // Commented out for debugging
 import '../../../../utils/error_handler.dart';
 import 'admin_scaffold.dart';
+import '../../../../utils/l10n_extensions.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -23,21 +25,21 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
   Widget build(BuildContext context) {
     ErrorHandler.log('🛠️ [AdminSettingsScreen] Building...'); // Debug Log
     return AdminScaffold(
-      title: 'Paramètres',
+      title: context.l10n.adminSettings,
       currentRoute: '/admin/settings',
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader('INFORMATIONS GÉNÉRALES'),
+            _buildSectionHeader(context.l10n.genInfo),
             const SizedBox(height: 16),
             _buildInfoCard(),
             const SizedBox(height: 32),
-            _buildSectionHeader('LIMITES SYSTÈME (LECTURE SEULE)'),
+            _buildSectionHeader(context.l10n.sysLimits),
             const SizedBox(height: 16),
             _buildLimitsCard(),
             const SizedBox(height: 32),
-            _buildSectionHeader('OUTILS & ADMINISTRATION'),
+            _buildSectionHeader(context.l10n.toolsAdmin),
             const SizedBox(height: 16),
             _buildToolsCard(),
           ],
@@ -66,19 +68,19 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
         children: [
           _buildListTile(
             icon: Icons.info_outline,
-            title: 'Nom de l\'application',
+            title: context.l10n.appNameInfo,
             subtitle: AppConstants.appName,
           ),
           _buildDivider(),
           _buildListTile(
             icon: Icons.verified_outlined,
-            title: 'Version',
+            title: context.l10n.versionInfo,
             subtitle: AppConstants.appVersion,
           ),
           _buildDivider(),
           _buildListTile(
             icon: Icons.build_circle_outlined,
-            title: 'Build Number',
+            title: context.l10n.buildNumberInfo,
             subtitle: '100 (Production)',
           ),
         ],

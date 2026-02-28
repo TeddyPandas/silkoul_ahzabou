@@ -10,6 +10,16 @@ class StorageService {
 
   final SupabaseClient _client = SupabaseService.client;
 
+  /// Validates that a storage path is safe (no directory traversal).
+  void _validatePath(String path) {
+    if (path.isEmpty) throw ArgumentError('Storage path cannot be empty');
+    if (path.contains('..')) throw ArgumentError('Storage path must not contain ".."');
+    if (path.startsWith('/')) throw ArgumentError('Storage path must be relative');
+    if (RegExp(r'[<>:"|?*\x00-\x1F]').hasMatch(path)) {
+      throw ArgumentError('Storage path contains invalid characters');
+    }
+  }
+
   /// Uploads an audio file to the 'teachings' bucket.
   /// Returns the public URL of the uploaded file.
   Future<String> uploadAudio({
@@ -18,6 +28,7 @@ class StorageService {
     required String path, // e.g., "podcasts/show_id/filename.mp3"
   }) async {
     try {
+      _validatePath(path);
       final String fullPath = path;
       debugPrint('📂 Uploading to: $fullPath');
 

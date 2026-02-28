@@ -7,6 +7,7 @@ import '../providers/quiz_provider.dart';
 import '../models/quiz_models.dart';
 import 'quiz_game_screen.dart';
 import 'leaderboard_screen.dart';
+import '../../../utils/l10n_extensions.dart';
 
 class QuizListScreen extends StatefulWidget {
   const QuizListScreen({super.key});
@@ -66,7 +67,7 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.white,
                     ),
-                    child: const Text('Réessayer'),
+                    child: Text(context.l10n.retry),
                   ),
                 ],
               ),
@@ -74,9 +75,9 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
           }
 
           if (provider.quizzes.isEmpty) {
-            return const Center(
-              child: Text('Aucun quiz disponible pour le moment.',
-                  style: TextStyle(color: AppColors.textSecondary)),
+            return Center(
+              child: Text(context.l10n.noQuizzesFound,
+                  style: const TextStyle(color: AppColors.textSecondary)),
             );
           }
 
@@ -186,9 +187,9 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: AppColors.gold.withOpacity(0.5)),
                       ),
-                      child: const Text(
-                        'Apprentissage',
-                        style: TextStyle(
+                      child: Text(
+                        context.l10n.learning, // Use learning key if exists or add it
+                        style: const TextStyle(
                           color: AppColors.gold,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
@@ -196,9 +197,9 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Quizz Islamique',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.quizzes,
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -206,7 +207,7 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Testez et enrichissez vos connaissances',
+                      context.l10n.testKnowledge, // Assuming this key exists or should be added
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.8),
@@ -224,7 +225,7 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
 
   Widget _buildQuizGrid(List<Quiz> quizzes, List<String> completedQuizIds) {
     if (quizzes.isEmpty) {
-      return const Center(child: Text("Aucun quiz dans cette catégorie."));
+      return Center(child: Text(context.l10n.noResultsFound));
     }
 
     return ListView.builder(
@@ -341,20 +342,20 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
                             children: [
                               _buildDifficultyBadge(quiz.difficulty),
                               const Spacer(),
-                              Text(
-                                isCompleted ? 'Terminé' : 'Commencer',
-                                style: TextStyle(
-                                  color: isCompleted ? AppColors.success : AppColors.gold,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                Text(
+                                  isCompleted ? context.l10n.completed : context.l10n.start,
+                                  style: TextStyle(
+                                    color: isCompleted ? AppColors.success : AppColors.gold,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                isCompleted ? Icons.check_circle_outline : Icons.play_circle_fill,
-                                color: isCompleted ? AppColors.success : AppColors.gold,
-                                size: 16,
-                              ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            isCompleted ? Icons.check_circle_outline : Icons.play_circle_fill,
+                            color: isCompleted ? AppColors.success : AppColors.gold,
+                            size: 16,
+                          ),
                             ],
                           ),
                         ],
@@ -387,7 +388,7 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
       context: context,
       builder: (context) => AlertDialog(
         title: Text(quiz.title),
-        content: const Text("Vous avez déjà complété ce quiz. Que souhaitez-vous faire ?"),
+        content: Text(context.l10n.quizAlreadyCompleted),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
@@ -402,7 +403,7 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
               );
             },
             icon: const Icon(Icons.visibility),
-            label: const Text("Revoir", style: TextStyle(fontWeight: FontWeight.bold)),
+            label: Text(context.l10n.review, style: const TextStyle(fontWeight: FontWeight.bold)),
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
           ),
           ElevatedButton.icon(
@@ -416,7 +417,7 @@ class _QuizListScreenState extends State<QuizListScreen> with SingleTickerProvid
               );
             },
             icon: const Icon(Icons.refresh),
-            label: const Text("S'entraîner"),
+            label: Text(context.l10n.practice),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.gold,
               foregroundColor: Colors.white,

@@ -6,10 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'utils/error_handler.dart'; // Import ErrorHandler
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'utils/error_handler.dart';
 
 import 'screens/campaigns/campaign_details_screen.dart';
 import 'services/supabase_service.dart';

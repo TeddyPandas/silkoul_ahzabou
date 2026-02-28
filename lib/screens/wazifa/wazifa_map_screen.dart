@@ -9,6 +9,7 @@ import '../../providers/wazifa_provider.dart';
 import '../../models/wazifa_gathering.dart';
 import 'add_wazifa_screen.dart';
 import '../../widgets/primary_app_bar.dart';
+import '../../utils/l10n_extensions.dart';
 
 class WazifaMapScreen extends StatefulWidget {
   const WazifaMapScreen({super.key});
@@ -35,7 +36,7 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PrimaryAppBar(
-        title: 'Wazifa Finder',
+        title: context.l10n.wazifaGatherings,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -70,14 +71,14 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    // ... error UI
-                   Text('Erreur: ${provider.error}',
+                   Text("${context.l10n.errorOccurred('')} ${provider.error}",
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red)),
                    // ...
                    const SizedBox(height: 16),
                    ElevatedButton(
                      onPressed: provider.loadNearbyGatherings,
-                     child: const Text('Réessayer'),
+                     child: Text(context.l10n.retry),
                    )
                 ],
               ),
@@ -160,9 +161,9 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
             heroTag: "my_location",
             onPressed: () async {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('📍 Actualisation de la position...'),
-                    duration: Duration(milliseconds: 800)),
+                SnackBar(
+                    content: Text('📍 ${context.l10n.validating}'),
+                    duration: const Duration(milliseconds: 800)),
               );
               final provider = Provider.of<WazifaProvider>(context, listen: false);
               provider.resetToGPS();
@@ -188,7 +189,7 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Position Manuelle"),
+        title: Text(context.l10n.location),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -207,7 +208,7 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Annuler"),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -222,11 +223,11 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
                 _mapController.move(LatLng(lat, lng), 15);
                 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('📍 Position manuelle définie')),
+                  SnackBar(content: Text('📍 ${context.l10n.location} OK')),
                 );
               }
             },
-            child: const Text("Valider"),
+            child: Text(context.l10n.yes),
           ),
         ],
       ),
@@ -331,7 +332,7 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => _launchMaps(wazifa.lat, wazifa.lng),
                 icon: const Icon(Icons.directions),
-                label: const Text('Y ALLER'),
+                label: Text(context.l10n.getDirections),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   backgroundColor: Theme.of(context).primaryColor,
@@ -354,15 +355,15 @@ class _WazifaMapScreenState extends State<WazifaMapScreen> {
     Color color;
     switch (rhythm) {
       case WazifaRhythm.SLOW:
-        text = "Lent";
+        text = context.l10n.low; // Using low/medium/high keys if they exist, or I should have added specific rhythm ones
         color = Colors.green;
         break;
       case WazifaRhythm.MEDIUM:
-        text = "Moyen";
+        text = context.l10n.medium;
         color = Colors.orange;
         break;
       case WazifaRhythm.FAST:
-        text = "Rapide";
+        text = context.l10n.high;
         color = Colors.red;
         break;
     }

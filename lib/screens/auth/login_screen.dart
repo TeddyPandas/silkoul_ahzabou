@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../modules/admin/screens/admin_dashboard_screen.dart';
 import '../home/home_screen.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../utils/l10n_extensions.dart';
+import 'package:email_validator/email_validator.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -120,8 +122,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       // Don't do anything, user can retry
       _waitingForGoogleAuth = false;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Authentification échouée. Veuillez réessayer.'),
+        SnackBar(
+          content: Text(context.l10n.authFailed),
           backgroundColor: AppColors.error,
         ),
       );
@@ -158,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage ?? AppConstants.authErrorMessage,
+            authProvider.errorMessage ?? context.l10n.authFailed,
           ),
           backgroundColor: AppColors.error,
         ),
@@ -198,17 +200,16 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           '🔐 [LoginScreen] Browser opened for Google auth. Waiting for callback...');
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Authentification en cours... Vous serez redirigé(e) automatiquement.'),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(context.l10n.authInProgress),
+          duration: const Duration(seconds: 3),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage ?? AppConstants.authErrorMessage,
+            authProvider.errorMessage ?? context.l10n.authFailed,
           ),
           backgroundColor: AppColors.error,
         ),
@@ -268,9 +269,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 8),
 
-            const Text(
-              'Pratique collective du Zikr',
-              style: TextStyle(
+            Text(
+              context.l10n.zikrPractice,
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -282,17 +283,17 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'votre.email@exemple.com',
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: context.l10n.email,
+                hintText: context.l10n.emailHint,
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer votre email';
+                  return context.l10n.emailRequired;
                 }
-                if (!value.contains('@')) {
-                  return 'Email invalide';
+                if (!EmailValidator.validate(value.trim())) {
+                  return context.l10n.emailInvalid;
                 }
                 return null;
               },
@@ -304,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
               controller: _passwordController,
               obscureText: !_isPasswordVisible,
               decoration: InputDecoration(
-                labelText: 'Mot de passe',
+                labelText: context.l10n.password,
                 hintText: '••••••••',
                 prefixIcon: const Icon(Icons.lock_outline),
                 suffixIcon: IconButton(
@@ -322,10 +323,10 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer votre mot de passe';
+                  return context.l10n.passwordRequired;
                 }
                 if (value.length < 6) {
-                  return 'Le mot de passe doit contenir au moins 6 caractères';
+                  return context.l10n.passwordTooShort;
                 }
                 return null;
               },
@@ -339,12 +340,12 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                 onPressed: () {
                   // TODO: Implémenter mot de passe oublié
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Fonctionnalité à venir'),
+                    SnackBar(
+                      content: Text(context.l10n.featureComingSoon),
                     ),
                   );
                 },
-                child: const Text('Mot de passe oublié ?'),
+                child: Text(context.l10n.forgotPassword),
               ),
             ),
             const SizedBox(height: 24),
@@ -367,28 +368,28 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                         color: AppColors.white,
                       ),
                     )
-                  : const Text(
-                      'Se connecter',
-                      style: TextStyle(fontSize: 16),
+                  : Text(
+                      context.l10n.login,
+                      style: const TextStyle(fontSize: 16),
                     ),
             ),
             const SizedBox(height: 24),
 
             // Divider
-            const Row(
+            Row(
               children: [
-                Expanded(child: Divider()),
+                const Expanded(child: Divider()),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'OU',
-                    style: TextStyle(
+                    context.l10n.orLabel,
+                    style: const TextStyle(
                       color: AppColors.textLight,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-                Expanded(child: Divider()),
+                const Expanded(child: Divider()),
               ],
             ),
             const SizedBox(height: 24),
@@ -397,7 +398,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             OutlinedButton.icon(
               onPressed: _isLoading ? null : _handleGoogleLogin,
               icon: const Icon(Icons.g_mobiledata, size: 32),
-              label: const Text('Continuer avec Google'),
+              label: Text(context.l10n.continueWithGoogle),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -412,9 +413,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  'Pas encore de compte ? ',
-                  style: TextStyle(color: AppColors.textSecondary),
+                Text(
+                  '${context.l10n.noAccountYet} ',
+                  style: const TextStyle(color: AppColors.textSecondary),
                 ),
                 TextButton(
                   onPressed: () {
@@ -424,9 +425,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                       ),
                     );
                   },
-                  child: const Text(
-                    'S\'inscrire',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    context.l10n.signup,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],

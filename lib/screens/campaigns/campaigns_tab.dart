@@ -4,6 +4,7 @@ import '../../providers/campaign_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../utils/l10n_extensions.dart';
 import 'campaign_details_screen.dart';
 import 'create_campaign_screen.dart';
 
@@ -38,7 +39,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.campaigns),
+        title: Text(context.l10n.campaigns),
         actions: [
           if (!isGuest)
             IconButton(
@@ -55,13 +56,13 @@ class _CampaignsTabState extends State<CampaignsTab> {
           if (campaignProvider.errorMessage != null) {
             return Center(
               child: Text(
-                l10n.errorWithMessage(campaignProvider.errorMessage ?? ''),
+                 context.l10n.errorWithMessage(campaignProvider.errorMessage ?? ''),
                 style: const TextStyle(color: AppColors.error),
               ),
             );
           }
           if (campaignProvider.campaigns.isEmpty) {
-            return Center(child: Text(l10n.noCampaignsAvailable));
+             return Center(child: Text(context.l10n.noCampaignsAvailable));
           }
 
           return RefreshIndicator(
@@ -74,7 +75,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
                     title: Text(campaign.name),
-                    subtitle: Text(campaign.description ?? l10n.noDescription),
+                     subtitle: Text(campaign.description ?? context.l10n.noDescription),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
                       Navigator.of(context).push(
@@ -94,7 +95,7 @@ class _CampaignsTabState extends State<CampaignsTab> {
           ? null
           : FloatingActionButton.extended(
               onPressed: _openCreateCampaign,
-              label: Text(l10n.createCampaign),
+               label: Text(context.l10n.createCampaign),
               icon: const Icon(Icons.add),
               backgroundColor: AppColors.primary,
             ),

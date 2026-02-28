@@ -13,6 +13,7 @@ import 'package:silkoul_ahzabou/widgets/task_card.dart';
 import 'subscribe_dialog.dart';
 import 'campaign_subscribers_screen.dart';
 import '../../modules/campaigns/screens/tasbih_screen.dart';
+import '../../utils/l10n_extensions.dart';
 
 class CampaignDetailsScreen extends StatefulWidget {
   final String campaignId;
@@ -105,7 +106,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           }
         }
       } else {
-        _errorMessage = 'Campagne introuvable.';
+        _errorMessage = context.l10n.noCampaigns;
       }
     } catch (e) {
       _errorMessage = e.toString();
@@ -160,8 +161,8 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
 
     if (userTaskId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur: ID de tâche utilisateur non trouvé'),
+        SnackBar(
+          content: Text(context.l10n.errorOccurred('ID non trouvé')),
           backgroundColor: Colors.red,
         ),
       );
@@ -208,8 +209,8 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       // Show success message
       if (mounted) {
         final message = returnedToPool > 0
-            ? 'Tâche terminée ! $returnedToPool unité(s) retournée(s) au pool.'
-            : 'Tâche terminée avec succès !';
+            ? 'Tâche terminée ! $returnedToPool unité(s) retournée(s) au pool.' // This one is complex for plurals, keeping simple for now or adding l10n later if needed
+            : context.l10n.completed;
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -252,7 +253,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           : _errorMessage != null
               ? _buildErrorView()
               : _campaign == null
-                  ? const Center(child: Text('Campagne introuvable.'))
+                  ? Center(child: Text(context.l10n.noCampaigns))
                   : _buildContent(isDark),
       bottomNavigationBar:
           (_campaign != null && (_campaign!.tasks?.isNotEmpty ?? false))
@@ -277,8 +278,8 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
               isAccessError
-                  ? 'Cette campagne est privée.'
-                  : 'Erreur: $_errorMessage',
+              ? context.l10n.campaignPrivate
+              : context.l10n.errorWithMessage(_errorMessage ?? ''),
               style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: isAccessError ? 18 : 14),
@@ -287,16 +288,16 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           ),
           if (isAccessError) ...[
             const SizedBox(height: 8),
-            const Text(
-              'Un code d\'accès est requis pour voir les détails.',
-              style: TextStyle(color: AppColors.textLight),
+            Text(
+              context.l10n.enterAccessCode,
+              style: const TextStyle(color: AppColors.textLight),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _showAccessCodeDialog,
               icon: const Icon(Icons.key),
-              label: const Text('Saisir le code d\'accès'),
+              label: Text(context.l10n.enterAccessCode),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -308,14 +309,14 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _loadCampaignDetails(),
-              child: const Text('Réessayer'),
+              child: Text(context.l10n.retry),
             ),
           ],
           const SizedBox(height: 16),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Retour',
-                style: TextStyle(color: AppColors.textLight)),
+            child: Text(context.l10n.cancel,
+                style: const TextStyle(color: AppColors.textLight)),
           ),
         ],
       ),
@@ -328,18 +329,18 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Code d\'accès'),
+        title: Text(context.l10n.enterAccessCode),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Veuillez saisir le code d\'accès de la campagne :'),
+            Text(context.l10n.enterCampaignAccessCode),
             const SizedBox(height: 16),
             TextField(
               controller: codeController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Code secret',
-                prefixIcon: Icon(Icons.lock),
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: context.l10n.secretCode,
+                prefixIcon: const Icon(Icons.lock),
               ),
               obscureText:
                   false, // Codes are usually visible or obscure? User choice. Let's keep visible for ease.
@@ -349,7 +350,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -359,7 +360,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                 _loadCampaignDetails(code);
               }
             },
-            child: const Text('Valider'),
+            child: Text(context.l10n.yes),
           ),
         ],
       ),
@@ -441,10 +442,10 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                             children: [
                               const Icon(Icons.check_circle, color: Colors.green, size: 32),
                               const SizedBox(height: 8),
-                              const Text(
-                                "Campagne Terminée",
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
-                              ),
+                                 Text(
+                                  context.l10n.completed,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                                ),
                               Text(
                                 "Les inscriptions sont closes.",
                                 style: TextStyle(color: isDark ? Colors.grey[300] : Colors.grey[600], fontSize: 12),
@@ -508,7 +509,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           ),
           child: Column(
             children: [
-              const Text("Progression Globale", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(context.l10n.globalProgress, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 16),
              // PROGRESS BAR
         Column(
@@ -545,9 +546,9 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("$totalRead Lus ($readPercentageStr%)", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-                Text("$totalTaken Pris", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
-                Text("$freeCount Libres", style: TextStyle(color: Colors.grey.shade600)),
+                Text("${context.l10n.read} $totalRead (${readPercentageStr}%)", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                Text("${context.l10n.taken} $totalTaken", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                Text("${context.l10n.free} $freeCount", style: TextStyle(color: Colors.grey.shade600)),
               ],
             ),
           ],
@@ -566,7 +567,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _campaign!.isFinished ? null : () => _confirmTerminateCampaign(),
                   icon: const Icon(Icons.stop_circle_outlined, color: Colors.orange),
-                  label: Text(_campaign!.isFinished ? "Déjà terminée" : "Terminer", style: const TextStyle(color: Colors.orange)),
+                  label: Text(_campaign!.isFinished ? context.l10n.completed : context.l10n.terminate, style: const TextStyle(color: Colors.orange)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.orange),
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -579,7 +580,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () => _confirmDeleteCampaign(),
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  label: const Text("Supprimer", style: TextStyle(color: Colors.red)),
+                  label: Text(context.l10n.delete, style: const TextStyle(color: Colors.red)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.red),
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -593,7 +594,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
 
         // GLOBAL VISUALIZATION GRID (Small dots)
         ExpansionTile(
-          title: const Text("Voir la carte globale", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          title: Text(context.l10n.viewGlobalMap, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           initiallyExpanded: false,
           children: [
             Padding(
@@ -631,11 +632,11 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildDotLegend(Colors.green, "Lu"),
+                _buildDotLegend(Colors.green, context.l10n.read),
                 const SizedBox(width: 12),
-                _buildDotLegend(Colors.orange, "Pris"),
+                _buildDotLegend(Colors.orange, context.l10n.taken),
                 const SizedBox(width: 12),
-                _buildDotLegend(Colors.grey.shade300, "Libre"),
+                _buildDotLegend(Colors.grey.shade300, context.l10n.free),
               ],
             ),
             const SizedBox(height: 12),
@@ -661,7 +662,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       myJuzWidget = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Mes Juz (Appuyez pour marquer comme lu)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textPrimary)),
+          Text(context.l10n.myJuz, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textPrimary)),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
@@ -721,7 +722,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
             children: [
               Icon(Icons.lock_clock, size: 64, color: Colors.grey.shade400),
               const SizedBox(height: 16),
-              const Text("Campagne Complète", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text("Campagne Complète", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), // TODO add to l10n
               const SizedBox(height: 8),
               Text("Tous les Juz ont été pris. Barak Allahufikum.", style: TextStyle(color: Colors.grey.shade600)),
             ],
@@ -733,7 +734,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
              Text(
-              _isSubscribed ? "Prendre d'autres Juz" : "Sélectionnez vos Juz (Max 3)",
+              _isSubscribed ? context.l10n.takeMoreJuz : context.l10n.selectYourJuz,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textPrimary),
             ),
 
@@ -815,7 +816,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                 child: ElevatedButton.icon(
                   onPressed: (_tempSelectedJuzIds.isEmpty || _isJoining) ? null : _handleInlineSubscription,
                   icon: _isJoining ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.login),
-                  label: Text(_isJoining ? "Traitement..." : (_isSubscribed ? "Ajouter ces Juz (${_tempSelectedJuzIds.length})" : "Rejoindre la campagne (${_tempSelectedJuzIds.length})")),
+                  label: Text(_isJoining ? context.l10n.validating : (_isSubscribed ? "${context.l10n.takeMoreJuz} (${_tempSelectedJuzIds.length})" : "${context.l10n.join} (${_tempSelectedJuzIds.length})")),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.tealPrimary, padding: const EdgeInsets.symmetric(vertical: 16)),
                 ),
               ),
@@ -888,7 +889,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isSubscribed ? "Juz ajoutés avec succès !" : "Inscription réussie ! Jazak Allah Khair 🤲"),
+            content: Text(_isSubscribed ? "Juz ajoutés avec succès !" : context.l10n.joinSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -1004,7 +1005,7 @@ class _CampaignDetailsScreenState extends State<CampaignDetailsScreen> {
                 color: isDark ? Colors.white : AppColors.textPrimary),
           ),
           Text(
-            'Détails de la campagne',
+            context.l10n.campaignDetails,
             style: TextStyle(
               color: isDark ? Colors.white : AppColors.textPrimary,
               fontSize: 18,
@@ -1119,7 +1120,7 @@ ${tasksInfo.toString()}
         Row(
           children: [
             Text(
-              "Créé par ",
+              "${context.l10n.by} ",
               style: TextStyle(
                 fontSize: 13,
                 color: isDark ? Colors.grey[400] : AppColors.textSecondary,
@@ -1191,7 +1192,7 @@ ${tasksInfo.toString()}
                 
                 const SizedBox(width: 8),
                 Text(
-                  "$count Membres", 
+                  "${count} ${context.l10n.participants}", 
                   style: TextStyle(
                     color: isDark ? Colors.grey[400] : AppColors.textSecondary,
                     fontSize: 13,
@@ -1348,7 +1349,7 @@ ${tasksInfo.toString()}
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Réalisation totale",
+                context.l10n.globalProgress,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

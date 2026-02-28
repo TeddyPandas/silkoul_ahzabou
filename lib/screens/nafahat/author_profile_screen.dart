@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/media_models.dart';
 import '../../providers/media_provider.dart';
 import '../../config/app_theme.dart';
+import '../../utils/l10n_extensions.dart';
 import 'video_player_screen.dart';
 
 class AuthorProfileScreen extends StatefulWidget {
@@ -87,14 +88,14 @@ class _AuthorProfileScreenState extends State<AuthorProfileScreen> {
               }
               if (snapshot.hasError) {
                 return SliverFillRemaining(
-                  child: Center(child: Text('Erreur: ${snapshot.error}')),
+                  child: Center(child: Text(context.l10n.errorOccurred(snapshot.error.toString()))),
                 );
               }
 
               final videos = snapshot.data ?? [];
               if (videos.isEmpty) {
-                return const SliverFillRemaining(
-                  child: Center(child: Text('Aucune vidéo disponible.')),
+                return SliverFillRemaining(
+                  child: Center(child: Text(context.l10n.noVideosAvailable)),
                 );
               }
 

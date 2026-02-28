@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../widgets/admin_sidebar.dart';
+import '../../../../utils/l10n_extensions.dart';
 
 class AdminScaffold extends StatelessWidget {
   final Widget body;
@@ -21,9 +22,22 @@ class AdminScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     
-    // Protection basique : Redirection si non admin
-    // Protection basique : Ecran "Accès Interdit" au lieu de redirection (pour éviter la boucle infinie)
-    if (!authProvider.isLoading && authProvider.isAuthenticated && !authProvider.isAdmin) {
+    // ✅ Protection : Check if loading, authenticated, and has admin role
+    if (authProvider.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!authProvider.isAuthenticated) {
+      // Redirect to login if not authenticated
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+           Navigator.of(context).pushReplacementNamed('/login');
+        }
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!authProvider.isAdmin) {
        return Scaffold(
          body: Center(
            child: Column(
@@ -31,15 +45,15 @@ class AdminScaffold extends StatelessWidget {
              children: [
                const Icon(Icons.lock_person, size: 80, color: Colors.redAccent),
                const SizedBox(height: 24),
-               const Text(
-                 "Accès Refusé",
-                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-               ),
-               const SizedBox(height: 8),
-               const Text(
-                 "Votre compte n'a pas les droits d'administrateur.",
-                 style: TextStyle(color: Colors.grey),
-               ),
+                Text(
+                  context.l10n.accessDenied,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n.noAdminRights,
+                  style: const TextStyle(color: Colors.grey),
+                ),
                const SizedBox(height: 32),
                ElevatedButton.icon(
                  onPressed: () async {
@@ -49,7 +63,7 @@ class AdminScaffold extends StatelessWidget {
                     }
                  },
                  icon: const Icon(Icons.logout),
-                 label: const Text("Se déconnecter"),
+                 label: Text(context.l10n.logoutNav),
                  style: ElevatedButton.styleFrom(
                    backgroundColor: Colors.redAccent,
                    foregroundColor: Colors.white,

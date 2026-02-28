@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../config/app_theme.dart';
 import '../../../utils/error_handler.dart';
+import '../../../utils/l10n_extensions.dart';
 import '../../calendar/models/course.dart';
 import '../../calendar/providers/calendar_provider.dart';
 
@@ -342,8 +343,8 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🔄 Cours reprogrammé + notification Telegram envoyée', style: TextStyle(color: Colors.white)),
+        SnackBar(
+          content: Text(context.l10n.courseRescheduledNotifSent, style: const TextStyle(color: Colors.white)),
           backgroundColor: AppColors.tealPrimary,
         ),
       );
@@ -363,18 +364,18 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.cancel, color: AppColors.error),
-            SizedBox(width: 8),
-            Text('Annuler ce cours'),
+            const Icon(Icons.cancel, color: AppColors.error),
+            const SizedBox(width: 8),
+            Text(context.l10n.cancelCourseTitle),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Voulez-vous annuler le cours "${course.title}" ?'),
+            Text(context.l10n.confirmCancelCourse(course.title)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
@@ -383,14 +384,14 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.orange.shade200),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                  SizedBox(width: 8),
+                  const Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Une notification d\'annulation sera envoyée sur le canal Telegram.',
-                      style: TextStyle(fontSize: 13, color: Colors.orange),
+                      context.l10n.cancelNotifTelegramInfo,
+                      style: const TextStyle(fontSize: 13, color: Colors.orange),
                     ),
                   ),
                 ],
@@ -401,7 +402,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Non, garder'),
+            child: Text(context.l10n.noKeepBtn),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -410,7 +411,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
             ),
             onPressed: () => Navigator.pop(ctx, true),
             icon: const Icon(Icons.cancel),
-            label: const Text('Oui, annuler le cours'),
+            label: Text(context.l10n.yesCancelBtn),
           ),
         ],
       ),
@@ -420,8 +421,8 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
       final success = await context.read<CalendarProvider>().cancelCourse(course.id);
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Cours annulé + notification Telegram envoyée', style: TextStyle(color: Colors.white)),
+          SnackBar(
+            content: Text(context.l10n.courseCanceledNotifSent, style: const TextStyle(color: Colors.white)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -437,17 +438,17 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer ce cours'),
-        content: Text('Voulez-vous supprimer "${course.title}" sans notifier le canal ?'),
+        title: Text(context.l10n.deleteCourseTitle),
+        content: Text(context.l10n.confirmDeleteCourseSilent(course.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Non'),
+            child: Text(context.l10n.noBtn),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Supprimer', style: TextStyle(color: Colors.white)),
+            child: Text(context.l10n.deleteBtn, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -457,7 +458,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
       final success = await context.read<CalendarProvider>().deleteCourse(course.id);
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cours supprimé', style: TextStyle(color: Colors.white)), backgroundColor: AppColors.error),
+          SnackBar(content: Text(context.l10n.courseDeleted, style: const TextStyle(color: Colors.white)), backgroundColor: AppColors.error),
         );
       }
     }
@@ -531,31 +532,43 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                 children: [
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Titre du cours',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.title),
+              decoration: InputDecoration(
+                labelText: context.l10n.courseTitle,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.title),
               ),
-              validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
+              validator: (v) => v == null || v.isEmpty ? context.l10n.required : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _teacherController,
-              decoration: const InputDecoration(
-                labelText: 'Nom du professeur (optionnel)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
+              decoration: InputDecoration(
+                labelText: context.l10n.teacherOptional,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.person),
               ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _linkController,
-              decoration: const InputDecoration(
-                labelText: 'Lien Telegram (Canal)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.link),
+              decoration: InputDecoration(
+                labelText: context.l10n.telegramLinkChannel,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.link),
               ),
               keyboardType: TextInputType.url,
+              validator: (v) {
+                if (v == null || v.isEmpty) return null;
+                // Security: Basic URL validation to prevent malicious links
+                final uri = Uri.tryParse(v);
+                if (uri == null || !uri.hasAbsolutePath) {
+                  return 'URL invalide'; // Should be localized if possible
+                }
+                if (!v.startsWith('https://t.me/') && !v.startsWith('https://telegram.me/')) {
+                  return 'Doit être un lien Telegram public (https://t.me/...)';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             Row(
@@ -564,10 +577,10 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                   child: InkWell(
                     onTap: _selectDate,
                     child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Date de début',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.calendar_today),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.startDate,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.calendar_today),
                       ),
                       child: Text(DateFormat('dd/MM/yyyy').format(_selectedDate)),
                     ),
@@ -578,10 +591,10 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                   child: InkWell(
                     onTap: _selectTime,
                     child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Heure',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.access_time),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.time,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.access_time),
                       ),
                       child: Text(_selectedTime.format(context)),
                     ),
@@ -595,15 +608,15 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _recurrence,
-                    decoration: const InputDecoration(
-                      labelText: 'Récurrence',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.repeat),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.recurrence,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.repeat),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'once', child: Text('Unique')),
-                      DropdownMenuItem(value: 'weekly', child: Text('Chaque semaine')),
-                      DropdownMenuItem(value: 'daily', child: Text('Chaque jour')),
+                    items: [
+                      DropdownMenuItem(value: 'once', child: Text(context.l10n.once)),
+                      DropdownMenuItem(value: 'weekly', child: Text(context.l10n.weekly)),
+                      DropdownMenuItem(value: 'daily', child: Text(context.l10n.daily)),
                     ],
                     onChanged: (val) {
                       if (val != null) setState(() => _recurrence = val);
@@ -614,10 +627,10 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                 Expanded(
                   child: TextFormField(
                     initialValue: _durationMinutes.toString(),
-                    decoration: const InputDecoration(
-                      labelText: 'Durée (min)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.timer),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.durationMin,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.timer),
                     ),
                     keyboardType: TextInputType.number,
                     onChanged: (v) {
@@ -631,9 +644,9 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _descController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optionnelle)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.l10n.descOptional,
+                border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
               maxLines: 3,
@@ -649,7 +662,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
               icon: _isSaving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.send),
-              label: const Text('Créer le cours + Notifier Telegram', style: TextStyle(fontSize: 15)),
+              label: Text(context.l10n.createAndNotifyTelegram, style: const TextStyle(fontSize: 15)),
             ),
           ],
             ),
@@ -670,13 +683,13 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
         final originalCourses = provider.courses;
 
         if (originalCourses.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.school_outlined, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
-                Text('Aucun cours n\'a été créé.', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                const Icon(Icons.school_outlined, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(context.l10n.noCoursesCreated, style: const TextStyle(color: Colors.white70, fontSize: 16)),
               ],
             ),
           );
@@ -736,7 +749,11 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            course.recurrenceLabel,
+                            course.recurrence == 'weekly' 
+                                ? context.l10n.recurrenceWeekly 
+                                : course.recurrence == 'daily' 
+                                    ? context.l10n.recurrenceDaily 
+                                    : context.l10n.recurrenceOnce,
                             style: TextStyle(
                               fontSize: 11,
                               color: course.isRecurring ? Colors.blue.shade200 : Colors.grey.shade400,
@@ -795,7 +812,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                         TextButton.icon(
                           onPressed: () => _showEditDialog(course),
                           icon: const Icon(Icons.edit_calendar, size: 18),
-                          label: const Text('Modifier'),
+                          label: Text(context.l10n.editBtn),
                           style: TextButton.styleFrom(foregroundColor: AppColors.tealPrimary),
                         ),
                         const SizedBox(width: 8),
@@ -803,7 +820,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                         TextButton.icon(
                           onPressed: () => _cancelCourse(course),
                           icon: const Icon(Icons.cancel_outlined, size: 18),
-                          label: const Text('Annuler'),
+                          label: Text(context.l10n.cancel),
                           style: TextButton.styleFrom(foregroundColor: Colors.orange),
                         ),
                         const SizedBox(width: 8),
@@ -812,7 +829,7 @@ class _AdminCourseScreenState extends State<AdminCourseScreen> {
                           onPressed: () => _deleteCourse(course),
                           icon: const Icon(Icons.delete_outline, size: 20),
                           color: Colors.red.shade300,
-                          tooltip: 'Supprimer (sans notification)',
+                          tooltip: context.l10n.deleteTooltip,
                         ),
                       ],
                     ),

@@ -11,6 +11,7 @@ import 'package:silkoul_ahzabou/modules/teachings/models/author.dart';
 import 'package:silkoul_ahzabou/modules/teachings/models/category.dart';
 import 'package:silkoul_ahzabou/content/pole_biography.dart';
 import 'package:silkoul_ahzabou/widgets/primary_app_bar.dart';
+import 'package:silkoul_ahzabou/utils/l10n_extensions.dart';
 
 class SilsilaScreen extends StatefulWidget {
   const SilsilaScreen({super.key});
@@ -47,7 +48,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
 
     return Scaffold(
       appBar: PrimaryAppBar(
-        title: 'Ma Silsila',
+        title: context.l10n.silsila,
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
@@ -68,7 +69,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
 
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text('Erreur: ${snapshot.error}'),
+                    child: Text("${context.l10n.errorOccurred('')} ${snapshot.error}"),
                   );
                 }
 
@@ -109,7 +110,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
       floatingActionButton: profile != null && profile.silsilaId != null ? FloatingActionButton.extended(
         onPressed: () => _showAddSilsilaSheet(context, isRoot: false),
         icon: const Icon(Icons.add_link),
-        label: const Text('Ajouter une connexion'),
+        label: Text(context.l10n.addConnection),
       ) : null,
     );
   }
@@ -122,16 +123,16 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
           Icon(Icons.account_tree_outlined, size: 80, color: Theme.of(context).disabledColor),
           const SizedBox(height: 16),
           Text(
-            'Aucune Silsila configurée',
+            context.l10n.noResultsFound,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          const Text('Commencez par définir votre Muqaddam.'),
+          Text(context.l10n.defineMuqaddam),
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () => _showAddSilsilaSheet(context, isRoot: true),
             icon: const Icon(Icons.add),
-            label: const Text('Créer ma Chaîne'),
+            label: Text(context.l10n.createChain),
           ),
         ],
       ),
@@ -287,9 +288,9 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
 
             const SizedBox(height: 16),
             if (node.isGlobal) ...[
-                const Chip(
-                  label: Text('Cheikh Reconnu'),
-                  avatar: Icon(Icons.verified, size: 16),
+                Chip(
+                  label: Text(context.l10n.recognizedCheikh),
+                  avatar: const Icon(Icons.verified, size: 16),
                 ),
             ],
 
@@ -310,7 +311,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
                   _showParentPicker(context, node);
                 },
                 icon: const Icon(Icons.link),
-                label: const Text('Ajouter son Maître (Étendre la chaîne)'),
+                label: Text(context.l10n.addMaster),
               ),
             ],
             
@@ -321,7 +322,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
               TextButton.icon(
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 icon: const Icon(Icons.delete_outline),
-                label: const Text("Supprimer ce nœud"),
+                label: Text(context.l10n.delete),
                 onPressed: () => _confirmDelete(context, node),
               ),
             ],
@@ -358,7 +359,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
              // Reload
            }
           setState(() => _loadGraph());
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nœud supprimé.')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.nodeDeleted)));
         }
       } catch (e) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
@@ -376,7 +377,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
           try {
             await _silsilaService.addConnection(childId: childNode.id, parentId: selectedParent.id);
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connexion ajoutée !')));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.connectionAdded)));
               setState(() => _loadGraph());
             }
           } catch (e) {
@@ -435,7 +436,7 @@ class _SilsilaScreenState extends State<SilsilaScreen> {
                   if (mounted) {
                     Navigator.pop(context); // Close details
                     setState(() => _loadGraph());
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Intermédiaire inséré avec succès !')));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.intermediateInserted)));
                   }
                 } catch (e) {
                   if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur insertion: $e')));

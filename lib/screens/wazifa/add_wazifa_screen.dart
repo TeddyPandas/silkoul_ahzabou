@@ -7,6 +7,7 @@ import '../../providers/wazifa_provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'location_picker_screen.dart';
 import '../../widgets/primary_app_bar.dart';
+import '../../utils/l10n_extensions.dart';
 
 class AddWazifaScreen extends StatefulWidget {
   const AddWazifaScreen({super.key});
@@ -109,14 +110,14 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Lieu ajouté avec succès ! 🕌')),
+            SnackBar(content: Text(context.l10n.successAddGathering)),
           );
           Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Impossible d\'ajouter le lieu. Veuillez réessayer.')),
+            SnackBar(content: Text(context.l10n.errorAddGathering)),
           );
         }
       }
@@ -137,8 +138,8 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
     // mais ici on veut forcement la position *actuelle* précise pour l'ajout.
 
     return Scaffold(
-      appBar: const PrimaryAppBar(
-        title: 'Ajouter un lieu Wazifa',
+      appBar: PrimaryAppBar(
+        title: context.l10n.addGathering,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -150,23 +151,23 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
               // --- NOM ---
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nom du lieu (Ex: Zawiya...)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.mosque),
+                decoration: InputDecoration(
+                  labelText: context.l10n.gatheringNameHint,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.mosque),
                 ),
                 validator: (v) =>
-                    v == null || v.isEmpty ? 'Nom requis' : null,
+                    v == null || v.isEmpty ? context.l10n.gatheringNameRequired : null,
               ),
               const SizedBox(height: 16),
 
               // --- DESCRIPTION ---
               TextFormField(
                 controller: _descController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (Optionnel)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description),
+                decoration: InputDecoration(
+                  labelText: context.l10n.descriptionHint,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.description),
                   hintText: 'Ex: Tapis disponibles, entrée latérale...',
                 ),
                 maxLines: 2,
@@ -174,23 +175,23 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
               const SizedBox(height: 20),
 
               // --- RYTHME (Choice Chips) ---
-              const Text('Rythme de la Wazifa',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(context.l10n.rhythm,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildRhythmChip(WazifaRhythm.SLOW, "Lent 🐢", Colors.green),
+                  _buildRhythmChip(WazifaRhythm.SLOW, "${context.l10n.low} 🐢", Colors.green),
                   _buildRhythmChip(
-                      WazifaRhythm.MEDIUM, "Moyen 🚶", Colors.orange),
-                  _buildRhythmChip(WazifaRhythm.FAST, "Rapide 🏃", Colors.red),
+                      WazifaRhythm.MEDIUM, "${context.l10n.medium} 🚶", Colors.orange),
+                  _buildRhythmChip(WazifaRhythm.FAST, "${context.l10n.high} 🏃", Colors.red),
                 ],
               ),
               const SizedBox(height: 20),
 
               // --- HORAIRES ---
-              const Text('Horaires Habituels',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(context.l10n.time,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -222,12 +223,12 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.location_on),
-                          SizedBox(width: 8),
-                          Text("Localisation GPS",
-                              style: TextStyle(
+                          const Icon(Icons.location_on),
+                          const SizedBox(width: 8),
+                          Text(context.l10n.location,
+                              style: const TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
                       ),
@@ -240,7 +241,7 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
                           style: const TextStyle(fontSize: 18),
                         )
                       else
-                        const Text("Aucune position détectée"),
+                        Text(context.l10n.noResultsFound), // Reusing existing noResultsFound for no position
                       const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -248,12 +249,12 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
                           ElevatedButton.icon(
                             onPressed: _getCurrentLocation,
                             icon: const Icon(Icons.my_location),
-                            label: const Text('Ma Position'),
+                            label: Text(context.l10n.useCurrentLocation),
                           ),
                           ElevatedButton.icon(
                             onPressed: _pickOnMap,
                             icon: const Icon(Icons.map),
-                            label: const Text('Choisir sur carte'),
+                            label: Text(context.l10n.pickOnMap),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: theme.colorScheme.secondary,
                               foregroundColor: theme.colorScheme.onSecondary,
@@ -280,8 +281,8 @@ class _AddWazifaScreenState extends State<AddWazifaScreen> {
                     ),
                     child: provider.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('ENREGISTRER LE LIEU',
-                            style: TextStyle(fontSize: 18)),
+                        : Text(context.l10n.save,
+                            style: const TextStyle(fontSize: 18)),
                   );
                 },
               ),
